@@ -10,6 +10,7 @@ cd "$(dirname "$0")/.."
 script/bootstrap
 
 echo "==> Setting up dotfiles…"
+git submodule update --init --recursive
 env RCRC=$HOME/.dotfiles/rcrc rcup
 
 echo "==> Dotfiles now ready to go!"
