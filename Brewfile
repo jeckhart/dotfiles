@@ -78,6 +78,7 @@ brew 'vim'
 # cask 'sublime-text'
 cask 'visual-studio-code'
 cask 'gitup'
+cask 'iterm2'
 
 # other apps
 cask 'slack'
