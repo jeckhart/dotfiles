@@ -19,7 +19,7 @@ brew 'reattach-to-user-namespace'
 brew 'the_silver_searcher'
 brew 'mas'
 brew 'tmux'
-brew 'vim'
+# brew 'vim'
 brew 'watchman'
 brew 'zsh'
 brew 'fortune'                 # Dependency of Atom package fortune-background-tips
@@ -74,7 +74,7 @@ cask 'keybase'                 # Command-line encryption tool
 # Editors & IDEs
 cask 'atom'
 brew 'neovim'
-brew 'vim'
+# brew 'vim'
 # cask 'sublime-text'
 cask 'visual-studio-code'
 cask 'gitup'
