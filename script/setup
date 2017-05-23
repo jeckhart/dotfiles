@@ -13,4 +13,7 @@ echo "==> Setting up dotfiles…"
 git submodule update --init --recursive
 env RCRC=$HOME/.dotfiles/rcrc rcup
 
+echo "==> Setting default shell to zsh…"
+sudo dscl . -create /Users/$USER UserShell /usr/local/bin/zsh
+
 echo "==> Dotfiles now ready to go!"
