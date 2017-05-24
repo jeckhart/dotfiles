@@ -82,6 +82,7 @@ cask 'iterm2' unless system "[[ -e /Applications/iTerm.app ]]"
 
 # other apps
 cask 'slack'
+cask 'hipchat'
 cask 'skype'
 # cask 'firefox'
 cask 'licecap'
