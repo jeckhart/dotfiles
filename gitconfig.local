@@ -1,0 +1,9 @@
+[user]
+  name = John Eckhart
+  email = jweckhart@gmail.com
+[github]
+  user = jeckhart
+[push]
+  default = simple
+[credential]
+  helper = osxkeychain
