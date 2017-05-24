@@ -45,7 +45,7 @@ brew 'ruby-build'
 
 # Java/Scala/JVM
 brew 'jenv'
-cask 'java'
+cask 'java' unless system "/usr/libexec/java_home --failfast"
 brew 'sbt'
 
 # Python
@@ -68,7 +68,7 @@ brew 'terraform'
 # Security
 # cask 'cloak'                   # like google wifi vpn
 cask 'gpgtools'
-cask 'keybase'                 # Command-line encryption tool
+cask 'keybase' unless system "[[ -e /Applications/Keybase.app || -e /usr/local/bin/keybase ]]"                 # Command-line encryption tool
 # cask 'viscosity'               # openvpn client
 
 # Editors & IDEs
@@ -78,7 +78,7 @@ brew 'neovim'
 # cask 'sublime-text'
 cask 'visual-studio-code'
 cask 'gitup'
-cask 'iterm2'
+cask 'iterm2' unless system "[[ -e /Applications/iTerm.app ]]"
 
 # other apps
 cask 'slack'
