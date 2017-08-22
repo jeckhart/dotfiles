@@ -1,3 +1,4 @@
 EXCLUDES="README.md LICENSE script thoughtbot-dotfiles"
 DOTFILES_DIRS="$HOME/.dotfiles $HOME/.dotfiles/thoughtbot-dotfiles"
 UNDOTTED="Library"
+SYMLINK_DIRS="config/nvim"
