@@ -117,7 +117,7 @@ brew 'testssl'                    # Test various compliance issues with SSL endp
 
 # Security
 # cask 'cloak'                   # like google wifi vpn
-cask 'gpgtools'
+cask 'gpg-suite'
 cask 'keybase' unless system "[[ -e /Applications/Keybase.app || -e /usr/local/bin/keybase ]]"                 # Command-line encryption tool
 # cask 'viscosity'               # openvpn client
 
