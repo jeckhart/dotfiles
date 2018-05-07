@@ -1,0 +1,5 @@
+
+# Use lab wrapper around git (which also wraps "hub")
+alias git="lab"
+
+
