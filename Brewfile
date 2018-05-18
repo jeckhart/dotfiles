@@ -76,9 +76,9 @@ brew 'rbenv'                      # Manage multiple versions of ruby
 brew 'ruby-build'                 # 
 
 # Java/Scala/JVM
+cask 'java' unless system "/usr/libexec/java_home --failfast"
 brew 'gradle'                     # Built tool and dependecy manager for Java (and other langs). Used for the Android app. Additionally, some tools we use are written in Java (Jenkins) so it's helpful when testing new versions or plugins.
 brew 'jenv'                       # Manage multiple java environments
-cask 'java' unless system "/usr/libexec/java_home --failfast"
 brew 'maven'                      # Another java build tool. Used to build some libraries and tools
 brew 'sbt'                        # Scala built tool
 
@@ -90,8 +90,8 @@ brew 'pyenv-virtualenvwrapper'    # Wrap virtualenv scripts to make then easy to
 brew 'php@7.0'                    # For a recent version of php. This needs to be updated to 7.2
 
 # Go
-tap 'go-delve/delve'
-brew 'delve'                      # Debugger for go programming language
+# tap 'go-delve/delve'
+# brew 'delve'                      # Debugger for go programming language
 brew 'go'                         # Many of our tools and plugins are written in go (k8s, gitlab CI, terraform, etc)
 
 # DevOps
