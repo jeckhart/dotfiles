@@ -1,5 +1,5 @@
 
-# Use lab wrapper around git (which also wraps "hub")
+# Use lab wrapper around git (which also wraps "hub") - also continue to use the
+# git completions for "lab"
 alias git="lab"
-
 
