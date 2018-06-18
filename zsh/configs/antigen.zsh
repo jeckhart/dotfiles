@@ -17,6 +17,7 @@ antigen bundles <<EOBUNDLES
   zsh-users/zsh-syntax-highlighting
   zsh-users/zsh-completions
   nojhan/liquidprompt
+  kubectl
 EOBUNDLES
 
 antigen theme gentoo
