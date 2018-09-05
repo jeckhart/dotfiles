@@ -5,9 +5,10 @@ tap 'homebrew/services'
 tap 'caskroom/cask'
 
 # additional taps
-tap 'thoughtbot/formulae'      # Required for gitsh and rcm
+tap 'thoughtbot/formulae'       # Required for gitsh and rcm
 tap 'caskroom/fonts'
-tap 'neovim/neovim'            # Neovim is a vim reimplentation. It's coming along but probably not a daily driver yet
+tap 'neovim/neovim'             # Neovim is a vim reimplentation. It's coming along but probably not a daily driver yet
+tap 'bazelbuild/tap', pin: true # Used to bring in the latest version of the Bazel build tool
 
 # Early requirements
 brew 'openssl'                    # Install a recent version of openssl as other homebrew apps will depend on this.
@@ -47,6 +48,7 @@ brew 'lab'                        # lab is a command-line wrapper for git that m
 
 # dev things and package managers
 brew 'antigen'                    # Package manager and plugin manager for zsh
+brew 'bazel'                      # Googles build tool. Works well with monorepos
 brew 'cmake'                      # Build tool for Makefiles
 cask 'docker'                     # Container runtime
 # brew 'docker-machine-driver-xhyve' # Docker Machine driver for xhyve
