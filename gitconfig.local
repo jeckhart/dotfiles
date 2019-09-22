@@ -10,3 +10,9 @@
   helper = osxkeychain
 [commit]
   gpgsign = true
+
+[includeIf "gitdir:~/projects/work"]
+  path = ~/.gitconfig.work
+
+[includeIf "gitdir:~/projects/personal"]
+  path = ~/.gitconfig.personal
