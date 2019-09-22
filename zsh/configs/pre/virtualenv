@@ -1,7 +1,7 @@
 # virtualenv and virtualenvwrapper
-if [ -z "${VIRTUALENVWRAPPER_PYTHON}" ] || [ "${VIRTUALENVWRAPPER_PYTHON}" = "" ] ; then
-  export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
-  source /usr/local/bin/virtualenvwrapper.sh
-
-  export PATH="/usr/local/opt/python/libexec/bin:$PATH"
-fi
+#if [ -z "${VIRTUALENVWRAPPER_PYTHON}" ] || [ "${VIRTUALENVWRAPPER_PYTHON}" = "" ] ; then
+#  export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
+#  source /usr/local/bin/virtualenvwrapper.sh
+#
+#  export PATH="/usr/local/opt/python/libexec/bin:$PATH"
+#fi

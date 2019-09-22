@@ -86,7 +86,9 @@ brew 'sbt'                        # Scala built tool
 
 # Python
 brew 'pipenv'                     # Manage multiple versions of through the use of a Pipfile
-brew 'pyenv-virtualenvwrapper'    # Wrap virtualenv scripts to make then easy to use
+#brew 'pyenv-virtualenvwrapper'    # Wrap virtualenv scripts to make then easy to use
+brew 'pyenv'                      # Install multiple versions of python
+brew 'pyenv-virtualenv'           # Support multiple workspaces with different versions of python
 
 # PHP
 brew 'php@7.0'                    # For a recent version of php. This needs to be updated to 7.2
