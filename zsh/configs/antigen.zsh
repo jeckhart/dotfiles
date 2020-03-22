@@ -18,6 +18,7 @@ antigen bundles <<EOBUNDLES
   zsh-users/zsh-completions
   nojhan/liquidprompt
   kubectl
+  matthieusb/zsh-sdkman
 EOBUNDLES
 
 antigen theme gentoo
