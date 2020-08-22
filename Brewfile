@@ -32,6 +32,7 @@ brew 'the_silver_searcher'        # Faster than grep
 brew 'tmux'                       # Keep a command-line open between terminal sessions (like 'screen')
 
 # Command line tools
+brew 'fzf'                        # Commandline line fuzzy finder
 brew 'fortune'                    # Dependency of Atom package fortune-background-tips
 brew 'jq'                         # A command line client for dealing with json
 brew 'todo-txt'                   # A command line todo app

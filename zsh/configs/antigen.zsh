@@ -8,6 +8,7 @@ if [ "$OSTYPE"="darwin15.0" ]; then
 fi
 
 antigen bundles <<EOBUNDLES
+  fzf
   git
   git-extras
   pip

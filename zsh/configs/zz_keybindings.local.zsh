@@ -31,6 +31,8 @@ key[PageDown]=${terminfo[knp]}
 
 bindkey "^[b" backward-word
 bindkey "^[f" forward-word
+bindkey '^R' fzf-history-widget
+bindkey "^R" fzf-history-widget
 
 # Finally, make sure the terminal is in application mode, when zle is
 # active. Only then are the values from $terminfo valid.
