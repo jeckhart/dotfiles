@@ -39,9 +39,10 @@ brew 'watch'                      # Executes a program periodically, showing out
 brew 'watchman'                   # Watch for file changes
 brew 'wget'                       # Command like http client (use curl when possible)
 
-# GitHub and GitLab
+# VCS
 # Note: there is also a version that works with GitLab in cask 'zaquestion/tap'
 brew 'hub'                        # hub is a command-line wrapper for git that makes you better at GitHub.
+brew 'svn'                        # I never use svn, but sdkman completion looks for it and is slow w/o
 
 # dev things and package managers
 brew 'antigen'                    # Package manager and plugin manager for zsh
@@ -119,7 +120,7 @@ cask 'keybase' unless system "[[ -e /Applications/Keybase.app || -e /usr/local/b
 # cask 'viscosity'               # openvpn client
 
 # Editors & IDEs
-cask 'atom'                    # A solid multipurpose editor. Great for JS/TS projects
+# cask 'atom'                    # A solid multipurpose editor. Great for JS/TS projects
 brew 'neovim'                  # Neovim is a vim reimplentation. It's coming along but probably not a daily driver yet
 # brew 'vim'
 # cask 'sublime-text'
