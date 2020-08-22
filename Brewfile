@@ -47,6 +47,7 @@ brew 'hub'                        # hub is a command-line wrapper for git that m
 brew 'antigen'                    # Package manager and plugin manager for zsh
 brew 'bazel'                      # Googles build tool. Works well with monorepos
 brew 'cmake'                      # Build tool for Makefiles
+brew 'direnv'                     # Read env config from files in your dir
 cask 'docker'                     # Container runtime
 # brew 'docker-machine-driver-xhyve' # Docker Machine driver for xhyve
 brew 'grpc'                       # The grpc command line client. GRPC is a modern RPC framework that we will use for services. It also brings in protobuf plugins for various languages we use.
