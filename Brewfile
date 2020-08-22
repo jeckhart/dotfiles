@@ -38,7 +38,6 @@ brew 'todo-txt'                   # A command line todo app
 brew 'watch'                      # Executes a program periodically, showing output fullscreen
 brew 'watchman'                   # Watch for file changes
 brew 'wget'                       # Command like http client (use curl when possible)
-brew 'zsh'                        # A better command line interpretter. Like bash (and mostly bash compatible)
 
 # GitHub and GitLab
 tap 'zaquestion/tap'
