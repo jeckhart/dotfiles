@@ -68,8 +68,7 @@ brew 'cocoapods'                  # Dependency manager for Cocoa projects
 
 # Javascript/Typescript
 brew 'nodenv'                     # Manage multiple versions of node
-brew 'yarn'                       # An npm alternative that is stable (some of this was folded back into npm as of npm v5)
-brew 'bower'                      # A frontend dependency manager
+brew 'pnpm'                       # An npm alternative that is fast
 
 # Ruby
 brew 'rbenv'                      # Manage multiple versions of ruby
