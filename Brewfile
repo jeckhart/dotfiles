@@ -32,7 +32,6 @@ brew 'the_silver_searcher'        # Faster than grep
 brew 'tmux'                       # Keep a command-line open between terminal sessions (like 'screen')
 
 # Command line tools
-brew 'curlish'                    # Curl wrapper that adds oauth 2.0
 brew 'fortune'                    # Dependency of Atom package fortune-background-tips
 brew 'jq'                         # A command line client for dealing with json
 brew 'todo-txt'                   # A command line todo app
