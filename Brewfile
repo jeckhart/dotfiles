@@ -2,11 +2,11 @@
 tap 'homebrew/core'
 tap 'homebrew/bundle'
 tap 'homebrew/services'
-tap 'caskroom/cask'
+tap 'homebrew/cask'
 
 # additional taps
 tap 'thoughtbot/formulae'       # Required for gitsh and rcm
-tap 'caskroom/fonts'
+tap 'homebrew/cask-fonts'
 tap 'neovim/neovim'             # Neovim is a vim reimplentation. It's coming along but probably not a daily driver yet
 tap 'bazelbuild/tap', pin: true # Used to bring in the latest version of the Bazel build tool
 
