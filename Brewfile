@@ -87,9 +87,6 @@ brew 'pipenv'                     # Manage multiple versions of through the use 
 brew 'pyenv'                      # Install multiple versions of python
 brew 'pyenv-virtualenv'           # Support multiple workspaces with different versions of python
 
-# PHP
-brew 'php@7.0'                    # For a recent version of php. This needs to be updated to 7.2
-
 # Go
 # tap 'go-delve/delve'
 # brew 'delve'                      # Debugger for go programming language
