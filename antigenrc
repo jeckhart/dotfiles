@@ -1,0 +1,31 @@
+
+antigen use oh-my-zsh
+
+# Oh-my-zsh hard defaults to emacs mode (ignoring the EDITOR default from zsh)
+# Let's switch back to viins for now
+antigen bundle vi-mode
+
+if [ "$OSTYPE"="darwin15.0" ]; then
+  antigen bundle osx
+  antigen bundle brew
+fi
+
+antigen bundles <<EOBUNDLES
+  fzf
+  git
+  git-extras
+  pip
+  colored-man-pages
+  gnu-utils
+  history
+  zsh-users/zsh-syntax-highlighting
+  zsh-users/zsh-completions
+  nojhan/liquidprompt
+  kubectl
+  matthieusb/zsh-sdkman
+EOBUNDLES
+
+antigen theme gentoo
+
+antigen apply
+
