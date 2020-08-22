@@ -50,7 +50,6 @@ brew 'bazel'                      # Googles build tool. Works well with monorepo
 brew 'cmake'                      # Build tool for Makefiles
 brew 'direnv'                     # Read env config from files in your dir
 cask 'docker'                     # Container runtime
-# brew 'docker-machine-driver-xhyve' # Docker Machine driver for xhyve
 brew 'grpc'                       # The grpc command line client. GRPC is a modern RPC framework that we will use for services. It also brings in protobuf plugins for various languages we use.
 brew 'imagemagick'                # Swiss army knife of image manipulation. However, it's a beast and should probably move into a docker container
 brew 'libyaml'                    # should come after openssl
@@ -100,7 +99,6 @@ brew 'terraform'                  # Manage our AWS infrastructure through code
 brew 'kops'                       # Kubernetes provisioner for cloud environments
 brew 'kubernetes-helm'            # Command line client for helm, a tool to simplify deploying infra on top of k8s
 brew 'testssl'                    # Test various compliance issues with SSL endpoints
-
 
 
 
