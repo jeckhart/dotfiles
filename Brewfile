@@ -93,7 +93,6 @@ brew 'pyenv-virtualenv'           # Support multiple workspaces with different v
 brew 'go'                         # Many of our tools and plugins are written in go (k8s, gitlab CI, terraform, etc)
 
 # DevOps
-brew 'ansible'                    # Used to automate several devops systems
 brew 'awscli'                     # AWS command line client
 brew 'packer'                     # Create concise vm images for a variety of platforms. Very useful to create repeatable AWS EC2 AMI's.
 brew 'terraform'                  # Manage our AWS infrastructure through code
