@@ -40,9 +40,8 @@ brew 'watchman'                   # Watch for file changes
 brew 'wget'                       # Command like http client (use curl when possible)
 
 # GitHub and GitLab
-tap 'zaquestion/tap'
+# Note: there is also a version that works with GitLab in cask 'zaquestion/tap'
 brew 'hub'                        # hub is a command-line wrapper for git that makes you better at GitHub.
-brew 'lab'                        # lab is a command-line wrapper for git that makes you better at GitLab.
 
 # dev things and package managers
 brew 'antigen'                    # Package manager and plugin manager for zsh
