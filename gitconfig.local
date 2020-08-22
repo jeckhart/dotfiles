@@ -4,6 +4,9 @@
   signingkey = jweckhart@gmail.com
 [github]
   user = jeckhart
+[pull]
+  ff = only
+  rebase = false
 [push]
   default = simple
 [credential]
