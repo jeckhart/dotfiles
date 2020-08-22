@@ -93,7 +93,7 @@ brew 'pyenv-virtualenv'           # Support multiple workspaces with different v
 brew 'go'                         # Many of our tools and plugins are written in go (k8s, gitlab CI, terraform, etc)
 
 # DevOps
-brew 'awscli'                     # AWS command line client
+brew 'awscli' unless system "[[ -e /usr/local/bin/aws ]]"                      # AWS command line client
 brew 'packer'                     # Create concise vm images for a variety of platforms. Very useful to create repeatable AWS EC2 AMI's.
 brew 'terraform'                  # Manage our AWS infrastructure through code
 brew 'kops'                       # Kubernetes provisioner for cloud environments
@@ -122,7 +122,7 @@ cask 'keybase' unless system "[[ -e /Applications/Keybase.app || -e /usr/local/b
 brew 'neovim'                  # Neovim is a vim reimplentation. It's coming along but probably not a daily driver yet
 # brew 'vim'
 # cask 'sublime-text'
-cask 'visual-studio-code'      # Another solid multipurpose editor. Similar to Atom. Sometimes better at JavaScript and TypeScript
+cask 'visual-studio-code' unless "[[ -e /Applications/Visual\ Studio\ Code.app ]]"     # Another solid multipurpose editor. Similar to Atom. Sometimes better at JavaScript and TypeScript
 cask 'iterm2' unless system "[[ -e /Applications/iTerm.app ]]" # Better than the built in terminal program
 
 # other apps
