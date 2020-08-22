@@ -11,18 +11,18 @@ if [ "$OSTYPE"="darwin15.0" ]; then
 fi
 
 antigen bundles <<EOBUNDLES
+  colored-man-pages
   fzf
   git
   git-extras
-  pip
-  colored-man-pages
   gnu-utils
   history
-  zsh-users/zsh-syntax-highlighting
-  zsh-users/zsh-completions
-  nojhan/liquidprompt
   kubectl
   matthieusb/zsh-sdkman
+  nojhan/liquidprompt
+  pip
+  zsh-users/zsh-syntax-highlighting
+  zsh-users/zsh-completions
 EOBUNDLES
 
 antigen theme gentoo
