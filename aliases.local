@@ -1,13 +1,4 @@
 
-# Use lab wrapper around git (which also wraps "hub") - also continue to use the
-# git completions for "lab"
-alias git="lab"
-alias aws-auth-security='eval "$(lpass show aws-auth-security --field Param1; lpass show aws-auth-security --field Param2)"'
-alias aws-auth-devtools='eval "$(lpass show aws-auth-security --field Param1; lpass show aws-johne-dev-arn-devtools --field Script)"'
-alias aws-auth-devtools-full='eval "$(lpass show aws-auth-security --field Param1; lpass show aws-johne-dev-arn-devtools-full --field Script)"'
-alias aws-auth-dev-full='eval "$(lpass show aws-auth-security --field Param1; lpass show aws-johne-full-arn-dev --field Script)"'
-alias aws-auth-it-full='eval "$(lpass show aws-auth-security --field Param1; lpass show aws-johne-full-arn-it --field Script)"'
-alias aws-auth-prod-full='eval "$(lpass show aws-auth-security --field Param1; lpass show aws-johne-full-arn-prod --field Script)"'
-alias aws-auth-prod00-full='eval "$(lpass show aws-auth-security --field Param1; lpass show aws-johne-full-arn-prod00 --field Script)"'
-alias aws-auth-houston-full='eval "$(lpass show aws-auth-security --field Param1; lpass show aws-johne-full-arn-houston --field Script)"'
+# Use hub wrapper around git
+alias git="hub"
 alias unsetaws='unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_EXPIRATION AWS_SESSION_TOKEN AWS_PROFILE AWS_PROFILE AWS_REGION AWS_DEFAULT_REGION'
