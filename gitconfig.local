@@ -14,8 +14,11 @@
 [commit]
   gpgsign = true
 
-[includeIf "gitdir:~/projects/work"]
+[includeIf "gitdir:~/projects/work/**"]
   path = ~/.gitconfig.work
 
-[includeIf "gitdir:~/projects/personal"]
+[includeIf "gitdir:~/projects/shopkeep/**"]
+  path = ~/.gitconfig.work
+
+[includeIf "gitdir:~/projects/personal/**"]
   path = ~/.gitconfig.personal
