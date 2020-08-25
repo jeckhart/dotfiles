@@ -7,10 +7,10 @@ antigen bundle vi-mode
 
 if [ "$OSTYPE"="darwin15.0" ]; then
   antigen bundle osx
-  antigen bundle brew
 fi
 
 antigen bundles <<EOBUNDLES
+  brew
   cargo
   colored-man-pages
   fzf
