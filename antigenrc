@@ -21,7 +21,10 @@ antigen bundles <<EOBUNDLES
   kubectl
   matthieusb/zsh-sdkman
   nojhan/liquidprompt
+  nvm
   pip
+  pyenv
+  rbenv
   rust
   rustup
   zsh-users/zsh-syntax-highlighting
