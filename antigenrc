@@ -20,8 +20,8 @@ antigen bundles <<EOBUNDLES
   history
   kubectl
   matthieusb/zsh-sdkman
-  nojhan/liquidprompt
   nvm
+  mafredri/zsh-async
   pip
   pyenv
   rbenv
@@ -31,7 +31,12 @@ antigen bundles <<EOBUNDLES
   zsh-users/zsh-completions
 EOBUNDLES
 
-antigen theme gentoo
+# Other themes that I've looked at and are interesting:
+#  nojhan/liquidprompt (goes in bundles)
+#  sindresorhus/pure (goes in bundles)
+#  denysdovhan/spaceship-prompt (goes in themes)
+#  gentoo (goes in themes)
+antigen theme romkatv/powerlevel10k
 
 antigen apply
 
