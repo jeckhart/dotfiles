@@ -10,6 +10,7 @@ if [ "$OSTYPE"="darwin15.0" ]; then
 fi
 
 antigen bundles <<EOBUNDLES
+  asdf
   brew
   cargo
   colored-man-pages
