@@ -20,13 +20,13 @@ brew 'rcm'                        # Help manage your dotfiles
 # Unix
 brew 'ctags'                      # Used to index source files to make searching easier
 brew 'git'                        # Git from Homebrew is newer than the version installed from macOS
-brew 'gitsh'                      # An interactive shell for git
+brew 'gitsh' if OS.mac?           # An interactive shell for git
 cask 'gitup'                      # Update multiple git repositories at once
 brew 'gnu-tar'                    # Linux style tar command
 brew 'lz4'                        # Support lz4 compressed artifacts
-brew 'mas'                        # Command line client for mac app store. Used to automate installation of some apps
+brew 'mas' if OS.mac?             # Command line client for mac app store. Used to automate installation of some apps
 brew 'mosh'                       # Remote terminal application
-brew 'reattach-to-user-namespace' # Reattach process (e.g., tmux) to background
+brew 'reattach-to-user-namespace' if OS.mac? # Reattach process (e.g., tmux) to background
 brew 'ripgrep'                    # Search tool like grep and The Silver Searcher
 brew 'the_silver_searcher'        # Faster than grep
 brew 'tmux'                       # Keep a command-line open between terminal sessions (like 'screen')
@@ -47,11 +47,11 @@ brew 'svn'                        # I never use svn, but sdkman completion looks
 
 # dev things and package managers
 brew 'antigen'                    # Package manager and plugin manager for zsh
-brew 'bazel'                      # Googles build tool. Works well with monorepos
+brew 'bazel' if OS.mac?           # Googles build tool. Works well with monorepos
 brew 'cmake'                      # Build tool for Makefiles
 brew 'direnv'                     # Read env config from files in your dir
 cask 'docker'                     # Container runtime
-brew 'grpc'                       # The grpc command line client. GRPC is a modern RPC framework that we will use for services. It also brings in protobuf plugins for various languages we use.
+brew 'grpc' if OS.mac?            # The grpc command line client. GRPC is a modern RPC framework that we will use for services. It also brings in protobuf plugins for various languages we use.
 brew 'imagemagick'                # Swiss army knife of image manipulation. However, it's a beast and should probably move into a docker container
 brew 'libyaml'                    # should come after openssl
 # brew 'nativefier'                 # Wrap web apps
@@ -64,7 +64,7 @@ brew 'zeromq'                     # Native libs for zeromq bindings in various l
 # brew 'opencv'                     # Open source computer vision library
 
 # iOS dev tools
-brew 'carthage'                   # Decentralized dependency manager for Cocoa
+brew 'carthage' if OS.mac?        # Decentralized dependency manager for Cocoa
 brew 'cocoapods'                  # Dependency manager for Cocoa projects
 
 # Javascript/Typescript
@@ -94,7 +94,7 @@ brew 'pyenv-virtualenv'           # Support multiple workspaces with different v
 brew 'go'                         # Many of our tools and plugins are written in go (k8s, gitlab CI, terraform, etc)
 
 # DevOps
-brew 'awscli' unless system "[[ -e /usr/local/bin/aws ]]"                      # AWS command line client
+brew 'awscli' unless system "[ -e /usr/local/bin/aws ]"                      # AWS command line client
 brew 'packer'                     # Create concise vm images for a variety of platforms. Very useful to create repeatable AWS EC2 AMI's.
 brew 'terraform'                  # Manage our AWS infrastructure through code
 brew 'kops'                       # Kubernetes provisioner for cloud environments
@@ -115,7 +115,7 @@ brew 'testssl'                    # Test various compliance issues with SSL endp
 # Security
 # cask 'cloak'                   # like google wifi vpn
 cask 'gpg-suite'
-cask 'keybase' unless system "[[ -e /Applications/Keybase.app || -e /usr/local/bin/keybase ]]"                 # Command-line encryption tool
+cask 'keybase' unless system "[ -e /Applications/Keybase.app ] || [ -e /usr/local/bin/keybase ]"                 # Command-line encryption tool
 # cask 'viscosity'               # openvpn client
 
 # Editors & IDEs
@@ -123,13 +123,13 @@ cask 'keybase' unless system "[[ -e /Applications/Keybase.app || -e /usr/local/b
 brew 'neovim'                  # Neovim is a vim reimplentation. It's coming along but probably not a daily driver yet
 # brew 'vim'
 # cask 'sublime-text'
-cask 'visual-studio-code' unless "[[ -e /Applications/Visual\ Studio\ Code.app ]]"     # Another solid multipurpose editor. Similar to Atom. Sometimes better at JavaScript and TypeScript
-cask 'iterm2' unless system "[[ -e /Applications/iTerm.app ]]" # Better than the built in terminal program
+cask 'visual-studio-code' unless "[ -e /Applications/Visual\ Studio\ Code.app ]"     # Another solid multipurpose editor. Similar to Atom. Sometimes better at JavaScript and TypeScript
+cask 'iterm2' unless system "[ -e /Applications/iTerm.app ]" # Better than the built in terminal program
 
 # other apps
-cask 'slack' unless system "[[ -e /Applications/Slack.app ]]"
+cask 'slack' unless system "[ -e /Applications/Slack.app ]"
 # cask 'hipchat'
-cask 'skype' unless system "[[ -e /Applications/Skype.app ]]"
+cask 'skype' unless system "[ -e /Applications/Skype.app ]"
 # cask 'firefox'
 cask 'licecap'
 # cask 'grammarly'
