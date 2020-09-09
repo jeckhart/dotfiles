@@ -1,0 +1,5 @@
+[[ -f ~/.donotcommit ]] && source ~/.donotcommit
+
+export LANG=en_US.ETF-8
+export DISPLAY="$(cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}'):0.0"
+
