@@ -21,7 +21,6 @@ antigen bundles <<EOBUNDLES
   history
   kubectl
   matthieusb/zsh-sdkman
-  nvm
   mafredri/zsh-async
   pip
   pyenv
