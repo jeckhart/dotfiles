@@ -7,8 +7,6 @@ tap 'homebrew/cask'
 # additional taps
 tap 'thoughtbot/formulae'         # Required for gitsh
 tap 'homebrew/cask-fonts'
-tap 'neovim/neovim'             # Neovim is a vim reimplentation. It's coming along but probably not a daily driver yet
-tap 'bazelbuild/tap', pin: true # Used to bring in the latest version of the Bazel build tool
 
 # Early requirements
 brew 'openssl'                    # Install a recent version of openssl as other homebrew apps will depend on this.
@@ -78,7 +76,6 @@ brew 'ruby-build'                 #
 # Java/Scala/JVM
 cask 'java' unless system "/usr/libexec/java_home --failfast"
 brew 'gradle'                     # Built tool and dependecy manager for Java (and other langs). Used for the Android app. Additionally, some tools we use are written in Java (Jenkins) so it's helpful when testing new versions or plugins.
-brew 'jenv'                       # Manage multiple java environments
 brew 'maven'                      # Another java build tool. Used to build some libraries and tools
 brew 'sbt'                        # Scala built tool
 
@@ -98,7 +95,6 @@ brew 'awscli' unless system "[ -e /usr/local/bin/aws ]" # AWS command line clien
 brew 'packer'                     # Create concise vm images for a variety of platforms. Very useful to create repeatable AWS EC2 AMI's.
 brew 'terraform'                  # Manage our AWS/GCE/K8S/etc infrastructure through code
 brew 'kops'                       # Kubernetes provisioner for cloud environments
-brew 'kubernetes-helm'            # Command line client for helm, a tool to simplify deploying infra on top of k8s
 brew 'testssl'                    # Test various compliance issues with SSL endpoints
 
 
@@ -118,17 +114,12 @@ cask 'keybase' unless system "[ -e /Applications/Keybase.app ] || [ -e /usr/loca
 # cask 'viscosity'               # openvpn client
 
 # Editors & IDEs
-# cask 'atom'                    # A solid multipurpose editor. Great for JS/TS projects
-# brew 'vim'
-# cask 'sublime-text'
 brew 'neovim'                  # Neovim is a vim reimplentation. It's stable enough to replace vim
 cask 'visual-studio-code' unless "[ -e /Applications/Visual\ Studio\ Code.app ]" # At this point the defacto multipurpose editor.
 cask 'iterm2' unless system "[ -e /Applications/iTerm.app ]" # Better than the built in terminal program
 
 # other apps
 cask 'slack' unless system "[ -e /Applications/Slack.app ]"
-# cask 'hipchat'
-cask 'skype' unless system "[ -e /Applications/Skype.app ]"
 # cask 'firefox'
 cask 'licecap'
 # cask 'grammarly'
