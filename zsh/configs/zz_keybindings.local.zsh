@@ -34,6 +34,12 @@ bindkey "^[f" forward-word
 bindkey '^R' fzf-history-widget
 bindkey "^R" fzf-history-widget
 
+bindkey "^[[5~" history-beginning-search-backward
+bindkey "^[[6~" history-beginning-search-forward
+bindkey "^[[1~" beginning-of-line
+bindkey "^[[4~" end-of-line
+
+
 # Finally, make sure the terminal is in application mode, when zle is
 # active. Only then are the values from $terminfo valid.
 function zle-line-init () {
