@@ -41,7 +41,6 @@ brew 'wget'                       # Command like http client (use curl when poss
 # VCS
 # Note: there is also a version that works with GitLab in cask 'zaquestion/tap'
 brew 'hub'                        # hub is a command-line wrapper for git that makes you better at GitHub.
-brew 'svn'                        # I never use svn, but sdkman completion looks for it and is slow w/o
 
 # dev things and package managers
 brew 'antigen'                    # Package manager and plugin manager for zsh

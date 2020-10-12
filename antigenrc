@@ -9,6 +9,9 @@ if [ "$OSTYPE"="darwin15.0" ]; then
   antigen bundle osx
 fi
 
+# Other notable bundles that Ive used but are currently disabled
+# sdkman - A worthy tool to install various jdk's and jdk toolchains
+
 antigen bundles <<EOBUNDLES
   asdf
   brew
@@ -21,7 +24,6 @@ antigen bundles <<EOBUNDLES
   gnu-utils
   history
   kubectl
-  matthieusb/zsh-sdkman
   mafredri/zsh-async
   pip
   pyenv
