@@ -14,6 +14,7 @@ brew 'openssl'                    # Install a recent version of openssl as other
 # Dotfiles
 brew 'asdf'                       # Extendable version manager with support for Ruby, Node.js, Erlang & more
 brew 'rcm'                        # Help manage your dotfiles
+brew 'socat'                      # Used primarily in WSL to link/share ssh-agent from windows
 
 # Unix
 brew 'ctags'                      # Used to index source files to make searching easier
