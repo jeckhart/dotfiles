@@ -1,6 +1,6 @@
 # Run these commands if we're running inside Windows Subsystem for Linux v2
 
-if [ -e /proc ] && [ $(grep -oE 'gcc version ([0-9]+)' /proc/version | awk '{print $3}') -gt 5 ] ; then
+if [ -e /proc ] && $(grep -oE 'WSL2' /proc/version >/dev/null 2>&1 ) ; then
   export LC_ALL=en_US.UTF-8
 
   SHARED_CONFIG=/mnt/wsl/shared
