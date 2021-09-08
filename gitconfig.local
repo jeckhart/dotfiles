@@ -20,5 +20,14 @@
 [includeIf "gitdir:~/projects/shopkeep/**"]
   path = ~/.gitconfig.work
 
+[includeIf "gitdir:~/projects/lsp/**"]
+  path = ~/.gitconfig.work
+
+[includeIf "gitdir:~/projects/lightspeed-payments/**"]
+  path = ~/.gitconfig.work
+
+[includeIf "gitdir:~/projects/lightspeedretail/**"]
+  path = ~/.gitconfig.work
+
 [includeIf "gitdir:~/projects/personal/**"]
   path = ~/.gitconfig.personal
