@@ -74,7 +74,7 @@ brew 'rbenv'                      # Manage multiple versions of ruby
 brew 'ruby-build'                 # 
 
 # Java/Scala/JVM
-cask 'java' unless system "/usr/libexec/java_home --failfast"
+# cask 'java' unless system "/usr/libexec/java_home --failfast" # Moved to asdf
 brew 'gradle'                     # Built tool and dependecy manager for Java (and other langs). Used for the Android app. Additionally, some tools we use are written in Java (Jenkins) so it's helpful when testing new versions or plugins.
 brew 'maven'                      # Another java build tool. Used to build some libraries and tools
 brew 'sbt'                        # Scala built tool
