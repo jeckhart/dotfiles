@@ -1,7 +1,7 @@
 [user]
   name = John Eckhart
-  email = jweckhart@gmail.com
-  signingkey = jweckhart@gmail.com
+  email = jweckhart@hey.com
+  signingkey = 4C08A56042F67D07
 [github]
   user = jeckhart
 [pull]
