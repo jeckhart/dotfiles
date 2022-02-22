@@ -6,7 +6,7 @@ antigen use oh-my-zsh
 antigen bundle vi-mode
 
 if [ "$OSTYPE"="darwin15.0" ]; then
-  antigen bundle osx
+  antigen bundle macos
 fi
 
 # Other notable bundles that Ive used but are currently disabled
@@ -15,7 +15,6 @@ fi
 antigen bundles <<EOBUNDLES
   asdf
   brew
-  cargo
   colored-man-pages
   direnv
   fzf
@@ -26,10 +25,9 @@ antigen bundles <<EOBUNDLES
   kubectl
   mafredri/zsh-async
   pip
-  pyenv
+#  pyenv
   rbenv
   rust
-  rustup
   vault
   zsh-users/zsh-syntax-highlighting
   zsh-users/zsh-completions
