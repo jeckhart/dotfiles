@@ -14,6 +14,18 @@ fancy_echo() {
   printf "\\n$fmt\\n" "$@"
 }
 
+# Setup Homebrew on path
+HOMEBREW_PREFIX="$(brew --prefix 2>/dev/null || true)"
+if [ -z "$HOMEBREW_PREFIX" ] || [ -z "$HOMEBREW_REPOSITORY" ]; then
+  UNAME_MACHINE="$(/usr/bin/uname -m)"
+  if [[ "$UNAME_MACHINE" == "arm64" ]]; then
+    HOMEBREW_PREFIX="/opt/homebrew"
+  else
+    HOMEBREW_PREFIX="/usr/local"
+  fi
+fi
+export PATH="$HOMEBREW_PREFIX/bin:$PATH"
+
 script/bootstrap
 
 fancy_echo "==> Setting up dotfiles…"
