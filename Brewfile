@@ -126,6 +126,5 @@ cask 'licecap'
 
 # Fonts
 cask 'font-menlo-for-powerline'
-cask 'font-source-code-pro-for-powerline'
 cask 'font-meslo-lg-nerd-font'
 
