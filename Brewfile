@@ -48,7 +48,7 @@ brew 'antigen'                    # Package manager and plugin manager for zsh
 brew 'bazel' if OS.mac?           # Googles build tool. Works well with monorepos
 brew 'cmake'                      # Build tool for Makefiles
 brew 'direnv'                     # Read env config from files in your dir
-cask 'docker'                     # Container runtime
+cask 'docker' unless system "[ -e /Applications/Docker.app ]" # Container runtime
 brew 'grpc' if OS.mac?            # The grpc command line client. GRPC is a modern RPC framework that we will use for services. It also brings in protobuf plugins for various languages we use.
 brew 'imagemagick'                # Swiss army knife of image manipulation. However, it's a beast and should probably move into a docker container
 brew 'libyaml'                    # should come after openssl
