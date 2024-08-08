@@ -42,6 +42,7 @@ brew 'wget'                       # Command like http client (use curl when poss
 # VCS
 # Note: there is also a version that works with GitLab in cask 'zaquestion/tap'
 # brew 'hub'                        # hub is a command-line wrapper for git that makes you better at GitHub.
+brew 'pre-commit'                 # Add pre-commit hooks to enable cleaner CI runs
 
 # dev things and package managers
 brew 'antigen'                    # Package manager and plugin manager for zsh
