@@ -94,7 +94,8 @@ brew 'go'                         # Many of our tools and plugins are written in
 # DevOps
 brew 'awscli' unless system "[ -e /usr/local/bin/aws ]" # AWS command line client
 # brew 'packer'                     # Create concise vm images for a variety of platforms. Very useful to create repeatable AWS EC2 AMI's.
-brew 'terraform'                  # Manage our AWS/GCE/K8S/etc infrastructure through code
+# brew 'terraform'                  # Manage our AWS/GCE/K8S/etc infrastructure through code
+brew 'opentofu'                  # Manage our AWS/GCE/K8S/etc infrastructure through code
 brew 'kops'                       # Kubernetes provisioner for cloud environments
 brew 'testssl'                    # Test various compliance issues with SSL endpoints
 
