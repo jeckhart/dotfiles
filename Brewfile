@@ -1,12 +1,12 @@
 # main taps - these are already theorically provided by strap
-tap 'homebrew/core'
+# tap 'homebrew/core'
 tap 'homebrew/bundle'
 tap 'homebrew/services'
-tap 'homebrew/cask'
+# tap 'homebrew/cask'
 
 # additional taps
 tap 'thoughtbot/formulae'         # Required for gitsh
-tap 'homebrew/cask-fonts'
+# tap 'homebrew/cask-fonts'
 
 # Early requirements
 brew 'openssl'                    # Install a recent version of openssl as other homebrew apps will depend on this.
