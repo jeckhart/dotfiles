@@ -36,6 +36,7 @@ brew 'fzf'                        # Commandline line fuzzy finder
 brew 'jq'                         # A command line client for dealing with json
 brew 'watch'                      # Executes a program periodically, showing output fullscreen
 brew 'wget'                       # Command like http client (use curl when possible)
+brew 'bat'                        # cat with wings
 
 # VCS
 # Note: there is also a version that works with GitLab in cask 'zaquestion/tap'
@@ -89,6 +90,13 @@ brew 'pyenv-virtualenv'           # Support multiple workspaces with different v
 # tap 'go-delve/delve'
 # brew 'delve'                      # Debugger for go programming language
 brew 'go'                         # Many of our tools and plugins are written in go (k8s, gitlab CI, terraform, etc)
+
+# Rust
+brew 'rust'
+brew 'cargo-deny'
+brew 'cargo-generate'
+brew 'cargo-make'
+brew 'cargo-nextest'
 
 # DevOps
 # brew 'packer'                     # Create concise vm images for a variety of platforms. Very useful to create repeatable AWS EC2 AMI's.
