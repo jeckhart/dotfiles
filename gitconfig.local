@@ -31,3 +31,6 @@
 
 [includeIf "gitdir:~/projects/personal/**"]
   path = ~/.gitconfig.personal
+
+[includeIf "gitdir:~/projects/vela/**"]
+  path = ~/.gitconfig.vela
