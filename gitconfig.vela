@@ -5,4 +5,5 @@
 [github]
   user = jeckhart
 
-
+[core]
+  sshCommand = "ssh -i ~/.ssh/vela.pub -o IdentitiesOnly=yes"
