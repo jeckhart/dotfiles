@@ -38,7 +38,6 @@ EOBUNDLES
 #  sindresorhus/pure (goes in bundles)
 #  denysdovhan/spaceship-prompt (goes in themes)
 #  gentoo (goes in themes)
-antigen theme romkatv/powerlevel10k
 
 antigen apply
 
