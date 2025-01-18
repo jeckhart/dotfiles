@@ -2,4 +2,4 @@
 [[ -z "$CARGO_HOME" ]] && CARGO_HOME="${HOME}/.cargo"
 export RUSTUP_HOME CARGO_HOME
 
-[[ -d "${CARGO_HOME}" ]] && PATH="${PATH}:${CARGO_HOME}/bin"
+[[ -d "${CARGO_HOME}" ]] && PATH="${CARGO_HOME}/bin:${PATH}"
