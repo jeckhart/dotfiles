@@ -1,0 +1,17 @@
+# Repo meta-files — not deployed to ~
+README.md
+AGENTS.md
+CLAUDE.md
+Brewfile
+Brewfile.lock.json
+script
+thoughtbot-dotfiles
+.beads
+.gitmodules
+
+# p10k config: generated fresh per machine via 'p10k configure'
+.p10k.zsh
+
+# nvim config: migration handled separately (dotfiles-pip)
+.config/nvim
+.vim
