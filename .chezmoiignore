@@ -15,3 +15,6 @@ thoughtbot-dotfiles
 # nvim config: migration handled separately (dotfiles-pip)
 .config/nvim
 .vim
+
+# tmux plugins: installed at runtime by TPM (prefix + I)
+.config/tmux/plugins
