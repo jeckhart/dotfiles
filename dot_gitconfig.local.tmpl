@@ -1,6 +1,7 @@
 [user]
   name = John Eckhart
   email = jeckhart@hey.com
+  signingkey = {{ onepasswordRead (printf "op://%s/git-signing-personal/public key" .opVault) | trim }}
 [github]
   user = jeckhart
 [pull]
@@ -9,9 +10,16 @@
 [push]
   default = simple
 [credential]
-  helper = osxkeychain
+  helper = {{ if eq .chezmoi.os "darwin" }}osxkeychain{{ else }}store{{ end }}
 [commit]
   gpgsign = true
+[tag]
+  gpgsign = true
+[gpg]
+  format = ssh
+[gpg "ssh"]
+  program = {{ if eq .chezmoi.os "darwin" }}/Applications/1Password.app/Contents/MacOS/op-ssh-sign{{ else }}/opt/1Password/op-ssh-sign{{ end }}
+  allowedSignersFile = ~/.ssh/allowed_signers
 
 [includeIf "gitdir:~/projects/work/**"]
   path = ~/.gitconfig.work

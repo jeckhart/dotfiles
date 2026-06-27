@@ -120,7 +120,7 @@ brew 'testssl'                    # Test various compliance issues with SSL endp
 # cask 'cloak'                   # like google wifi vpn
 # cask 'keybase' unless system "[ -e /Applications/Keybase.app ] || [ -e /usr/local/bin/keybase ]"                 # Command-line encryption tool
 # cask 'viscosity'               # openvpn client
-cask 'gpg-suite'
+cask '1password'                  # 1Password desktop app (SSH agent + op-ssh-sign for commit signing)
 cask '1password-cli'              # 1Password CLI (op) for chezmoi secret templates
 
 # Editors & IDEs
