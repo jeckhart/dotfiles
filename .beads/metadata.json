@@ -3,5 +3,7 @@
   "backend": "dolt",
   "dolt_mode": "server",
   "dolt_database": "dotfiles",
-  "project_id": "221f0417-f3ab-477f-b5e2-84ee8e5590ef"
+  "project_id": "f523fea2-c505-4d3d-af3c-81cb2a2a258a",
+  "global_dolt_database": "beads_global",
+  "global_project_id": "00000000-0000-0000-0000-000000000000"
 }
