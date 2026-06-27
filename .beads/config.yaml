@@ -67,4 +67,7 @@
 
 sync.remote: "git+ssh://git@github.com/jeckhart/dotfiles.git"
 
-dolt.shared-server: true
+dolt:
+  shared-server: true
+  auto-commit: "on"
+  auto-start: false
