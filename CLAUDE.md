@@ -2,81 +2,96 @@
 
 ## Overview
 
-This is a personal dotfiles repository for macOS that layers custom configurations on top of the [thoughtbot/dotfiles](https://github.com/thoughtbot/dotfiles) submodule. Dotfile symlinking is managed by [rcm](https://github.com/thoughtbot/rcm).
+Personal dotfiles for macOS, managed by [chezmoi](https://www.chezmoi.io/) with an
+XDG-first layout (`~/.config`, `~/.local/state`, `~/.cache`). The chezmoi source state
+lives in this repo; machine and identity differences are handled with templates + 1Password
+rather than per-file overrides. (Historically these dotfiles layered the
+[thoughtbot/dotfiles](https://github.com/thoughtbot/dotfiles) submodule managed by
+[rcm](https://github.com/thoughtbot/rcm) — both have been retired.)
 
 ## Setup & Installation
 
-```bash
-./script/setup   # Full setup: install Homebrew deps, init submodules, symlink dotfiles, set default shell
-./script/bootstrap  # Only install Homebrew dependencies from Brewfile
-```
-
-After cloning, run `script/setup`. To re-link dotfiles after adding new files:
+Day-to-day, chezmoi owns the dotfiles:
 
 ```bash
-rcup -v          # Re-run rcm to update symlinks
+chezmoi diff           # Preview pending changes
+chezmoi apply          # Apply source changes to $HOME
+chezmoi edit <file>    # Edit a managed file's source
+chezmoi cd             # Open the source repo
 ```
+
+New-machine bootstrap is `script/setup` (being migrated to `chezmoi init --apply`,
+tracked in dotfiles-06f). On a fresh machine, answer the 1Password vault prompt at
+`chezmoi init` so `op:///...` templates render.
 
 ## Architecture
 
-### Dotfile Management (rcm)
+### Dotfile Management (chezmoi)
 
-`rcrc` controls which directories rcm searches and what to exclude:
+Source-state files map to `$HOME` by chezmoi naming: `dot_` → `.`, `executable_` → adds
++x, `*.tmpl` → templated, `private_` → 0600. Examples:
 
 ```
-DOTFILES_DIRS="$HOME/.dotfiles $HOME/.dotfiles/thoughtbot-dotfiles"
+dot_zshenv                       -> ~/.zshenv
+dot_config/git/config            -> ~/.config/git/config
+dot_bin/executable_clear-port    -> ~/.bin/clear-port   (executable)
 ```
 
-Files in both directories get symlinked into `$HOME`. Local overrides take precedence over the thoughtbot submodule. Files named `*.local` (e.g., `gitconfig.local`, `zshrc.local`) are the primary extension points for personal customization.
+`.chezmoiignore` lists repo meta-files (README, Brewfile, `script/`, `.beads`) that are
+not deployed. Identity/machine differences use templates + 1Password (`onepasswordRead`),
+not `*.local` shadow files. The one remaining local seam is `~/.config/zsh/.zshrc.local`.
 
-### Zsh Configuration Loading Order
+### Zsh Configuration (XDG, ZDOTDIR)
 
-1. `zprofile` — Homebrew initialization (supports Intel and Apple Silicon paths)
-2. thoughtbot's `zshrc` — sets up the plugin framework
-3. `zsh/configs/pre/*.zsh` — runs before most initialization
-4. `antigenrc` — loads zsh plugins via Antigen (oh-my-zsh, vi-mode, direnv, fzf, etc.)
-5. `zsh/configs/*.zsh` — individual feature configs (one file per tool/concern)
-6. `zsh/configs/post/*.zsh` — runs last (PATH finalization, completions)
-7. `zshrc.local` — final local overrides
+`~/.zshenv` sets the XDG base dirs and `ZDOTDIR=~/.config/zsh`, redirecting all zsh
+startup there:
+
+1. `~/.config/zsh/.zprofile` — Homebrew init (Intel + Apple Silicon); 1Password SSH agent socket
+2. `~/.config/zsh/.zshrc` — loader; sources `configs/pre/*.zsh`, then `configs/*.zsh`, then `configs/post/*.zsh`
+3. `configs/antigen.zsh` — zsh plugins via Antigen (oh-my-zsh, vi-mode, direnv, fzf)
+4. `~/.config/zsh/.zshrc.local` — final machine-local overrides
 
 ### Git Identity
 
-`gitconfig.local` uses conditional includes to switch git identity by project directory:
+`~/.config/git/config` pulls in `config.local` plus conditional identity includes by
+project directory:
 
-- `~/projects/work/**`, `~/projects/lsp/**`, etc. → `gitconfig.work` (Courier Health work identity)
-- `~/projects/personal/**` → `gitconfig.personal`
-- `~/projects/vela/**` → `gitconfig.vela`
+- `~/projects/work/**`, `~/projects/lsp/**` → work identity (Courier Health)
+- `~/projects/personal/**` → personal
+- `~/projects/vela/**` → vela
 
-All commits are SSH-signed via the 1Password SSH agent (`op-ssh-sign`). Each identity has its own ed25519 signing key stored in 1Password (`Private` vault: `git-signing-personal`, `git-signing-work`, `git-signing-vela`). Public keys are read at `chezmoi apply` time via `onepasswordRead`. The `SSH_AUTH_SOCK` is set in `zprofile` to point at the 1Password agent socket.
+All commits are SSH-signed via the 1Password SSH agent (`op-ssh-sign`). Each identity has
+its own ed25519 signing key in 1Password (`Private` vault: `git-signing-personal`,
+`git-signing-work`, `git-signing-vela`). Public keys are read at `chezmoi apply` via
+`onepasswordRead`; `SSH_AUTH_SOCK` points at the 1Password agent (set in `.zprofile`).
 
 ### Key Tool Configurations
 
-| Tool | Config Location | Notes |
-|------|----------------|-------|
-| Helix | `config/helix/config.toml` | Catppuccin Mocha theme, vi keybindings |
-| Tmux | `config/tmux/tmux.conf` | Prefix: `Ctrl-Space`, vi keys, Catppuccin Mocha |
-| Starship | `config/starship.toml` | Catppuccin Macchiato palette |
-| Neovim | `vim/` (symlinked as `config/nvim`) | |
+| Tool | Source | Notes |
+|------|--------|-------|
+| Helix | `dot_config/helix/config.toml` | Catppuccin Mocha, vi keybindings |
+| Tmux | `dot_config/tmux/tmux.conf` | Prefix `Ctrl-Space`, vi keys, Catppuccin Mocha |
+| Starship | `dot_config/starship.toml` | Catppuccin Macchiato palette |
+| Neovim | _migration in progress (dotfiles-pip)_ | still legacy `~/.config/nvim` until then |
 
 ### Embedded Rust / ESP32 Development
 
-`zsh/configs/export-esp.zsh` and `bin/rustrover-esp.sh` configure the ESP-IDF toolchain. `bin/monitor-serial.sh` connects to USB serial devices (auto-reconnects) for ESP32 debugging.
+`dot_config/zsh/configs/export-esp.zsh` and `dot_bin/executable_rustrover-esp.sh`
+configure the ESP-IDF toolchain. `dot_bin/executable_monitor-serial.sh` connects to USB
+serial devices (auto-reconnects) for ESP32 debugging.
 
 ### Homebrew Dependencies
 
-All dependencies are tracked in `Brewfile`. Notable categories:
-- **Language managers**: asdf, nodenv, pyenv, rbenv, rustup
-- **Shell**: antigen, fzf, starship
-- **Editors**: neovim
-- **DevOps**: awscli, opentofu, kops
+Tracked in `Brewfile`. Notable: chezmoi, 1password-cli, fzf, starship, antigen, neovim,
+awscli, opentofu. (Language managers: nodenv, pyenv, rbenv, rustup.)
 
 ## Adding New Configurations
 
-- Add a new `.zsh` file to `zsh/configs/` for a new tool (it loads automatically)
-- Use `zsh/configs/pre/` if it must run before plugin initialization
-- Use `zsh/configs/post/` if it must run after PATH is finalized
-- Add new dotfiles directly to this repo; rcm will symlink them on the next `rcup`
-- Update `Brewfile` when adding new Homebrew dependencies
+- Add a `.zsh` file under `dot_config/zsh/configs/` for a new tool (loads automatically);
+  use `pre/` or `post/` for ordering relative to plugin init and PATH finalization.
+- Add new dotfiles to the chezmoi source with the right prefix (`chezmoi add ~/.foo`),
+  then `chezmoi apply`.
+- Update `Brewfile` when adding Homebrew dependencies.
 
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:6cd5cc61 -->
