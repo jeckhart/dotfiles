@@ -1,0 +1,24 @@
+# Yazi keymaps.
+#
+# Uses the ARRAY form (`[mgr] prepend_keymap = [...]`) on purpose: recycle-bin.yazi
+# requires it, and TOML forbids mixing it with the `[[mgr.prepend_keymap]]` table form
+# in the same file. Keep every binding below in this one array.
+#
+# zoxide vs fzf — kept identical to the shell (configs/zoxide.zsh + configs/fzf.zsh):
+#   z = zoxide -> cross-session frecency JUMP (shares the shell's zoxide DB; init.lua update_db)
+#   Z = fzf    -> in-place fuzzy FILTER of the current dir (Macchiato via FZF_DEFAULT_OPTS)
+# Yazi 26.5.6 ships these REVERSED by default (z=fzf, Z=zoxide); the prepends below swap
+# them so `z` means the same thing in yazi as in the shell.
+
+[mgr]
+prepend_keymap = [
+  { on = "z", run = "plugin zoxide", desc = "Jump to a directory via zoxide (shared shell DB)" },
+  { on = "Z", run = "plugin fzf", desc = "Filter the current directory via fzf" },
+
+  # smart-enter: one key opens a file OR enters a directory (overrides default `open`).
+  { on = "<Enter>", run = "plugin smart-enter", desc = "Enter the child directory, or open the file" },
+
+  # duckdb: horizontal column scroll while previewing a data file (Ctrl-h/l are unbound by default).
+  { on = "<C-h>", run = "plugin duckdb -1", desc = "duckdb preview: scroll one column left" },
+  { on = "<C-l>", run = "plugin duckdb +1", desc = "duckdb preview: scroll one column right" },
+]

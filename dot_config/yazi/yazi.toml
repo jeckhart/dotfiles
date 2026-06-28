@@ -1,0 +1,36 @@
+# Yazi behavior config. Theming is in theme.toml (Catppuccin Macchiato flavor);
+# plugin setup is in init.lua; keys are in keymap.toml.
+
+[plugin]
+# duckdb.yazi: render tabular data files as tables in the preview pane.
+# Previewers cover the data formats we care about; .txt/.xlsx are intentionally
+# omitted (duckdb mis-detects plain text and excel type-inference is flaky).
+# NB: the match key is `url` (path/extension glob), not `name` — the duckdb README is
+# stale; yazi 26.5.6 requires `url` or `mime` here.
+prepend_previewers = [
+  { url = "*.csv", run = "duckdb" },
+  { url = "*.tsv", run = "duckdb" },
+  { url = "*.json", run = "duckdb" },
+  { url = "*.parquet", run = "duckdb" },
+  { url = "*.db", run = "duckdb" },
+  { url = "*.duckdb", run = "duckdb" },
+]
+# Preloaders warm the duckdb cache so scrolling is smooth (data files only).
+prepend_preloaders = [
+  { url = "*.csv", run = "duckdb", multi = false },
+  { url = "*.tsv", run = "duckdb", multi = false },
+  { url = "*.json", run = "duckdb", multi = false },
+  { url = "*.parquet", run = "duckdb", multi = false },
+]
+
+# git.yazi: fetch git status for files (*) and directories (*/) to drive the linemode.
+# `id` is omitted on purpose — required only on Yazi <= v26.1.22 (we run 26.5.6).
+[[plugin.prepend_fetchers]]
+url = "*"
+run = "git"
+group = "git"
+
+[[plugin.prepend_fetchers]]
+url = "*/"
+run = "git"
+group = "git"

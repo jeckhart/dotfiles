@@ -1,0 +1,10 @@
+#!/bin/sh
+# Install/sync the pinned yazi flavors + plugins from ~/.config/yazi/package.toml.
+# Re-runs only when package.toml changes (chezmoi tracks the hash below). `after_`
+# ensures the manifest has been written to ~/.config/yazi before `ya pkg install`
+# reads it. Replaces the old unpinned `ya pkg add` flavor script — package.toml is
+# now the single source of truth for the flavor AND every plugin.
+#
+# yazi package hash: {{ include "dot_config/yazi/package.toml" | sha256sum }}
+command -v ya >/dev/null 2>&1 || exit 0
+ya pkg install

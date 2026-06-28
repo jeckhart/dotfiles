@@ -1,7 +1,0 @@
-#!/bin/sh
-# Install the Catppuccin Macchiato yazi flavor referenced by ~/.config/yazi/theme.toml.
-# Re-runs only when theme.toml changes (chezmoi tracks the hash below).
-#
-# yazi theme hash: {{ include "dot_config/yazi/theme.toml" | sha256sum }}
-command -v ya >/dev/null 2>&1 || exit 0
-ya pkg add yazi-rs/flavors:catppuccin-macchiato 2>/dev/null || true

@@ -28,6 +28,7 @@ brew 'atuin'                      # Shell history database + Ctrl-R search
 brew 'eza'                        # Modern ls replacement (icons, git, tree)
 brew 'vivid'                      # Generates the Catppuccin Macchiato LS_COLORS (themes ls/eza/completions)
 brew 'yazi'                       # Terminal file manager
+brew 'duckdb'                     # In-process SQL OLAP DB — backs yazi's duckdb.yazi data preview (CSV/TSV/JSON/Parquet)
 brew 'git-delta'                  # Syntax-highlighting git pager
 
 # GNU userland (gnubin-first PATH in configs/gnu.zsh: sed/date/grep use GNU under normal names)
