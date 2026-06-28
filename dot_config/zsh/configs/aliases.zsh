@@ -2,9 +2,34 @@
 # out of version control belong in ~/.config/zsh/.zshrc.local instead.
 
 # Unix
-alias ll="ls -al"
 alias ln="ln -v"
 alias mkdir="mkdir -p"
+
+# eza (modern ls). `cat` is deliberately left as real cat — bat is for previews/MANPAGER.
+if command -v eza >/dev/null; then
+  # eza does NOT auto-read ~/.config/eza/theme.yml; without EZA_CONFIG_DIR it falls
+  # back to LS_COLORS (16-color). Set it so the Catppuccin Macchiato theme.yml wins.
+  export EZA_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/eza"
+  alias ls='eza --icons --group-directories-first'
+  alias ll='eza -la --icons --group-directories-first --git'
+  alias lt='eza --tree --level=2 --icons'
+else
+  alias ll="ls -al"
+fi
+
+# git — a small hand-picked set (not oh-my-zsh's 191).
+alias gst='git status'
+alias gco='git checkout'
+alias gp='git push'
+alias gl='git pull'
+alias gd='git diff'
+alias gc='git commit -v'
+alias gca='git commit -av'
+alias glog='git log --oneline --decorate --graph'
+
+# Directory stack (AUTO_PUSHD in options.zsh): `d` lists, `1`-`9` jump by index.
+alias d='dirs -v'
+for _i ({1..9}) alias "$_i"="cd +${_i}"; unset _i
 # single-quoted so they resolve $EDITOR/$VISUAL at call time, regardless of load order
 alias e='$EDITOR'
 alias v='$VISUAL'

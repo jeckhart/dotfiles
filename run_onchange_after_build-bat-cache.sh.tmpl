@@ -1,0 +1,8 @@
+#!/bin/sh
+# Rebuild bat's theme cache so the vendored Catppuccin Macchiato theme is usable.
+# Re-runs only when the theme file changes (chezmoi tracks the hash below).
+# `after_` ensures it runs once the theme file has been written to ~/.config/bat.
+#
+# bat theme hash: {{ include "dot_config/bat/themes/Catppuccin Macchiato.tmTheme" | sha256sum }}
+command -v bat >/dev/null 2>&1 || exit 0
+bat cache --build

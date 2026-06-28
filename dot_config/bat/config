@@ -1,0 +1,4 @@
+# bat config. The Catppuccin Macchiato theme is vendored under themes/ and built
+# into bat's cache by run_onchange_after_build-bat-cache.sh.tmpl.
+# bat is the keystone theme: it also feeds delta (git pager) and yazi previews.
+--theme="Catppuccin Macchiato"

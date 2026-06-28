@@ -51,7 +51,10 @@ startup there:
 
 1. `~/.config/zsh/.zprofile` — Homebrew init (Intel + Apple Silicon); 1Password SSH agent socket
 2. `~/.config/zsh/.zshrc` — loader; sources `configs/pre/*.zsh`, then `configs/*.zsh`, then `configs/post/*.zsh`
-3. `configs/antigen.zsh` — zsh plugins via Antigen (oh-my-zsh, vi-mode, direnv, fzf)
+3. `configs/post/plugins.zsh` — zsh plugins via [sheldon](https://sheldon.cli.rs)
+   (`~/.config/sheldon/plugins.toml`): zsh-vi-mode, fzf-tab, autosuggestions, syntax-highlighting.
+   Framework-free (no oh-my-zsh). Modern CLI tools each have their own `configs/*.zsh`
+   (fzf, zoxide, atuin, direnv, gnu, eza/git aliases); theming is Catppuccin Macchiato.
 
 There is no `.zshrc.local` seam: we own the primary templates, so machine-generic config
 lives in `configs/` and secrets come from 1Password (see Secrets). Add a `.local` shadow
@@ -104,8 +107,9 @@ serial devices (auto-reconnects) for ESP32 debugging.
 
 ### Homebrew Dependencies
 
-Tracked in `Brewfile`. Notable: chezmoi, 1password-cli, fzf, starship, antigen, neovim,
-awscli, opentofu. (Language managers: nodenv, pyenv, rbenv, rustup.)
+Tracked in `Brewfile`. Notable: chezmoi, 1password-cli, sheldon, starship, fzf, fd, bat, eza,
+yazi, zoxide, atuin, git-delta, neovim, awscli, opentofu. (Language managers: nodenv, pyenv,
+rustup.)
 
 ## Adding New Configurations
 

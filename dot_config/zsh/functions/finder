@@ -1,0 +1,16 @@
+# macOS Finder helpers (replaces the slice of the oh-my-zsh macos plugin actually used).
+[[ "$OSTYPE" == darwin* ]] || return 0
+
+# Open the current dir (or $1) in Finder.
+ofd() { open "${1:-$PWD}"; }
+
+# Print the POSIX path of the frontmost Finder window.
+pfd() {
+  osascript -e 'tell application "Finder" to if (count of Finder windows) > 0 then get POSIX path of (target of front Finder window as alias)'
+}
+
+# cd to the frontmost Finder window's directory.
+cdf() {
+  local dir; dir="$(pfd)"
+  [[ -n "$dir" ]] && cd "$dir"
+}

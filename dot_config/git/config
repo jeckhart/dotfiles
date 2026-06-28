@@ -11,6 +11,14 @@
 [core]
 	excludesfile = ~/.config/git/ignore
 	autocrlf = input
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+	; Catppuccin Macchiato — defined in the included catppuccin.gitconfig below.
+	; Self-contained (does not depend on `bat cache`).
+	features = catppuccin-macchiato
 [color]
 	ui = auto
 [push]
@@ -37,5 +45,7 @@
 	sort = version:refname
 [column]
 	ui = auto
+[include]
+	path = ~/.config/git/catppuccin.gitconfig
 [include]
 	path = ~/.config/git/config.local

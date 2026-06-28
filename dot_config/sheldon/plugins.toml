@@ -1,0 +1,53 @@
+# sheldon plugin manifest — https://sheldon.cli.rs
+# Sourced (AFTER compinit) by ~/.config/zsh/configs/post/plugins.zsh via
+# `eval "$(sheldon source)"`.
+#
+# LOAD ORDER IS LOAD-BEARING:
+#   zsh-defer (first) → zsh-completions (fpath) → zsh-vi-mode → fzf-tab (after
+#   compinit, never deferred) → zsh-autosuggestions (deferred) →
+#   catppuccin-syntax (sets ZSH_HIGHLIGHT_STYLES) →
+#   zsh-syntax-highlighting (MUST be last of everything).
+
+shell = "zsh"
+
+[templates]
+# Defer a plugin's source lines until after the first prompt (uses romkatv/zsh-defer).
+defer = """{{ hooks?.pre | nl }}{% for file in files %}zsh-defer source "{{ file }}"
+{% endfor %}{{ hooks?.post | nl }}"""
+
+# 1. zsh-defer must load first so the `defer` template works for later plugins.
+[plugins.zsh-defer]
+github = "romkatv/zsh-defer"
+
+# 2. Extra completion definitions — fpath only (no source). NOTE: its fpath dir is
+#    ALSO prepended in configs/post/completion.zsh *before* compinit, because this
+#    entry's fpath line would otherwise run after compinit (too late).
+[plugins.zsh-completions]
+github = "zsh-users/zsh-completions"
+apply = ["fpath"]
+
+# 3. vi keybindings (richer than oh-my-zsh's vi-mode). Owns its own keybinding init;
+#    our binds + atuin/fzf are registered via zvm_after_init_commands (see
+#    configs/keybindings.zsh) so this plugin's init can't clobber them.
+[plugins.zsh-vi-mode]
+github = "jeffreytse/zsh-vi-mode"
+
+# 4. fzf-powered tab completion. MUST be after compinit and before
+#    zsh-syntax-highlighting; MUST NOT be deferred.
+[plugins.fzf-tab]
+github = "Aloxaf/fzf-tab"
+
+# 5. Autosuggestions — deferred (appears a beat after the first prompt).
+[plugins.zsh-autosuggestions]
+github = "zsh-users/zsh-autosuggestions"
+apply = ["defer"]
+
+# 6. Catppuccin Macchiato styles for the highlighter — MUST be sourced before
+#    zsh-users/zsh-syntax-highlighting (it populates ZSH_HIGHLIGHT_STYLES).
+[plugins.catppuccin-syntax]
+github = "catppuccin/zsh-syntax-highlighting"
+use = ["themes/catppuccin_macchiato-zsh-syntax-highlighting.zsh"]
+
+# 7. Syntax highlighting — MUST be last of everything.
+[plugins.zsh-syntax-highlighting]
+github = "zsh-users/zsh-syntax-highlighting"

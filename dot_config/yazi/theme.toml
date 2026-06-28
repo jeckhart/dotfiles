@@ -1,0 +1,6 @@
+# Yazi theme. The catppuccin-macchiato flavor (installed by
+# run_onchange_install-yazi-flavor.sh.tmpl via `ya pkg add`) bundles its own
+# tmTheme, so it themes both the UI and the syntax-highlighted file preview —
+# no separate [preview] syntect_theme needed.
+[flavor]
+dark = "catppuccin-macchiato"

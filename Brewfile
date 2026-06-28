@@ -14,16 +14,34 @@ brew 'socat'                      # Used in WSL2 to bridge the ssh-agent from Wi
 brew 'ripgrep'                    # Fast grep replacement
 brew 'tmux'                       # Persistent terminal sessions
 brew 'fzf'                        # Command-line fuzzy finder
+brew 'fd'                         # Fast, friendly find (powers fzf default command)
 brew 'jq'                         # JSON processor for the shell
 brew 'watch'                      # Run a command periodically, fullscreen
 brew 'wget'                       # Simple HTTP client (prefer curl when possible)
-brew 'bat'                        # cat with syntax highlighting
+brew 'bat'                        # cat with syntax highlighting (also feeds delta + yazi preview)
+
+# Modern shell UX (framework-free zsh stack — see dot_config/zsh + sheldon)
+brew 'sheldon'                    # zsh plugin manager (TOML, replaces antigen)
+brew 'starship'                   # Prompt (configured in dot_config/starship.toml)
+brew 'zoxide'                     # Frecency directory jumper (z / zi)
+brew 'atuin'                      # Shell history database + Ctrl-R search
+brew 'eza'                        # Modern ls replacement (icons, git, tree)
+brew 'vivid'                      # Generates the Catppuccin Macchiato LS_COLORS (themes ls/eza/completions)
+brew 'yazi'                       # Terminal file manager
+brew 'git-delta'                  # Syntax-highlighting git pager
+
+# GNU userland (gnubin-first PATH in configs/gnu.zsh: sed/date/grep use GNU under normal names)
+brew 'coreutils'
+brew 'findutils'
+brew 'gnu-sed'
+brew 'gnu-tar'
+brew 'grep'
+brew 'gawk'
 
 # VCS
 brew 'pre-commit'                 # Pre-commit hook framework
 
 # Shell / dev tooling
-brew 'antigen'                    # zsh plugin manager (slated for sheldon in dotfiles-f0w)
 brew 'cmake'                      # Build tool (also needed by some Rust/ESP builds)
 brew 'direnv'                     # Per-directory environment loading
 brew 'libyaml'                    # Should come after openssl
