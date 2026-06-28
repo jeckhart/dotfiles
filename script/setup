@@ -1,11 +1,11 @@
 #!/bin/sh
 
-# script/setup: Set up application for the first time after cloning, or set it
-#               back to the initial first unused state.
+# script/setup: Bootstrap a machine from scratch with chezmoi.
+#               Installs Homebrew + chezmoi, then `chezmoi init --apply` to lay
+#               down the dotfiles, installs the Homebrew bundle, and sets zsh as
+#               the login shell.
 
 set -e
-
-cd "$(dirname "$0")/.."
 
 fancy_echo() {
   local fmt="$1"; shift
@@ -14,26 +14,34 @@ fancy_echo() {
   printf "\\n$fmt\\n" "$@"
 }
 
-# Setup Homebrew on path
-HOMEBREW_PREFIX="$(brew --prefix 2>/dev/null || true)"
-if [ -z "$HOMEBREW_PREFIX" ] || [ -z "$HOMEBREW_REPOSITORY" ]; then
-  UNAME_MACHINE="$(/usr/bin/uname -m)"
-  if [[ "$UNAME_MACHINE" == "arm64" ]]; then
-    HOMEBREW_PREFIX="/opt/homebrew"
-  else
-    HOMEBREW_PREFIX="/usr/local"
-  fi
+# Determine the Homebrew prefix for this architecture.
+UNAME_MACHINE="$(/usr/bin/uname -m)"
+if [ "$UNAME_MACHINE" = "arm64" ]; then
+  HOMEBREW_PREFIX="/opt/homebrew"
+else
+  HOMEBREW_PREFIX="/usr/local"
 fi
-export PATH="$HOMEBREW_PREFIX/bin:$PATH"
 
-script/bootstrap
+# Install Homebrew if it is not already on PATH.
+if ! command -v brew >/dev/null 2>&1; then
+  fancy_echo "==> Installing Homebrew…"
+  NONINTERACTIVE=1 /bin/bash -c \
+    "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+eval "$("$HOMEBREW_PREFIX/bin/brew" shellenv)"
 
-fancy_echo "==> Setting up dotfiles…"
-git submodule update --init --recursive
-env RCRC=$HOME/.dotfiles/rcrc rcup
+# Install chezmoi.
+fancy_echo "==> Installing chezmoi…"
+brew install chezmoi
 
-echo "==> Setting default shell to zsh…"
-# sudo dscl . -create /Users/$USER UserShell /usr/local/bin/zsh
+# Lay down the dotfiles. The chezmoi layout lives on the `chezmoi` branch.
+# This also runs run_onchange_install-packages.sh, which installs the Homebrew
+# bundle from the Brewfile (and re-runs whenever the Brewfile changes).
+fancy_echo "==> Applying dotfiles with chezmoi…"
+chezmoi init --apply --branch chezmoi jeckhart/dotfiles
+# TODO: drop --branch chezmoi once master is promoted to the chezmoi layout.
+
+# Set zsh as the login shell.
 update_shell() {
   local shell_path;
   shell_path="$HOMEBREW_PREFIX/bin/zsh"

@@ -1,0 +1,11 @@
+#!/bin/sh
+# Install Homebrew dependencies. Re-runs automatically whenever the Brewfile
+# changes, because chezmoi tracks the hash embedded in the comment below.
+#
+# Brewfile hash: {{ include "Brewfile" | sha256sum }}
+set -e
+
+# Brew may be absent on non-macOS / not-yet-bootstrapped machines.
+command -v brew >/dev/null 2>&1 || exit 0
+
+brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
