@@ -1,0 +1,23 @@
+{{- /* Detect WSL2 by reading /proc/version */ -}}
+{{- $isWSL2 := false -}}
+{{- if eq .chezmoi.os "linux" -}}
+{{-   $procVersion := output "cat" "/proc/version" | lower -}}
+{{-   if contains "microsoft" $procVersion -}}
+{{-     $isWSL2 = true -}}
+{{-   end -}}
+{{- end -}}
+
+{{- /* Detect Apple Silicon */ -}}
+{{- $isAppleSilicon := and (eq .chezmoi.os "darwin") (eq .chezmoi.arch "arm64") -}}
+
+{{- /* 1Password vault — asked once at chezmoi init, cached in config */ -}}
+{{- $opVault := promptString "1Password vault for dotfiles secrets" -}}
+
+[data]
+    isWSL2 = {{ $isWSL2 }}
+    isAppleSilicon = {{ $isAppleSilicon }}
+    opVault = {{ $opVault | quote }}
+
+[onepassword]
+    command = "op"
+    prompt = false

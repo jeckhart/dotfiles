@@ -11,7 +11,7 @@ brew 'openssl'                    # Install a recent version of openssl as other
 
 # Dotfiles
 brew 'asdf'                       # Extendable version manager with support for Ruby, Node.js, Erlang & more
-brew 'rcm'                        # Help manage your dotfiles
+brew 'chezmoi'                    # Manage personal configuration files across machines
 brew 'socat'                      # Used primarily in WSL to link/share ssh-agent from windows
 
 # Unix
@@ -118,13 +118,14 @@ brew 'testssl'                    # Test various compliance issues with SSL endp
 
 # Security
 # cask 'cloak'                   # like google wifi vpn
-# cask 'keybase' unless system "[ -e /Applications/Keybase.app ] || [ -e /usr/local/bin/keybase ]"                 # Command-line encryption tool
 # cask 'viscosity'               # openvpn client
-cask 'gpg-suite'
+cask '1password'                  # 1Password desktop app (SSH agent + op-ssh-sign for commit signing)
+cask '1password-cli'              # 1Password CLI (op) for chezmoi secret templates
 
 # Editors & IDEs
 # cask 'visual-studio-code' unless "[ -e /Applications/Visual\ Studio\ Code.app ]" # At this point the defacto multipurpose editor.
 brew 'neovim'                  # Neovim is a vim reimplentation. It's stable enough to replace vim
+brew 'lazygit'                  # Terminal git UI; LazyVim's <leader>gg integration
 cask 'iterm2' unless system "[ -e /Applications/iTerm.app ]" # Better than the built in terminal program
 
 # other apps

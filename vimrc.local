@@ -1,6 +1,0 @@
-
-
-" Fix Y to yank a full line. Neovim broke this.
-nnoremap Y yy
-
-set rtp+=/opt/homebrew/opt/fzf

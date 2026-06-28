@@ -1,5 +1,0 @@
-EXCLUDES="README.md LICENSE script thoughtbot-dotfiles"
-DOTFILES_DIRS="$HOME/.dotfiles $HOME/.dotfiles/thoughtbot-dotfiles"
-COPY_ALWAYS="git_template/HEAD"
-UNDOTTED="Library"
-SYMLINK_DIRS="config/nvim"

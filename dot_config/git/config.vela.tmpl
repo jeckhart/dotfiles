@@ -1,0 +1,9 @@
+[user]
+  email = {{ onepasswordRead (printf "op://%s/git-signing-vela/email" .opVault) | trim }}
+  name = {{ onepasswordRead (printf "op://%s/git-signing-vela/name" .opVault) | trim }}
+  signingkey = {{ onepasswordRead (printf "op://%s/git-signing-vela/public key" .opVault) | trim }}
+[github]
+  user = jeckhart
+
+[core]
+  sshCommand = "ssh -i ~/.ssh/vela.pub -o IdentitiesOnly=yes"

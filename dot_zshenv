@@ -1,0 +1,10 @@
+# ~/.zshenv — sourced first for every zsh, login or not. Keep it minimal.
+
+# XDG base directories (not exported by default on macOS; tools honor them when set)
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+
+# Redirect the rest of zsh's startup files (.zprofile, .zshrc, .zlogin) to ~/.config/zsh
+export ZDOTDIR="$XDG_CONFIG_HOME/zsh"

@@ -1,3 +1,0 @@
-[submodule "thoughtbot-dotfiles"]
-	path = thoughtbot-dotfiles
-	url = git@github.com:thoughtbot/dotfiles.git

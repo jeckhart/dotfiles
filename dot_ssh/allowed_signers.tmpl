@@ -1,0 +1,3 @@
+jeckhart@hey.com {{ onepasswordRead (printf "op://%s/git-signing-personal/public key" .opVault) | trim }}
+{{ onepasswordRead (printf "op://%s/git-signing-work/email" .opVault) | trim }} {{ onepasswordRead (printf "op://%s/git-signing-work/public key" .opVault) | trim }}
+{{ onepasswordRead (printf "op://%s/git-signing-vela/email" .opVault) | trim }} {{ onepasswordRead (printf "op://%s/git-signing-vela/public key" .opVault) | trim }}
