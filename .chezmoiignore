@@ -10,9 +10,5 @@ script
 # p10k config: generated fresh per machine via 'p10k configure'
 .p10k.zsh
 
-# nvim config: migration handled separately (dotfiles-pip)
-.config/nvim
-.vim
-
 # tmux plugins: installed at runtime by TPM (prefix + I)
 .config/tmux/plugins

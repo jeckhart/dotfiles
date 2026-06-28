@@ -126,6 +126,7 @@ cask '1password-cli'              # 1Password CLI (op) for chezmoi secret templa
 # Editors & IDEs
 # cask 'visual-studio-code' unless "[ -e /Applications/Visual\ Studio\ Code.app ]" # At this point the defacto multipurpose editor.
 brew 'neovim'                  # Neovim is a vim reimplentation. It's stable enough to replace vim
+brew 'lazygit'                  # Terminal git UI; LazyVim's <leader>gg integration
 cask 'iterm2' unless system "[ -e /Applications/iTerm.app ]" # Better than the built in terminal program
 
 # other apps
