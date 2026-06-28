@@ -36,6 +36,3 @@ _load_settings() {
   fi
 }
 _load_settings "$ZDOTDIR/configs"
-
-# Machine-local overrides (slim; machine-generic content lives in configs/)
-[[ -f $ZDOTDIR/.zshrc.local ]] && source $ZDOTDIR/.zshrc.local

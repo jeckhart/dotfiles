@@ -1,5 +1,0 @@
-# Machine-local zsh overrides — keep generic/cross-machine config in configs/ instead.
-
-# Secrets seam: a gitignored ~/.donotcommit holds machine-local secrets/exports.
-# (Tracked for migration to 1Password — see beads dotfiles-mce / dotfiles-fy7.)
-[[ -f ~/.donotcommit ]] && source ~/.donotcommit

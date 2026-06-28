@@ -39,7 +39,7 @@ dot_bin/executable_clear-port    -> ~/.bin/clear-port   (executable)
 
 `.chezmoiignore` lists repo meta-files (README, Brewfile, `script/`, `.beads`) that are
 not deployed. Identity/machine differences use templates + 1Password (`onepasswordRead`),
-not `*.local` shadow files. The one remaining local seam is `~/.config/zsh/.zshrc.local`.
+not `*.local` shadow files.
 
 ### Zsh Configuration (XDG, ZDOTDIR)
 
@@ -49,7 +49,10 @@ startup there:
 1. `~/.config/zsh/.zprofile` — Homebrew init (Intel + Apple Silicon); 1Password SSH agent socket
 2. `~/.config/zsh/.zshrc` — loader; sources `configs/pre/*.zsh`, then `configs/*.zsh`, then `configs/post/*.zsh`
 3. `configs/antigen.zsh` — zsh plugins via Antigen (oh-my-zsh, vi-mode, direnv, fzf)
-4. `~/.config/zsh/.zshrc.local` — final machine-local overrides
+
+There is no `.zshrc.local` seam: we own the primary templates, so machine-generic config
+lives in `configs/` and secrets come from 1Password (see Secrets). Add a `.local` shadow
+file back only if a genuine machine-specific, non-secret override ever needs one.
 
 ### Git Identity
 
@@ -64,6 +67,22 @@ All commits are SSH-signed via the 1Password SSH agent (`op-ssh-sign`). Each ide
 its own ed25519 signing key in 1Password (`Private` vault: `git-signing-personal`,
 `git-signing-work`, `git-signing-vela`). Public keys are read at `chezmoi apply` via
 `onepasswordRead`; `SSH_AUTH_SOCK` points at the 1Password agent (set in `.zprofile`).
+
+### Secrets
+
+Secrets come from 1Password via chezmoi templates — never committed, never in a
+`.donotcommit`/`.local` file (that thoughtbot-era escape hatch is retired). To add a secret
+env var, create a template under `dot_config/zsh/configs/` (it's machine-generic — the value
+is the same on every machine because it's pulled from the vault):
+
+```
+# dot_config/zsh/configs/<name>.zsh.tmpl
+export SOME_TOKEN={{ onepasswordRead "op://Private/<item>/<field>" }}
+```
+
+`chezmoi apply` bakes the value into the rendered file at `~/.config/zsh/configs/<name>.zsh`
+(gitignored target, not in the repo). Auth is biometric (Touch ID via the 1Password desktop
+app); `chezmoi.toml` sets `[onepassword] command = "op"`, `prompt = false`.
 
 ### Key Tool Configurations
 
