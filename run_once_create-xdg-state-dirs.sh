@@ -4,4 +4,7 @@
 set -eu
 
 mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/zsh"
+mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/less"
+mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/python"
+mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/node"
 mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"

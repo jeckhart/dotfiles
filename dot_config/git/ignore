@@ -3,6 +3,9 @@
 .bundle
 .byebug_history
 .env
+
+# Per-project Claude Code local settings (never committed)
+**/.claude/settings.local.json
 db/*.sqlite3
 log/*.log
 rerun.txt

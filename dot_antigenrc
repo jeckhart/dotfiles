@@ -13,7 +13,6 @@ fi
 # sdkman - A worthy tool to install various jdk's and jdk toolchains
 
 antigen bundles <<EOBUNDLES
-  asdf
   brew
   colored-man-pages
   direnv
@@ -26,7 +25,6 @@ antigen bundles <<EOBUNDLES
   mafredri/zsh-async
   pip
 #  pyenv
-  rbenv
   rust
   vault
   zsh-users/zsh-syntax-highlighting

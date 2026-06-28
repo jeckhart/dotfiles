@@ -29,12 +29,15 @@ tracked in dotfiles-06f). On a fresh machine, answer the 1Password vault prompt 
 ### Dotfile Management (chezmoi)
 
 Source-state files map to `$HOME` by chezmoi naming: `dot_` → `.`, `executable_` → adds
-+x, `*.tmpl` → templated, `private_` → 0600. Examples:
++x, `*.tmpl` → templated, `private_` → 0600. Scripts use `run_once_` (run once, tracked by
+content hash), `run_onchange_` (re-run whenever the script's contents change), and plain
+`run_` (every apply). Examples:
 
 ```
-dot_zshenv                       -> ~/.zshenv
-dot_config/git/config            -> ~/.config/git/config
-dot_bin/executable_clear-port    -> ~/.bin/clear-port   (executable)
+dot_zshenv                          -> ~/.zshenv
+dot_config/git/config               -> ~/.config/git/config
+dot_bin/executable_clear-port       -> ~/.bin/clear-port   (executable)
+run_onchange_install-packages.sh.tmpl  -> brew bundle on Brewfile change
 ```
 
 `.chezmoiignore` lists repo meta-files (README, Brewfile, `script/`, `.beads`) that are

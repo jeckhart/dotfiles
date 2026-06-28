@@ -1,140 +1,70 @@
-# main taps - these are already theorically provided by strap
-tap 'homebrew/bundle'
-tap 'homebrew/services'
+# Homebrew dependencies for these dotfiles. Installed by
+# run_onchange_install-packages.sh.tmpl (re-runs when this file changes).
 
-# additional taps
-tap 'thoughtbot/formulae'         # Required for gitsh
-# tap 'homebrew/cask-fonts'
+tap 'homebrew/bundle'
 
 # Early requirements
-brew 'openssl'                    # Install a recent version of openssl as other homebrew apps will depend on this.
+brew 'openssl'                    # Recent openssl other formulae depend on
 
-# Dotfiles
-brew 'asdf'                       # Extendable version manager with support for Ruby, Node.js, Erlang & more
+# Dotfiles / config management
 brew 'chezmoi'                    # Manage personal configuration files across machines
-brew 'socat'                      # Used primarily in WSL to link/share ssh-agent from windows
+brew 'socat'                      # Used in WSL2 to bridge the ssh-agent from Windows
 
-# Unix
-# brew 'git'                        # Git from Homebrew is newer than the version installed from macOS
-# brew 'gitsh' if OS.mac?           # An interactive shell for git
-# cask 'gitup'                      # Update multiple git repositories at once
-# brew 'gnu-tar'                    # Linux style tar command
-# brew 'lz4'                        # Support lz4 compressed artifacts
-# brew 'mas' if OS.mac?             # Command line client for mac app store. Used to automate installation of some apps
-# brew 'mosh'                       # Remote terminal application
-# brew 'reattach-to-user-namespace' if OS.mac? # Reattach process (e.g., tmux) to background
-# brew 'the_silver_searcher'        # Faster than grep
-brew 'ctags'                      # Used to index source files to make searching easier
-brew 'ripgrep'                    # Search tool like grep and The Silver Searcher
-brew 'tmux'                       # Keep a command-line open between terminal sessions (like 'screen')
-
-# Command line tools
-# brew 'fortune'                    # Dependency of Atom package fortune-background-tips
-# brew 'todo-txt'                   # A command line todo app
-# brew 'watchman'                   # Watch for file changes
-brew 'fzf'                        # Commandline line fuzzy finder
-brew 'jq'                         # A command line client for dealing with json
-brew 'watch'                      # Executes a program periodically, showing output fullscreen
-brew 'wget'                       # Command like http client (use curl when possible)
-brew 'bat'                        # cat with wings
+# Unix / search
+brew 'ripgrep'                    # Fast grep replacement
+brew 'tmux'                       # Persistent terminal sessions
+brew 'fzf'                        # Command-line fuzzy finder
+brew 'jq'                         # JSON processor for the shell
+brew 'watch'                      # Run a command periodically, fullscreen
+brew 'wget'                       # Simple HTTP client (prefer curl when possible)
+brew 'bat'                        # cat with syntax highlighting
 
 # VCS
-# Note: there is also a version that works with GitLab in cask 'zaquestion/tap'
-# brew 'hub'                        # hub is a command-line wrapper for git that makes you better at GitHub.
-brew 'pre-commit'                 # Add pre-commit hooks to enable cleaner CI runs
+brew 'pre-commit'                 # Pre-commit hook framework
 
-# dev things and package managers
-# brew 'bazel' if OS.mac?           # Googles build tool. Works well with monorepos
-# cask 'docker' unless system "[ -e /Applications/Docker.app ]" # Container runtime
-# brew 'grpc' if OS.mac?            # The grpc command line client. GRPC is a modern RPC framework that we will use for services. It also brings in protobuf plugins for various languages we use.
-# brew 'imagemagick'                # Swiss army knife of image manipulation. However, it's a beast and should probably move into a docker container
-# brew 'nativefier'                 # Wrap web apps
-# brew 'scons'                      # Build tool for scons files
-# brew 'wireshark'                  # Graphical network analyzer and capture tool
-# brew 'zeromq'                     # Native libs for zeromq bindings in various languages
-brew 'antigen'                    # Package manager and plugin manager for zsh
-brew 'cmake'                      # Build tool for Makefiles
-brew 'direnv'                     # Read env config from files in your dir
-brew 'libyaml'                    # should come after openssl
+# Shell / dev tooling
+brew 'antigen'                    # zsh plugin manager (slated for sheldon in dotfiles-f0w)
+brew 'cmake'                      # Build tool (also needed by some Rust/ESP builds)
+brew 'direnv'                     # Per-directory environment loading
+brew 'libyaml'                    # Should come after openssl
 
-# Machine learning tools
-# brew 'libtensorflow'              # C interface for Google's OS library for Machine Intelligence
-# brew 'opencv'                     # Open source computer vision library
+# JavaScript / TypeScript
+brew 'nodenv'                     # Manage multiple node versions
+brew 'pnpm'                       # Fast npm alternative
 
-# iOS dev tools
-# brew 'carthage' if OS.mac?        # Decentralized dependency manager for Cocoa
-# brew 'cocoapods'                  # Dependency manager for Cocoa projects
-
-# Javascript/Typescript
-brew 'nodenv'                     # Manage multiple versions of node
-brew 'pnpm'                       # An npm alternative that is fast
-
-# Ruby
-# brew 'rbenv'                      # Manage multiple versions of ruby
-# brew 'ruby-build'                 # 
-
-# Java/Scala/JVM
-# cask 'java' unless system "/usr/libexec/java_home --failfast" # Moved to asdf
-brew 'gradle'                     # Built tool and dependecy manager for Java (and other langs). Used for the Android app. Additionally, some tools we use are written in Java (Jenkins) so it's helpful when testing new versions or plugins.
-brew 'maven'                      # Another java build tool. Used to build some libraries and tools
-# brew 'sbt'                        # Scala built tool
+# Java / JVM — commented out until JVM work resumes (java currently unprovisioned).
+# Re-add together with a JDK (e.g. brew 'openjdk') when needed.
+# brew 'gradle'                   # JVM build tool (Android, Jenkins tooling)
+# brew 'maven'                    # JVM build/dependency tool
 
 # Python
-# brew 'pyenv-virtualenvwrapper'    # Wrap virtualenv scripts to make then easy to use
-brew 'pipenv'                     # Manage multiple versions of through the use of a Pipfile
-brew 'poetry'                     # Python package management tool
-brew 'pyenv'                      # Install multiple versions of python
-brew 'pyenv-virtualenv'           # Support multiple workspaces with different versions of python
+brew 'poetry'                     # Python packaging / dependency management
+brew 'pyenv'                      # Manage multiple python versions
+brew 'pyenv-virtualenv'           # Virtualenv support for pyenv
 
 # Go
-# tap 'go-delve/delve'
-# brew 'delve'                      # Debugger for go programming language
-brew 'go'                         # Many of our tools and plugins are written in go (k8s, gitlab CI, terraform, etc)
+brew 'go'                         # Go toolchain
 
-# Rust
-brew 'rust'
+# Rust — the toolchain itself comes from rustup (stable + esp-nightly), not brew.
+# These are standalone cargo helper binaries.
 brew 'cargo-deny'
 brew 'cargo-generate'
 brew 'cargo-make'
 brew 'cargo-nextest'
 
 # DevOps
-# brew 'packer'                     # Create concise vm images for a variety of platforms. Very useful to create repeatable AWS EC2 AMI's.
-# brew 'terraform'                  # Manage our AWS/GCE/K8S/etc infrastructure through code
-brew 'awscli' unless system "[ -e /usr/local/bin/aws ]" # AWS command line client
-brew 'opentofu'                  # Manage our AWS/GCE/K8S/etc infrastructure through code
-brew 'kops'                       # Kubernetes provisioner for cloud environments
-brew 'testssl'                    # Test various compliance issues with SSL endpoints
+brew 'awscli' unless system "[ -e /usr/local/bin/aws ]" # AWS CLI
+brew 'kubernetes-cli'             # kubectl (zsh kubectl plugin expects it)
+brew 'opentofu'                   # Terraform-compatible IaC
 
+# Security / secrets
+cask '1password'                  # Desktop app: SSH agent + op-ssh-sign for commit signing
+cask '1password-cli'              # op CLI for chezmoi secret templates
 
-# Databases
-# cask 'postgres'
-# cask 'mysql'
-
-# Database GUI
-# cask 'postico'
-# cask 'querious'
-# cask 'sequel-pro'
-
-# Security
-# cask 'cloak'                   # like google wifi vpn
-# cask 'viscosity'               # openvpn client
-cask '1password'                  # 1Password desktop app (SSH agent + op-ssh-sign for commit signing)
-cask '1password-cli'              # 1Password CLI (op) for chezmoi secret templates
-
-# Editors & IDEs
-# cask 'visual-studio-code' unless "[ -e /Applications/Visual\ Studio\ Code.app ]" # At this point the defacto multipurpose editor.
-brew 'neovim'                  # Neovim is a vim reimplentation. It's stable enough to replace vim
-brew 'lazygit'                  # Terminal git UI; LazyVim's <leader>gg integration
-cask 'iterm2' unless system "[ -e /Applications/iTerm.app ]" # Better than the built in terminal program
-
-# other apps
-# cask 'slack' unless system "[ -e /Applications/Slack.app ]"
-# cask 'firefox'
-# cask 'licecap'
-# cask 'grammarly'
+# Editors
+brew 'neovim'                     # LazyVim-based editor
+brew 'lazygit'                    # Terminal git UI (LazyVim <leader>gg)
+cask 'iterm2' unless system "[ -e /Applications/iTerm.app ]" # Terminal
 
 # Fonts
-cask 'font-menlo-for-powerline'
-cask 'font-meslo-lg-nerd-font'
-
+cask 'font-meslo-lg-nerd-font'    # Nerd font used by starship / powerlevel10k
