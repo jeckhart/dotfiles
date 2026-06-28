@@ -3,6 +3,9 @@
 if [ -e /proc ] && $(grep -oE 'WSL2' /proc/version >/dev/null 2>&1 ) ; then
   export LC_ALL=en_US.UTF-8
 
+  # Point X11 apps at the Windows host's X server (VcXsrv/X410 over the WSL2 NAT)
+  export DISPLAY="$(grep nameserver /etc/resolv.conf | awk '{print $2; exit;}'):0.0"
+
   SHARED_CONFIG=/mnt/wsl/shared
   mkdir -p "$SHARED_CONFIG"
 
