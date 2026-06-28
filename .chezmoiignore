@@ -5,9 +5,7 @@ CLAUDE.md
 Brewfile
 Brewfile.lock.json
 script
-thoughtbot-dotfiles
 .beads
-.gitmodules
 
 # p10k config: generated fresh per machine via 'p10k configure'
 .p10k.zsh
