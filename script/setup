@@ -8,7 +8,8 @@
 set -e
 
 fancy_echo() {
-  local fmt="$1"; shift
+  local fmt="$1"
+  shift
 
   # shellcheck disable=SC2059
   printf "\\n$fmt\\n" "$@"
@@ -38,16 +39,15 @@ brew install chezmoi
 # This also runs run_onchange_install-packages.sh, which installs the Homebrew
 # bundle from the Brewfile (and re-runs whenever the Brewfile changes).
 fancy_echo "==> Applying dotfiles with chezmoi…"
-chezmoi init --apply --branch chezmoi jeckhart/dotfiles
-# TODO: drop --branch chezmoi once master is promoted to the chezmoi layout.
+chezmoi init --apply jeckhart/dotfiles
 
 # Set zsh as the login shell.
 update_shell() {
-  local shell_path;
+  local shell_path
   shell_path="$HOMEBREW_PREFIX/bin/zsh"
 
   fancy_echo "Changing your shell to zsh ..."
-  if ! grep "$shell_path" /etc/shells > /dev/null 2>&1 ; then
+  if ! grep "$shell_path" /etc/shells >/dev/null 2>&1; then
     fancy_echo "Adding '$shell_path' to /etc/shells"
     sudo sh -c "echo $shell_path >> /etc/shells"
   fi
