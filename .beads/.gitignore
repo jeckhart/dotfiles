@@ -72,6 +72,8 @@ db.sqlite
 bd.db
 # Issue export (local-only passive export, full history is in Dolt)
 issues.jsonl
+# Interaction export (local-only passive export, full history is in Dolt)
+interactions.jsonl
 
 # NOTE: Do NOT add negation patterns here.
 # They would override fork protection in .git/info/exclude.
