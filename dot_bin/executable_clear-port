@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+#
+# clear-port <port> [signal] — terminate whatever is listening on a TCP port.
+# Signal defaults to TERM; pass e.g. KILL for a stubborn process.
+#
+#   clear-port 3000
+#   clear-port 3000 KILL
+
+set -euo pipefail
+
+port=${1:-}
+signal=${2:-TERM}
+if [[ -z $port ]]; then
+  printf 'usage: clear-port <port> [signal]\n' >&2
+  exit 1
+fi
+
+mapfile -t pids < <(lsof -nP -tiTCP:"$port" -sTCP:LISTEN || true)
+if [[ ${#pids[@]} -eq 0 ]]; then
+  printf 'clear-port: nothing listening on port %s\n' "$port" >&2
+  exit 0
+fi
+
+kill -"$signal" "${pids[@]}"
+printf 'clear-port: sent SIG%s to pid(s): %s\n' "$signal" "${pids[*]}" >&2
