@@ -47,19 +47,21 @@ brew 'cmake'                      # Build tool (also needed by some Rust/ESP bui
 brew 'direnv'                     # Per-directory environment loading
 brew 'libyaml'                    # Should come after openssl
 
+# Language runtimes — mise manages node, python, etc. (replaces nodenv + pyenv).
+# Pins + settings: dot_config/mise/config.toml; activation: configs/mise.zsh.
+brew 'mise'                       # Fast polyglot runtime/version manager (Rust)
+
 # JavaScript / TypeScript
-brew 'nodenv'                     # Manage multiple node versions
-brew 'pnpm'                       # Fast npm alternative
+brew 'pnpm'                       # Fast npm alternative (standalone; not managed by mise)
 
 # Java / JVM — commented out until JVM work resumes (java currently unprovisioned).
 # Re-add together with a JDK (e.g. brew 'openjdk') when needed.
 # brew 'gradle'                   # JVM build tool (Android, Jenkins tooling)
 # brew 'maven'                    # JVM build/dependency tool
 
-# Python
-brew 'poetry'                     # Python packaging / dependency management
-brew 'pyenv'                      # Manage multiple python versions
-brew 'pyenv-virtualenv'           # Virtualenv support for pyenv
+# Python (runtimes via mise above; uv for venvs/packaging)
+brew 'uv'                         # Fast Python package + venv manager (replaces pyenv-virtualenv)
+brew 'poetry'                     # Python packaging — legacy projects; migrating to uv
 
 # Go
 brew 'go'                         # Go toolchain

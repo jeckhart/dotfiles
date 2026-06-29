@@ -1,0 +1,8 @@
+#!/bin/sh
+# Install the runtimes pinned in ~/.config/mise/config.toml (node, python, ...).
+# Re-runs only when config.toml changes (chezmoi tracks the hash below). `after_` ensures
+# the config has been written to ~/.config/mise before `mise install` reads it.
+#
+# mise tools hash: {{ include "dot_config/mise/config.toml" | sha256sum }}
+command -v mise >/dev/null 2>&1 || exit 0
+mise install

@@ -1,0 +1,14 @@
+# mise global config — unified runtime version manager (replaces nodenv + pyenv +
+# pyenv-virtualenv). XDG-native location (~/.config/mise/config.toml). Runtimes here are
+# installed on a fresh machine by run_onchange_after_install-mise-tools.sh.tmpl (mise install).
+# Activation lives in ~/.config/zsh/configs/mise.zsh. Python venvs/packaging: use uv.
+
+[tools]
+node = "lts"        # track current LTS — low-maintenance; bump anytime
+python = "3.13"     # modern stable; mise auto-installs project-pinned versions on demand
+
+[settings]
+# Honor existing .python-version / .node-version project files (these are OFF by default in
+# mise, whose native files are mise.toml/.tool-versions). Keeps per-project pins working,
+# e.g. brezza-kasa-power's .python-version.
+idiomatic_version_file_enable_tools = ["node", "python"]
