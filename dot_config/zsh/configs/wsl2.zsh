@@ -6,15 +6,12 @@ if [ -e /proc ] && $(grep -oE 'WSL2' /proc/version >/dev/null 2>&1 ) ; then
   # Point X11 apps at the Windows host's X server (VcXsrv/X410 over the WSL2 NAT)
   export DISPLAY="$(grep nameserver /etc/resolv.conf | awk '{print $2; exit;}'):0.0"
 
-  SHARED_CONFIG=/mnt/wsl/shared
-  mkdir -p "$SHARED_CONFIG"
-
-  export SSH_AUTH_SOCK="$SHARED_CONFIG/S.ssh-agent.sock"
-  ss -a | grep -q "$SSH_AUTH_SOCK"
-  if [ $? -ne 0 ]; then
-    rm -f "$SSH_AUTH_SOCK"
-    setsid nohup socat UNIX-LISTEN:"$SSH_AUTH_SOCK",fork EXEC:$HOME/.ssh/wsl2-ssh-pageant.exe >/dev/null 2>&1 &
-  fi
+  # 1Password's SSH agent is forwarded into WSL natively via WSL interop — no
+  # socat/relay binary needed. `ssh.exe`/`op.exe` (Windows binaries, on $PATH
+  # via interop) talk straight to the Windows 1Password agent/CLI.
+  # See: https://www.1password.dev/ssh/integrations/wsl/
+  alias op='op.exe'
+  alias ssh='ssh.exe'
 
   wslfetch
 fi

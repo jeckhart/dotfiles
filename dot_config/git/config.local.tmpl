@@ -11,6 +11,10 @@
   default = simple
 [credential]
   helper = {{ if eq .chezmoi.os "darwin" }}osxkeychain{{ else }}store{{ end }}
+{{- if .isWSL2 }}
+[core]
+  sshCommand = /mnt/c/Windows/System32/OpenSSH/ssh.exe
+{{- end }}
 [commit]
   gpgsign = true
 [tag]
@@ -18,7 +22,7 @@
 [gpg]
   format = ssh
 [gpg "ssh"]
-  program = {{ if eq .chezmoi.os "darwin" }}/Applications/1Password.app/Contents/MacOS/op-ssh-sign{{ else }}/opt/1Password/op-ssh-sign{{ end }}
+  program = {{ if eq .chezmoi.os "darwin" }}/Applications/1Password.app/Contents/MacOS/op-ssh-sign{{ else if .isWSL2 }}op-ssh-sign.exe{{ else }}/opt/1Password/op-ssh-sign{{ end }}
   allowedSignersFile = ~/.ssh/allowed_signers
 
 [includeIf "gitdir:~/projects/work/**"]

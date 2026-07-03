@@ -8,7 +8,6 @@ brew 'openssl'                    # Recent openssl other formulae depend on
 
 # Dotfiles / config management
 brew 'chezmoi'                    # Manage personal configuration files across machines
-brew 'socat'                      # Used in WSL2 to bridge the ssh-agent from Windows
 
 # Unix / search
 brew 'ripgrep'                    # Fast grep replacement
@@ -80,7 +79,9 @@ brew 'opentofu'                   # Terraform-compatible IaC
 
 # Security / secrets
 cask '1password'                  # Desktop app: SSH agent + op-ssh-sign for commit signing
-cask '1password-cli'              # op CLI for chezmoi secret templates
+# On WSL2 we use the Windows op.exe/op-ssh-sign.exe (via WSL interop) instead —
+# see dot_config/zsh/configs/wsl2.zsh — so skip installing a redundant Linux op.
+cask '1password-cli' unless system "grep -qi microsoft /proc/version 2>/dev/null"
 
 # Editors
 brew 'neovim'                     # LazyVim-based editor

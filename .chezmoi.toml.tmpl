@@ -19,5 +19,5 @@
     opVault = {{ $opVault | quote }}
 
 [onepassword]
-    command = "op"
+    command = {{ if $isWSL2 }}"op.exe"{{ else }}"op"{{ end }}
     prompt = false
