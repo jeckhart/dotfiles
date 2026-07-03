@@ -1,8 +1,6 @@
 # Homebrew dependencies for these dotfiles. Installed by
 # run_onchange_install-packages.sh.tmpl (re-runs when this file changes).
 
-tap 'homebrew/bundle'
-
 # Early requirements
 brew 'openssl'                    # Recent openssl other formulae depend on
 
