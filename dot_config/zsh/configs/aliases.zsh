@@ -1,9 +1,11 @@
-# Shell aliases (loaded by _load_settings). Machine-local aliases that must stay
-# out of version control belong in ~/.config/zsh/.zshrc.local instead.
+# Shell aliases (loaded by _load_settings). There is no .zshrc.local seam —
+# machine-generic config lives here; secrets come from 1Password templates.
 
 # Unix
 alias ln="ln -v"
 alias mkdir="mkdir -p"
+# hwatch: watch with history + diff highlighting (plain `command watch` for the original)
+command -v hwatch >/dev/null && alias watch='hwatch'
 
 # eza (modern ls). `cat` is deliberately left as real cat — bat is for previews/MANPAGER.
 if command -v eza >/dev/null; then
@@ -11,7 +13,7 @@ if command -v eza >/dev/null; then
   # back to LS_COLORS (16-color). Set it so the Catppuccin Macchiato theme.yml wins.
   export EZA_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/eza"
   alias ls='eza --icons --group-directories-first'
-  alias ll='eza -la --icons --group-directories-first --git'
+  alias ll='eza -la --icons --group-directories-first --git --header'
   alias lt='eza --tree --level=2 --icons'
 else
   alias ll="ls -al"

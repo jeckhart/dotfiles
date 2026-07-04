@@ -1,0 +1,11 @@
+# Fast `use flake` / `use nix` via nix-direnv, when a nix profile provides it
+# (no brew formula exists). Inert on machines without nix.
+for _nix_direnv in \
+  "/etc/profiles/per-user/$USER/share/nix-direnv/direnvrc" \
+  "$HOME/.nix-profile/share/nix-direnv/direnvrc"; do
+  if [ -f "$_nix_direnv" ]; then
+    source "$_nix_direnv"
+    break
+  fi
+done
+unset _nix_direnv

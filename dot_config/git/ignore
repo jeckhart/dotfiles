@@ -19,6 +19,12 @@ tmp/**/*
 .DS_Store
 .AppleDouble
 .LSOverride
+*~
+*.bak
+*.orig
+*.rej
+.direnv/
+.claude-version-cache
 
 # Icon must end with two \r
 Icon

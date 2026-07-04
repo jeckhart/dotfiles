@@ -1,5 +1,5 @@
 # Files to remove from the target (home) directory on chezmoi apply.
 # Entries here cause chezmoi to delete the target path if it exists.
 # Prune this list once all machines have applied the removal.
-
-.config/direnv/direnvrc
+# (.config/direnv/direnvrc was listed here during the pyenv teardown; it is
+# now a managed file again — see dot_config/direnv/direnvrc.)

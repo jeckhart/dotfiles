@@ -1,0 +1,31 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+# macOS user defaults (ported verbatim from the retired nix-darwin
+# system.defaults config). Re-runs whenever this script changes.
+set -e
+
+# Keyboard
+defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+defaults write NSGlobalDomain KeyRepeat -int 2
+defaults write NSGlobalDomain InitialKeyRepeat -int 10
+
+# Finder
+defaults write com.apple.finder AppleShowAllFiles -bool true
+defaults write com.apple.finder CreateDesktop -bool false
+defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
+defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
+defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+defaults write com.apple.finder QuitMenuItem -bool true
+defaults write com.apple.finder ShowPathbar -bool true
+defaults write com.apple.finder ShowStatusBar -bool true
+defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
+defaults write com.apple.finder _FXSortFoldersFirst -bool true
+
+# Screenshots
+mkdir -p "$HOME/Downloads/screenshots"
+defaults write com.apple.screencapture location -string "$HOME/Downloads/screenshots"
+defaults write com.apple.screencapture type -string "png"
+defaults write com.apple.screencapture disable-shadow -bool true
+
+killall Finder SystemUIServer 2>/dev/null || true
+{{ end -}}

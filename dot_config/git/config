@@ -8,6 +8,12 @@
 	pf = push --force-with-lease
 	st = status
 	branches = for-each-ref --sort=-committerdate --format=\"%(color:blue)%(authordate:relative)\t%(color:red)%(authorname)\t%(color:white)%(color:bold)%(refname:short)\" refs/remotes
+	lg = log --color --graph --pretty=format:'%C(bold blue)%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+	lga = log --color --graph --pretty=format:'%C(bold blue)%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --all
+	bd = branch -d
+	bdf = branch -D
+	fixup = "!f() { git commit --fixup=$1 && git stash push --keep-index -m fixup-rebase-stash && git rebase --autosquash -i $1~1 && git stash apply stash@{0} && git stash drop stash@{0}; }; f"
+	ds = -c delta.side-by-side=true diff
 [core]
 	excludesfile = ~/.config/git/ignore
 	autocrlf = input
@@ -16,6 +22,9 @@
 	diffFilter = delta --color-only
 [delta]
 	navigate = true
+	line-numbers = true
+	hyperlinks = true
+	hyperlinks-file-link-format = "vscode://file/{path}:{line}"
 	; Catppuccin Macchiato — defined in the included catppuccin.gitconfig below.
 	; Self-contained (does not depend on `bat cache`).
 	features = catppuccin-macchiato
@@ -27,6 +36,11 @@
 [fetch]
 	prune = true
 	pruneTags = true
+[pull]
+	rebase = true
+	ff = only
+[commit]
+	verbose = true
 [rebase]
 	autosquash = true
 	autoStash = true

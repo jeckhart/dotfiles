@@ -33,6 +33,16 @@ _user_terminfo_keybindings() {
   bindkey "^[[6~" history-beginning-search-forward
   bindkey "^[[1~" beginning-of-line
   bindkey "^[[4~" end-of-line
+  bindkey "^[[H"  beginning-of-line
+  bindkey "^[[F"  end-of-line
+
+  # Option+Left/Right word navigation (xterm-style modifier sequences)
+  bindkey "^[[1;3D" backward-word
+  bindkey "^[[1;3C" forward-word
+
+  # Word boundaries stop at symbols (bash-style), so word-nav/kill feel familiar
+  autoload -U select-word-style
+  select-word-style bash
 }
 zvm_after_init_commands+=('_user_terminfo_keybindings')
 

@@ -97,7 +97,19 @@ app); `chezmoi.toml` sets `[onepassword] command = "op"`, `prompt = false`.
 | Helix    | `dot_config/helix/config.toml`         | Catppuccin Mocha, vi keybindings               |
 | Tmux     | `dot_config/tmux/tmux.conf`            | Prefix `Ctrl-Space`, vi keys, Catppuccin Mocha |
 | Starship | `dot_config/starship.toml`             | Catppuccin Macchiato palette                   |
-| Neovim   | *migration in progress (dotfiles-pip)* | still legacy `~/.config/nvim` until then       |
+| Neovim   | `dot_config/nvim/`                     | LazyVim (lang extras: rust/python/ts/go)       |
+
+### Nix Coexistence (work machines)
+
+This repo owns all shared machine config; on work machines a slim **private**
+nix-darwin/home-manager layer manages the work-specific remainder. The two never own the
+same file or package (the nix side's homebrew never runs `cleanup`). Seams, all no-ops
+without nix: `configs/nix.zsh` sources the nix daemon env, and the nix layer drops its
+own snippets into chezmoi-loaded dirs (`zsh/configs/*.zsh`, `direnv/lib/*.sh`).
+Per-project toolchains stay on nix flakes + direnv.
+
+**This repo is public — including the beads DB.** Anything non-public (work environment
+details of any kind) belongs in the private repo, never here.
 
 ### Radicle (P2P code collaboration)
 

@@ -6,4 +6,7 @@ else
   PATH="$HOME/.bin:/usr/local/sbin:$PATH"
 fi
 
+# User-installed binaries (pipx, uv tool, etc.)
+PATH="$HOME/.local/bin:$PATH"
+
 export -U PATH

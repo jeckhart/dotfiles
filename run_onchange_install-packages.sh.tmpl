@@ -9,3 +9,23 @@ set -e
 command -v brew >/dev/null 2>&1 || exit 0
 
 brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
+
+# beads version policy: stable >= 1.0.5, never HEAD. The beads DB schema is
+# shared across machines via the git remote; a HEAD build can demand a newer
+# schema and fork it for every other machine. brew bundle won't fix either
+# case on its own (it neither upgrades old stables nor demotes HEAD installs).
+BEADS_MIN="1.0.5"
+beads_ver=$(brew list --versions beads 2>/dev/null | awk '{print $2}')
+case "$beads_ver" in
+  "") ;; # not installed via brew — nothing to do
+  HEAD*)
+    echo "beads $beads_ver is a HEAD build (schema-fork risk) — replacing with stable"
+    brew uninstall beads && brew install beads
+    ;;
+  *)
+    if [ "$(printf '%s\n' "$BEADS_MIN" "$beads_ver" | sort -V | head -1)" != "$BEADS_MIN" ]; then
+      echo "beads $beads_ver < $BEADS_MIN — upgrading"
+      brew upgrade beads
+    fi
+    ;;
+esac
