@@ -1,0 +1,21 @@
+{{- /* Emits "present" if this host is enrolled in the radicle mesh (its
+       radicle-node-<hostname> item exists in 1Password), "absent" if 1Password is
+       reachable but the item is missing (radicle targets are then skipped), and
+       FAILS the whole chezmoi run if 1Password is locked/unreachable — we refuse
+       to silently un-manage radicle files on a transient auth failure.
+       Callers: .chezmoiignore + the radicle run_onchange scripts. */ -}}
+{{- $op := "op" -}}
+{{- if .isWSL2 }}{{ $op = "op.exe" }}{{ end -}}
+{{- $item := printf "radicle-node-%s" (.chezmoi.hostname | lower) -}}
+{{- if not (lookPath $op) -}}
+{{- if stat (joinPath .chezmoi.homeDir ".radicle/keys/radicle") -}}
+{{- fail (printf "%s not found on PATH but this host has a radicle identity — refusing to silently skip radicle config" $op) -}}
+{{- end -}}
+absent
+{{- else -}}
+{{- $probe := output "sh" "-c" (printf "%s item get %q --vault %q >/dev/null 2>&1 && echo present && exit 0; %s vault get %q >/dev/null 2>&1 && echo absent || echo unavailable" $op $item .opVault $op .opVault) | trim -}}
+{{- if eq $probe "unavailable" -}}
+{{- fail "1Password is locked or unreachable; cannot determine radicle enrollment (unlock 1Password, then retry)" -}}
+{{- end -}}
+{{- $probe -}}
+{{- end -}}

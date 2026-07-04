@@ -1,0 +1,20 @@
+#!/bin/sh
+# Install radicle from the official signed apt repo (WSL2 only — macOS gets it
+# from the Brewfile). Needs sudo; chezmoi apply may prompt for a password.
+{{ if and (ne .chezmoi.os "darwin") .isWSL2 -}}
+set -e
+if ! command -v apt-get >/dev/null 2>&1; then exit 0; fi
+if command -v rad >/dev/null 2>&1; then exit 0; fi
+
+echo "Installing radicle from https://radicle.dev/apt (sudo required)..."
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+curl -fsSLo "$tmp/radicle-archive-keyring.deb" https://radicle.dev/apt/radicle-archive-keyring.deb
+sudo apt-get install -y "$tmp/radicle-archive-keyring.deb"
+echo "deb [signed-by=/usr/share/radicle/radicle-archive-keyring.asc] https://radicle.dev/apt release main" \
+  | sudo tee /etc/apt/sources.list.d/radicle.list >/dev/null
+sudo apt-get update
+sudo apt-get install -y radicle
+{{ else -}}
+exit 0  # darwin: Brewfile owns radicle; non-WSL2 linux: out of scope
+{{ end -}}

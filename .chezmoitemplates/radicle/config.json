@@ -1,0 +1,58 @@
+{{- /* Renders the full ~/.radicle/config.json for this node from 1Password.
+       The vault is the mesh's single source of truth: every radicle-node-* item
+       is a peer; this host's own item supplies listen/externalAddresses.
+       Strict JSON via toPrettyJson (radicle parses with serde, no comments);
+       connect list sorted so chezmoi diffs stay deterministic.
+       Used by private_dot_radicle/private_config.json.tmpl and (as a change
+       trigger) run_onchange_after_radicle-1-node-service.sh.tmpl. */ -}}
+{{- $op := "op" -}}
+{{- if .isWSL2 }}{{ $op = "op.exe" }}{{ end -}}
+{{- $name := .chezmoi.hostname | lower -}}
+{{- $selfTitle := printf "radicle-node-%s" $name -}}
+{{- $self := onepassword $selfTitle .opVault -}}
+{{- /* op fields without content (e.g. notesPlain) omit the "value" key entirely,
+       and chezmoi templates error on missing map keys — hence the hasKey guards. */ -}}
+{{- $selfF := dict -}}
+{{- range $self.fields }}{{ if hasKey . "value" }}{{ $_ := set $selfF .label (default "" .value) }}{{ end }}{{ end -}}
+{{- /* Shape validation: a peer item missing/garbling nid/address/port would render
+       a malformed connect entry into EVERY other node's config and crash-loop the
+       mesh. Incomplete peers are skipped (that's the mid-enrollment state); a
+       malformed SELF item fails the apply loudly since listen would be unusable. */ -}}
+{{- $nidRe := "^z6[A-Za-z0-9]+$" -}}
+{{- $addrRe := "^[0-9]+(\\.[0-9]+){3}$" -}}
+{{- $portRe := "^[0-9]+$" -}}
+{{- $connect := list -}}
+{{- range $it := output $op "item" "list" "--vault" .opVault "--format" "json" | fromJson -}}
+{{- if and (hasPrefix "radicle-node-" $it.title) (ne $it.title $selfTitle) -}}
+{{- $peer := onepassword $it.id $.opVault -}}
+{{- $pf := dict -}}
+{{- range $peer.fields }}{{ if hasKey . "value" }}{{ $_ := set $pf .label (default "" .value) }}{{ end }}{{ end -}}
+{{- $nid := get $pf "nid" | default "" -}}
+{{- $addr := get $pf "address" | default "" -}}
+{{- $port := get $pf "port" | default "" -}}
+{{- if and (regexMatch $nidRe $nid) (regexMatch $addrRe $addr) (regexMatch $portRe $port) -}}
+{{- $connect = append $connect (printf "%s@%s:%s" $nid $addr $port) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- $selfAddr := get $selfF "address" | default "" -}}
+{{- $selfPort := get $selfF "port" | default "" -}}
+{{- if not (and (regexMatch $addrRe $selfAddr) (regexMatch $portRe $selfPort)) -}}
+{{- fail (printf "1Password item %s has a missing or malformed address/port field" $selfTitle) -}}
+{{- end -}}
+{{- $listen := printf "%s:%s" $selfAddr $selfPort -}}
+{{- $cfg := dict
+      "publicExplorer" "https://radicle.network/nodes/$host/$rid$path"
+      "preferredSeeds" (list)
+      "cli" (dict "hints" true)
+      "node" (dict
+        "alias" (get $selfF "alias" | default $name)
+        "peers" (dict "type" "static")
+        "listen" (list $listen)
+        "externalAddresses" (list $listen)
+        "connect" ($connect | sortAlpha)
+        "seedingPolicy" (dict "default" "block")
+        "network" "main"
+        "relay" "auto"
+        "log" "INFO") -}}
+{{ toPrettyJson $cfg }}

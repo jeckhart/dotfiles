@@ -9,7 +9,8 @@
     ".agents/**",
     "AGENTS.md",
     "**/lazy-lock.json",
-    "**/lazyvim.json"
+    "**/lazyvim.json",
+    ".chezmoitemplates/**"
   ],
   "plugins": [
     "https://plugins.dprint.dev/markdown-0.22.1.wasm",

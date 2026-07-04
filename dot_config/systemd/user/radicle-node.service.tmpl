@@ -1,0 +1,19 @@
+# Radicle node as a systemd user unit (WSL2). Modeled on the unit shipped in the
+# heartwood repo, adapted: user scope, env (incl. RAD_PASSPHRASE) from the
+# chezmoi-rendered 0600 env file. Requires systemd enabled in /etc/wsl.conf and
+# `loginctl enable-linger` (both handled by run_onchange_after_radicle-1-node-service).
+# Note: the WSL2 VM itself idles out when no session holds it open — the node runs
+# "while WSL is up", not truly 24/7 (see docs/radicle.md for the optional keep-alive).
+[Unit]
+Description=Radicle Node
+After=network-online.target
+
+[Service]
+EnvironmentFile={{ .chezmoi.homeDir }}/.config/radicle/node.env
+ExecStart=/usr/bin/radicle-node --force
+KillMode=process
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

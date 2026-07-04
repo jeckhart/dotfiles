@@ -1,0 +1,19 @@
+#!/bin/sh
+# launchd wrapper for radicle-node. The plist carries no secrets; RAD_HOME and
+# RAD_PASSPHRASE come from the chezmoi-rendered 0600 env file. Exec (not spawn)
+# so launchd tracks and signals the real daemon PID. --force clears a stale
+# control socket after a crash, which KeepAlive restarts rely on.
+set -a
+. "$HOME/.config/radicle/node.env"
+set +a
+
+BREW_PREFIX="{{ if .isAppleSilicon }}/opt/homebrew{{ else }}/usr/local{{ end }}"
+export PATH="$BREW_PREFIX/bin:/usr/bin:/bin"
+
+if [ ! -f "$RAD_HOME/keys/radicle" ]; then
+  echo "radicle-node-wrapper: no identity at $RAD_HOME/keys/radicle — run rad-bootstrap" >&2
+  sleep 30   # throttle launchd KeepAlive respawn until enrollment happens
+  exit 1
+fi
+
+exec "$BREW_PREFIX/bin/radicle-node" --force

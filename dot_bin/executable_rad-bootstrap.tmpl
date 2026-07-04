@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# Enroll this machine in the private Radicle mesh, or restore its identity.
+# 1Password is the source of truth: one radicle-node-<hostname> item per node.
+#
+#   item exists + no local keys  -> restore keypair from 1Password
+#   item exists + local keys     -> no-op (already enrolled)
+#   no item     + local keys     -> refuse: ambiguous state, resolve by hand
+#   no item     + no local keys  -> rad auth, then create the 1Password item
+#
+# Identity creation is unrecoverable-if-botched, so this is a deliberate manual
+# step, not part of chezmoi apply. Flow: chezmoi apply -> rad-bootstrap -> chezmoi apply
+# (templates are all evaluated before scripts run, so the second apply is what
+# renders config.json/services once the item exists).
+set -euo pipefail
+
+OP={{ if .isWSL2 }}"op.exe"{{ else }}"op"{{ end }}
+VAULT={{ .opVault | squote }}
+NODE={{ .chezmoi.hostname | lower | squote }}
+ITEM="radicle-node-$NODE"
+RAD_HOME="${RAD_HOME:-$HOME/.radicle}"
+KEY="$RAD_HOME/keys/radicle"
+PATH="{{ if .isAppleSilicon }}/opt/homebrew/bin:{{ else if eq .chezmoi.os "darwin" }}/usr/local/bin:{{ end }}$PATH"
+
+# A stale RAD_PASSPHRASE (e.g. another node's, or rendered before enrollment)
+# would be silently used by rad auth instead of our generated one.
+unset RAD_PASSPHRASE
+
+command -v rad >/dev/null 2>&1 || { echo "error: rad not installed (run chezmoi apply first)" >&2; exit 1; }
+command -v "$OP" >/dev/null 2>&1 || { echo "error: $OP not installed" >&2; exit 1; }
+
+tailscale_ip() {
+  if command -v tailscale >/dev/null 2>&1; then
+    tailscale ip -4 2>/dev/null | head -1
+  elif [ -x "/Applications/Tailscale.app/Contents/MacOS/Tailscale" ]; then
+    "/Applications/Tailscale.app/Contents/MacOS/Tailscale" ip -4 2>/dev/null | head -1
+  fi
+}
+
+if "$OP" item get "$ITEM" --vault "$VAULT" >/dev/null 2>&1; then
+  if [ -f "$KEY" ]; then
+    echo "Already enrolled: $ITEM exists and local keys are present. Nothing to do."
+  else
+    echo "Restoring radicle identity for '$NODE' from 1Password..."
+    mkdir -p "$RAD_HOME/keys"
+    chmod 700 "$RAD_HOME" "$RAD_HOME/keys"
+    # Stage via mktemp and validate before mv: writing $KEY directly would leave a
+    # truncated key on a transient op failure, and the item-exists+key-exists check
+    # above would then treat this node as enrolled forever.
+    tmpkey="$(mktemp)"
+    trap 'rm -f "$tmpkey"' EXIT
+    "$OP" read "op://$VAULT/$ITEM/private-key-b64" | base64 -d > "$tmpkey"
+    grep -q "OPENSSH PRIVATE KEY" "$tmpkey" || {
+      echo "error: restored key from $ITEM does not look like an OpenSSH private key; aborting" >&2
+      exit 1
+    }
+    PUB="$("$OP" read "op://$VAULT/$ITEM/public-key")"
+    case "$PUB" in ssh-ed25519\ *) ;; *)
+      echo "error: public-key field of $ITEM does not look like an ssh-ed25519 key; aborting" >&2
+      exit 1
+    ;; esac
+    chmod 600 "$tmpkey"
+    mv "$tmpkey" "$KEY"
+    trap - EXIT
+    printf '%s\n' "$PUB" > "$KEY.pub"
+    chmod 644 "$KEY.pub"
+    echo "Restored. Run: chezmoi apply   (renders config + starts the node)"
+  fi
+else
+  if [ -f "$KEY" ]; then
+    echo "error: local radicle keys exist but $ITEM is missing in 1Password." >&2
+    echo "Refusing to guess. Either upload the existing identity to 1Password by hand" >&2
+    echo "or move $RAD_HOME/keys aside and re-run to enroll fresh." >&2
+    exit 1
+  fi
+  echo "Enrolling '$NODE' as a new radicle node..."
+  IP="$(tailscale_ip || true)"   # || true: set -e must not eat the diagnostic below
+  [ -n "$IP" ] || { echo "error: no Tailscale IPv4 address found (is Tailscale up?)" >&2; exit 1; }
+  PASS="$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | head -c 32)"
+  printf '%s' "$PASS" | rad auth --alias "$NODE" --stdin
+  DID="$(rad self --did)"
+  # This value seeds the whole mesh's connect lists — refuse anything unexpected.
+  [[ "$DID" =~ ^did:key:z6[A-Za-z0-9]+$ ]] || {
+    echo "error: 'rad self --did' returned unexpected output: $DID" >&2
+    exit 1
+  }
+  NID="${DID#did:key:}"   # NID is the DID without its did:key: prefix (rad self --nid is deprecated)
+  "$OP" item create --category "Secure Note" --vault "$VAULT" --title "$ITEM" \
+    "alias[text]=$NODE" \
+    "nid[text]=$NID" \
+    "did[text]=$DID" \
+    "address[text]=$IP" \
+    "port[text]=8776" \
+    "passphrase[concealed]=$PASS" \
+    "private-key-b64[concealed]=$(base64 < "$KEY" | tr -d '\n')" \
+    "public-key[text]=$(cat "$KEY.pub")" >/dev/null
+  echo "Enrolled: $ITEM created (NID $NID)."
+  echo "Next: chezmoi apply   (renders config + starts the node; other machines"
+  echo "pick up this peer on their next apply). Then allow-list $DID"
+  echo "on private repos from a delegate machine: rad id update --allow $DID"
+fi
+
+# If the supervisor is already deployed (restore-onto-rebuilt-machine case), bounce it.
+{{ if eq .chezmoi.os "darwin" -}}
+if [ -f "$HOME/Library/LaunchAgents/dev.radicle.node.plist" ]; then
+  launchctl kickstart -k "gui/$(id -u)/dev.radicle.node" 2>/dev/null || true
+fi
+{{ else -}}
+if [ -d /run/systemd/system ]; then
+  systemctl --user try-restart radicle-node.service 2>/dev/null || true
+fi
+{{ end -}}

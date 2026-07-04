@@ -28,6 +28,10 @@ brew 'yazi'                       # Terminal file manager
 brew 'duckdb'                     # In-process SQL OLAP DB — backs yazi's duckdb.yazi data preview (CSV/TSV/JSON/Parquet)
 brew 'git-delta'                  # Syntax-highlighting git pager
 
+# Peer-to-peer code collaboration (private mesh over Tailscale — see docs/radicle.md)
+brew 'radicle'                    # rad CLI + radicle-node + git-remote-rad
+cask 'tailscale-app'              # Mesh VPN the radicle nodes ride on (GUI app; login is manual)
+
 # GNU userland (gnubin-first PATH in configs/gnu.zsh: sed/date/grep use GNU under normal names)
 brew 'coreutils'
 brew 'findutils'

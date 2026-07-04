@@ -1,0 +1,49 @@
+#!/bin/sh
+# Declarative seeding: every enrolled node replicates every repo listed in the
+# radicle-mesh 1Password item (repos section, values are RIDs). The rendered
+# `rad seed` lines below ARE the change trigger — editing the repo list in
+# 1Password changes this script's content, so chezmoi re-runs it on next apply.
+# Working copies stay manual (rad clone); this only controls background replication.
+{{ if eq (includeTemplate "radicle/enabled" . | trim) "absent" -}}
+exit 0  # host not enrolled in the radicle mesh (see rad-bootstrap)
+{{ else -}}
+{{- $op := "op" -}}
+{{- if .isWSL2 }}{{ $op = "op.exe" }}{{ end -}}
+{{- $hasMesh := output "sh" "-c" (printf "%s item get radicle-mesh --vault %q >/dev/null 2>&1 && echo yes || echo no" $op .opVault) | trim -}}
+{{- if ne $hasMesh "yes" -}}
+exit 0  # no radicle-mesh item in 1Password yet
+{{ else -}}
+{{- $mesh := onepassword "radicle-mesh" .opVault -}}
+{{- $rids := list -}}
+{{- /* op fields without content omit "value"/"section" keys entirely; chezmoi
+       templates error on missing map keys — hence the hasKey guards. Values are
+       spliced into this executed script, so only strictly-shaped RIDs pass (the
+       regex is the injection barrier — no shell metacharacters can get through). */ -}}
+{{- $malformed := 0 -}}
+{{- range $mesh.fields -}}
+{{- if and (hasKey . "section") (hasKey . "value") -}}
+{{- if .section -}}
+{{- if eq (default "" (get .section "label")) "repos" -}}
+{{- if regexMatch "^rad:[A-Za-z0-9]+$" (default "" .value) -}}
+{{- $rids = append $rids .value -}}
+{{- else -}}
+{{- $malformed = add1 $malformed -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+if ! command -v rad >/dev/null 2>&1; then exit 0; fi
+if [ ! -f "$HOME/.radicle/keys/radicle" ]; then
+  echo "radicle: no identity yet; run rad-bootstrap, then chezmoi apply" >&2
+  exit 0
+fi
+set -a; . "$HOME/.config/radicle/node.env"; set +a
+{{ if gt $malformed 0 -}}
+echo "warn: {{ $malformed }} radicle-mesh repos entr(y/ies) skipped: values must match ^rad:[A-Za-z0-9]+$" >&2
+{{ end -}}
+{{ range $rids | sortAlpha }}
+rad seed '{{ . }}' --scope followed || echo "warn: rad seed {{ . }} failed" >&2
+{{- end }}
+{{ end -}}
+{{ end -}}

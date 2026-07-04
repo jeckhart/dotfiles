@@ -1,0 +1,46 @@
+#!/bin/sh
+# (Re)load the radicle-node supervisor when its inputs change. The hashes below
+# embed the *rendered* config and the unit/wrapper sources into this script's
+# content, so chezmoi re-runs it when any of them change — e.g. a peer's address
+# changing in 1Password re-renders config.json, changes this hash, and restarts
+# the node with the new connect list.
+{{ if eq (includeTemplate "radicle/enabled" . | trim) "absent" -}}
+exit 0  # host not enrolled in the radicle mesh (see rad-bootstrap)
+{{ else if eq .chezmoi.os "darwin" -}}
+# config hash: {{ includeTemplate "radicle/config.json" . | sha256sum }}
+# plist hash: {{ include "private_Library/LaunchAgents/dev.radicle.node.plist.tmpl" | sha256sum }}
+# wrapper hash: {{ include "dot_bin/executable_radicle-node-wrapper.tmpl" | sha256sum }}
+set -e
+PLIST="$HOME/Library/LaunchAgents/dev.radicle.node.plist"
+if ! launchctl print "gui/$(id -u)" >/dev/null 2>&1; then
+  # e.g. chezmoi apply over SSH with no graphical session: there is no gui launchd
+  # domain to bootstrap into. The plist is in place; launchd loads it at next login.
+  echo "radicle: no GUI launchd domain (SSH session?); LaunchAgent will load at next login" >&2
+  exit 0
+fi
+launchctl bootout "gui/$(id -u)/dev.radicle.node" 2>/dev/null || true
+# bootout is asynchronous — bootstrapping before the label is gone fails with EIO
+i=0
+while launchctl print "gui/$(id -u)/dev.radicle.node" >/dev/null 2>&1; do
+  i=$((i + 1))
+  [ "$i" -ge 20 ] && break
+  sleep 0.5
+done
+launchctl bootstrap "gui/$(id -u)" "$PLIST"
+echo "radicle-node LaunchAgent (re)loaded"
+{{ else if .isWSL2 -}}
+# config hash: {{ includeTemplate "radicle/config.json" . | sha256sum }}
+# unit hash: {{ include "dot_config/systemd/user/radicle-node.service.tmpl" | sha256sum }}
+set -e
+if [ ! -d /run/systemd/system ]; then
+  echo "radicle: systemd not enabled in WSL ([boot] systemd=true in /etc/wsl.conf); skipping node service" >&2
+  exit 0
+fi
+systemctl --user daemon-reload
+loginctl enable-linger "$USER" 2>/dev/null || true
+systemctl --user enable --now radicle-node.service
+systemctl --user try-restart radicle-node.service || true
+echo "radicle-node systemd user unit (re)loaded"
+{{ else -}}
+exit 0
+{{ end -}}

@@ -1,0 +1,8 @@
+# Radicle CLI key unlock. SSH_AUTH_SOCK points at the 1Password agent, which
+# rejects ssh-add — so rad cannot park its key in an agent and needs the
+# passphrase in the environment instead (same baked-secret pattern as the other
+# rendered configs; value comes from this node's 1Password item at apply time).
+# private_ source prefix → 0600 target: this file holds the node key passphrase.
+{{- /* sprig squote does NOT escape embedded single quotes, so escape by hand:
+       ' → '\'' keeps the export line valid for any vault value. */}}
+export RAD_PASSPHRASE='{{ onepasswordRead (printf "op://%s/radicle-node-%s/passphrase" .opVault (.chezmoi.hostname | lower)) | trim | replace "'" "'\\''" }}'

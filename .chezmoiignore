@@ -22,3 +22,27 @@ dprint.json
 {{ if not .isWSL2 -}}
 .config/zsh/configs/wsl2.zsh
 {{- end }}
+
+# Repo docs (radicle runbook etc.) — not deployed to ~
+docs
+
+# Radicle: platform splits for the node supervisor
+{{ if ne .chezmoi.os "darwin" -}}
+Library/LaunchAgents/dev.radicle.node.plist
+.bin/radicle-node-wrapper
+{{- end }}
+{{ if not .isWSL2 -}}
+.config/systemd
+{{- end }}
+
+# Radicle: deployed only when this host is enrolled (radicle-node-<hostname> item
+# exists in 1Password). ~/.bin/rad-bootstrap is deliberately NOT ignored — it is
+# the enrollment tool. Enrollment flow: chezmoi apply → rad-bootstrap → chezmoi apply.
+{{ if eq (includeTemplate "radicle/enabled" . | trim) "absent" -}}
+.radicle
+.config/radicle
+.config/zsh/configs/radicle.zsh
+.bin/radicle-node-wrapper
+Library/LaunchAgents/dev.radicle.node.plist
+.config/systemd/user/radicle-node.service
+{{- end }}

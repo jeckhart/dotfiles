@@ -99,6 +99,16 @@ app); `chezmoi.toml` sets `[onepassword] command = "op"`, `prompt = false`.
 | Starship | `dot_config/starship.toml`             | Catppuccin Macchiato palette                   |
 | Neovim   | *migration in progress (dotfiles-pip)* | still legacy `~/.config/nvim` until then       |
 
+### Radicle (P2P code collaboration)
+
+Private Radicle mesh over Tailscale, with **1Password as the single source of truth**
+for node identities/addresses (`radicle-node-<hostname>` items) and repo RIDs
+(`radicle-mesh` item). `.chezmoiignore` gates all radicle targets on the host's item
+existing (probe: `.chezmoitemplates/radicle/enabled`; fails the run if 1P is locked).
+`~/.radicle/config.json` is fully templated from the vault roster; the node runs
+always-on via LaunchAgent (macOS) / systemd user unit (WSL2). New machines enroll with
+`chezmoi apply` → `rad-bootstrap` → `chezmoi apply`. Full runbook: `docs/radicle.md`.
+
 ### Embedded Rust / ESP32 Development
 
 `dot_config/zsh/configs/export-esp.zsh` and `dot_bin/executable_rustrover-esp.sh`
@@ -108,7 +118,7 @@ serial devices (auto-reconnects) for ESP32 debugging.
 ### Homebrew Dependencies
 
 Tracked in `Brewfile`. Notable: chezmoi, 1password-cli, sheldon, starship, fzf, fd, bat, eza,
-yazi, zoxide, atuin, git-delta, neovim, awscli, opentofu. (Language managers: nodenv, pyenv,
+yazi, zoxide, atuin, git-delta, neovim, awscli, opentofu, radicle. (Language managers: nodenv, pyenv,
 rustup.)
 
 ## Adding New Configurations
