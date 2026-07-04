@@ -24,8 +24,14 @@
 [gpg "ssh"]
   program = {{ if eq .chezmoi.os "darwin" }}/Applications/1Password.app/Contents/MacOS/op-ssh-sign{{ else if .isWSL2 }}op-ssh-sign.exe{{ else }}/opt/1Password/op-ssh-sign{{ end }}
   allowedSignersFile = ~/.ssh/allowed_signers
+[gitbutler]
+  aiModelProvider = anthropic
+  aiAnthropicKeyOption = butlerAPI
 
 [includeIf "gitdir:~/projects/work/**"]
+  path = ~/.config/git/config.work
+
+[includeIf "gitdir:~/projects/ch/**"]
   path = ~/.config/git/config.work
 
 [includeIf "gitdir:~/projects/shopkeep/**"]
