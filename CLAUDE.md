@@ -118,8 +118,8 @@ serial devices (auto-reconnects) for ESP32 debugging.
 ### Homebrew Dependencies
 
 Tracked in `Brewfile`. Notable: chezmoi, 1password-cli, sheldon, starship, fzf, fd, bat, eza,
-yazi, zoxide, atuin, git-delta, neovim, awscli, opentofu, radicle. (Language managers: nodenv, pyenv,
-rustup.)
+yazi, zoxide, atuin, git-delta, neovim, awscli, opentofu, radicle. (Runtimes: mise manages
+node + python, uv for Python venvs/packaging; Rust via rustup.)
 
 ## Adding New Configurations
 

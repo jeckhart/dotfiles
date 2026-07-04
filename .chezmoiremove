@@ -1,0 +1,5 @@
+# Files to remove from the target (home) directory on chezmoi apply.
+# Entries here cause chezmoi to delete the target path if it exists.
+# Prune this list once all machines have applied the removal.
+
+.config/direnv/direnvrc
