@@ -6,8 +6,36 @@ import "package://github.com/jdx/hk/releases/download/v1.49.0/hk@1.49.0#/Builtin
 // extension (e.g. **/*.sh, **/*.toml), so foo.sh.tmpl / .chezmoi.toml.tmpl never match.
 // dprint's file scope (markdown/json/yaml + generated-file excludes) lives in dprint.json.
 local linters = new Mapping<String, Step> {
-  ["shellcheck"] = Builtins.shellcheck // shell lint (**/*.sh, **/*.bash)
-  ["shfmt"] = Builtins.shfmt // shell format
+  // shell: also cover our extensionless bash scripts (no .sh extension)
+  ["shellcheck"] = (Builtins.shellcheck) {
+    glob =
+      List(
+        "**/*.sh",
+        "**/*.bash",
+        "script/setup",
+        "dot_bin/executable_clear-port",
+        "dot_bin/executable_whats-in-port",
+      )
+  }
+  // shfmt: same scripts, but DROP **/*.zsh — shfmt's parser errors on zsh syntax
+  // (e.g. `for x (...)`); zsh is syntax-checked separately below with `zsh -n`.
+  ["shfmt"] = (Builtins.shfmt) {
+    glob =
+      List(
+        "**/*.sh",
+        "**/*.bash",
+        "script/setup",
+        "dot_bin/executable_clear-port",
+        "dot_bin/executable_whats-in-port",
+      )
+  }
+  // zsh: no reliable formatter exists; lint syntax only with zsh's own `zsh -n`
+  // (per-file, since `zsh -n` takes a single script argument).
+  ["zsh_syntax"] {
+    glob = List("**/*.zsh")
+    shell = "sh -c"
+    check = "for f in {{ files }}; do zsh -n \"$f\" || exit 1; done"
+  }
   ["taplo"] = Builtins.taplo // toml lint (**/*.toml)
   ["taplo_format"] = Builtins.taplo_format // toml format
   ["stylua"] = Builtins.stylua // lua format (nvim)

@@ -17,16 +17,16 @@
 --   Add one by appending to package.toml, then re-run `ya pkg install`.
 
 -- git: show git status as a linemode in the file list (order = sign-column priority).
-require("git"):setup { order = 1500 }
+require("git"):setup({ order = 1500 })
 
 -- full-border: rounded full border — pairs with the Catppuccin Macchiato flavor.
-require("full-border"):setup { type = ui.Border.ROUNDED }
+require("full-border"):setup({ type = ui.Border.ROUNDED })
 
 -- zoxide (built-in): cross-session frecency JUMP, bound to `z` in keymap.toml.
 -- update_db = true so yazi and the shell (configs/zoxide.zsh) share ONE zoxide DB and
 -- reinforce each other's frecency. The fzf built-in (bound to `Z`) needs no setup here —
 -- it inherits FZF_DEFAULT_OPTS (configs/fzf.zsh) so it's already Catppuccin Macchiato.
-require("zoxide"):setup { update_db = true }
+require("zoxide"):setup({ update_db = true })
 
 -- duckdb: preview CSV/TSV/JSON/Parquet (+ .db/.duckdb) as tables (previewers in yazi.toml).
 require("duckdb"):setup()

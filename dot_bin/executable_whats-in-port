@@ -8,10 +8,10 @@ set -euo pipefail
 
 port=${1:-}
 if [[ -z $port ]]; then
-  printf 'usage: whats-in-port <port>\n' >&2
-  exit 1
+	printf 'usage: whats-in-port <port>\n' >&2
+	exit 1
 fi
 
 if ! lsof -nP -iTCP:"$port" -sTCP:LISTEN; then
-  printf 'whats-in-port: nothing listening on port %s\n' "$port" >&2
+	printf 'whats-in-port: nothing listening on port %s\n' "$port" >&2
 fi

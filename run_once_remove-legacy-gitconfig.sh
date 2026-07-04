@@ -5,6 +5,6 @@
 set -eu
 
 if [ -L "$HOME/.gitconfig" ]; then
-  rm -f "$HOME/.gitconfig"
-  echo "removed legacy ~/.gitconfig symlink (git now uses ~/.config/git/config)"
+	rm -f "$HOME/.gitconfig"
+	echo "removed legacy ~/.gitconfig symlink (git now uses ~/.config/git/config)"
 fi

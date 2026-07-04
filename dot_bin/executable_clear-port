@@ -11,14 +11,14 @@ set -euo pipefail
 port=${1:-}
 signal=${2:-TERM}
 if [[ -z $port ]]; then
-  printf 'usage: clear-port <port> [signal]\n' >&2
-  exit 1
+	printf 'usage: clear-port <port> [signal]\n' >&2
+	exit 1
 fi
 
 mapfile -t pids < <(lsof -nP -tiTCP:"$port" -sTCP:LISTEN || true)
 if [[ ${#pids[@]} -eq 0 ]]; then
-  printf 'clear-port: nothing listening on port %s\n' "$port" >&2
-  exit 0
+	printf 'clear-port: nothing listening on port %s\n' "$port" >&2
+	exit 0
 fi
 
 kill -"$signal" "${pids[@]}"

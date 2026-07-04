@@ -5,15 +5,15 @@ declare -a intellij_args=()
 declare -- wait=""
 
 for o in "$@"; do
-  if [[ "$o" = "--wait" || "$o" = "-w" ]]; then
-    wait="-W"
-    o="--wait"
-  fi
-  if [[ "$o" =~ " " ]]; then
-    intellij_args+=("\"$o\"")
-  else
-    intellij_args+=("$o")
-  fi
+	if [[ "$o" = "--wait" || "$o" = "-w" ]]; then
+		wait="-W"
+		o="--wait"
+	fi
+	if [[ "$o" =~ " " ]]; then
+		intellij_args+=("\"$o\"")
+	else
+		intellij_args+=("$o")
+	fi
 done
 
 export PATH="/Users/jeckhart/.rustup/toolchains/esp-nightly/xtensa-esp-elf/esp-14.2.0_20240906/xtensa-esp-elf/bin:$PATH"

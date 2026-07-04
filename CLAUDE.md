@@ -92,12 +92,12 @@ app); `chezmoi.toml` sets `[onepassword] command = "op"`, `prompt = false`.
 
 ### Key Tool Configurations
 
-| Tool | Source | Notes |
-|------|--------|-------|
-| Helix | `dot_config/helix/config.toml` | Catppuccin Mocha, vi keybindings |
-| Tmux | `dot_config/tmux/tmux.conf` | Prefix `Ctrl-Space`, vi keys, Catppuccin Mocha |
-| Starship | `dot_config/starship.toml` | Catppuccin Macchiato palette |
-| Neovim | _migration in progress (dotfiles-pip)_ | still legacy `~/.config/nvim` until then |
+| Tool     | Source                                 | Notes                                          |
+| -------- | -------------------------------------- | ---------------------------------------------- |
+| Helix    | `dot_config/helix/config.toml`         | Catppuccin Mocha, vi keybindings               |
+| Tmux     | `dot_config/tmux/tmux.conf`            | Prefix `Ctrl-Space`, vi keys, Catppuccin Mocha |
+| Starship | `dot_config/starship.toml`             | Catppuccin Macchiato palette                   |
+| Neovim   | *migration in progress (dotfiles-pip)* | still legacy `~/.config/nvim` until then       |
 
 ### Embedded Rust / ESP32 Development
 
@@ -119,8 +119,8 @@ rustup.)
   then `chezmoi apply`.
 - Update `Brewfile` when adding Homebrew dependencies.
 
-
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:6cd5cc61 -->
+
 ## Beads Issue Tracker
 
 This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
@@ -170,7 +170,9 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 5. **Hand off** - Summarize changes, validation, issue status, and any blocked sync/commit/push step
 
 **Critical rules:**
+
 - Explicit user or orchestrator instructions override this Beads block.
 - Do not commit or push without clear authority from the active profile or the current user request.
 - If a required sync or push is blocked, stop and report the exact command and error.
+
 <!-- END BEADS INTEGRATION -->
