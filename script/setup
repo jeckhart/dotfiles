@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # script/setup: Bootstrap a machine from scratch with chezmoi.
 #               Installs Homebrew + chezmoi, then `chezmoi init --apply` to lay
@@ -8,26 +8,26 @@
 set -e
 
 fancy_echo() {
-  local fmt="$1"
-  shift
+	local fmt="$1"
+	shift
 
-  # shellcheck disable=SC2059
-  printf "\\n$fmt\\n" "$@"
+	# shellcheck disable=SC2059
+	printf "\\n$fmt\\n" "$@"
 }
 
 # Determine the Homebrew prefix for this architecture.
 UNAME_MACHINE="$(/usr/bin/uname -m)"
 if [ "$UNAME_MACHINE" = "arm64" ]; then
-  HOMEBREW_PREFIX="/opt/homebrew"
+	HOMEBREW_PREFIX="/opt/homebrew"
 else
-  HOMEBREW_PREFIX="/usr/local"
+	HOMEBREW_PREFIX="/usr/local"
 fi
 
 # Install Homebrew if it is not already on PATH.
 if ! command -v brew >/dev/null 2>&1; then
-  fancy_echo "==> Installing Homebrew…"
-  NONINTERACTIVE=1 /bin/bash -c \
-    "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	fancy_echo "==> Installing Homebrew…"
+	NONINTERACTIVE=1 /bin/bash -c \
+		"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 eval "$("$HOMEBREW_PREFIX/bin/brew" shellenv)"
 
@@ -35,23 +35,23 @@ eval "$("$HOMEBREW_PREFIX/bin/brew" shellenv)"
 fancy_echo "==> Installing chezmoi…"
 brew install chezmoi
 
-# Lay down the dotfiles. The chezmoi layout lives on the `chezmoi` branch.
-# This also runs run_onchange_install-packages.sh, which installs the Homebrew
-# bundle from the Brewfile (and re-runs whenever the Brewfile changes).
+# Lay down the dotfiles from the default branch (main). This also runs
+# run_onchange_install-packages.sh, which installs the Homebrew bundle from the
+# Brewfile (and re-runs whenever the Brewfile changes).
 fancy_echo "==> Applying dotfiles with chezmoi…"
 chezmoi init --apply jeckhart/dotfiles
 
 # Set zsh as the login shell.
 update_shell() {
-  local shell_path
-  shell_path="$HOMEBREW_PREFIX/bin/zsh"
+	local shell_path
+	shell_path="$HOMEBREW_PREFIX/bin/zsh"
 
-  fancy_echo "Changing your shell to zsh ..."
-  if ! grep "$shell_path" /etc/shells >/dev/null 2>&1; then
-    fancy_echo "Adding '$shell_path' to /etc/shells"
-    sudo sh -c "echo $shell_path >> /etc/shells"
-  fi
-  sudo chsh -s "$shell_path" "$USER"
+	fancy_echo "Changing your shell to zsh ..."
+	if ! grep "$shell_path" /etc/shells >/dev/null 2>&1; then
+		fancy_echo "Adding '$shell_path' to /etc/shells"
+		sudo sh -c "echo $shell_path >> /etc/shells"
+	fi
+	sudo chsh -s "$shell_path" "$USER"
 }
 update_shell
 
