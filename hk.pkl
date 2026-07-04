@@ -1,0 +1,31 @@
+amends "package://github.com/jdx/hk/releases/download/v1.49.0/hk@1.49.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v1.49.0/hk@1.49.0#/Builtins.pkl"
+
+// Linters/formatters for this dotfiles repo. All native (no node). chezmoi *.tmpl
+// files are excluded automatically because every builtin globs on the final
+// extension (e.g. **/*.sh, **/*.toml), so foo.sh.tmpl / .chezmoi.toml.tmpl never match.
+// dprint's file scope (markdown/json/yaml + generated-file excludes) lives in dprint.json.
+local linters = new Mapping<String, Step> {
+  ["shellcheck"] = Builtins.shellcheck // shell lint (**/*.sh, **/*.bash)
+  ["shfmt"] = Builtins.shfmt // shell format
+  ["taplo"] = Builtins.taplo // toml lint (**/*.toml)
+  ["taplo_format"] = Builtins.taplo_format // toml format
+  ["stylua"] = Builtins.stylua // lua format (nvim)
+  ["dprint"] = Builtins.dprint // markdown / json / yaml (see dprint.json)
+  ["pkl_format"] = Builtins.pkl_format // format this hk.pkl itself
+}
+
+hooks {
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps = linters
+  }
+  ["fix"] {
+    fix = true
+    steps = linters
+  }
+  ["check"] {
+    steps = linters
+  }
+}

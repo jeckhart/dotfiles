@@ -1,0 +1,17 @@
+# Project-scoped dev toolchain for hacking on these dotfiles (NOT deployed — see
+# .chezmoiignore). Active only inside this repo. `mise install` here installs hk + the
+# linters it drives; run `mise run setup` (or `hk install`) once per clone to wire the hook.
+# node (for npm:prettier) comes from the global ~/.config/mise/config.toml.
+
+[tools]
+hk = "latest"         # git-hook manager (jdx) — config in hk.pkl
+shellcheck = "latest" # shell lint
+shfmt = "latest"      # shell format
+taplo = "latest"      # TOML lint/format
+stylua = "latest"     # Lua format (nvim configs)
+pkl = "latest"        # parse/format hk.pkl
+dprint = "latest"     # markdown / json / yaml (native Rust — no node)
+
+[tasks.setup]
+description = "One-shot dev bootstrap: wire the hk pre-commit hook into this repo"
+run = "hk install"

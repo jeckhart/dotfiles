@@ -6,6 +6,12 @@ Brewfile
 script
 .beads
 
+# Dev tooling for hacking on this repo (hk + linters via mise) — not deployed to ~
+mise.toml
+hk.pkl
+hk.local.pkl
+dprint.json
+
 # p10k config: generated fresh per machine via 'p10k configure'
 .p10k.zsh
 

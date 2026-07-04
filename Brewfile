@@ -36,9 +36,6 @@ brew 'gnu-tar'
 brew 'grep'
 brew 'gawk'
 
-# VCS
-brew 'pre-commit'                 # Pre-commit hook framework
-
 # Shell / dev tooling
 brew 'cmake'                      # Build tool (also needed by some Rust/ESP builds)
 brew 'direnv'                     # Per-directory environment loading
