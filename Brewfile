@@ -103,6 +103,8 @@ cask '1password-cli' unless system "grep -qi microsoft /proc/version 2>/dev/null
 brew 'neovim'                     # LazyVim-based editor
 brew 'lazygit'                    # Terminal git UI (LazyVim <leader>gg)
 cask 'iterm2' unless system "[ -e /Applications/iTerm.app ]" # Terminal
+cask 'cursor' unless system "[ -e /Applications/Cursor.app ]" # AI editor
+cask 'cursor-cli'                 # cursor-agent CLI
 
 # Fonts
 cask 'font-meslo-lg-nerd-font'    # Nerd font used by starship / powerlevel10k
