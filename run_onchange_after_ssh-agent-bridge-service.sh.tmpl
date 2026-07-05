@@ -1,0 +1,28 @@
+#!/bin/sh
+# (Re)load the ssh-agent-bridge unit when its inputs change. The hashes/values
+# below embed the unit source and the resolved npiperelay path into this
+# script's content, so chezmoi re-runs it when either changes (e.g. npiperelay
+# moves after a winget upgrade).
+{{ if .isWSL2 -}}
+# unit hash: {{ include "dot_config/systemd/user/ssh-agent-bridge.service.tmpl" | sha256sum }}
+# npiperelay: {{ includeTemplate "ssh-agent-bridge/npiperelay-path" . | trim }}
+set -e
+if [ ! -d /run/systemd/system ]; then
+  echo "ssh-agent-bridge: systemd not enabled in WSL ([boot] systemd=true in /etc/wsl.conf); skipping" >&2
+  exit 0
+fi
+if grep -q NPIPERELAY_NOT_FOUND "$HOME/.config/systemd/user/ssh-agent-bridge.service" 2>/dev/null; then
+  echo "ssh-agent-bridge: npiperelay.exe was not installed when the unit rendered — re-run 'chezmoi apply'" >&2
+  exit 0
+fi
+systemctl --user daemon-reload
+loginctl enable-linger "$USER" 2>/dev/null || true
+systemctl --user enable --now ssh-agent-bridge.service
+systemctl --user try-restart ssh-agent-bridge.service || true
+# environment.d needs a re-login to reach the user manager; set it now too so
+# already-running managers (and services started this session) see the socket.
+systemctl --user set-environment "SSH_AUTH_SOCK=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ssh-agent.sock"
+echo "ssh-agent-bridge systemd user unit (re)loaded"
+{{ else -}}
+exit 0
+{{ end -}}

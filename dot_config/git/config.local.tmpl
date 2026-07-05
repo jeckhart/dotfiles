@@ -11,10 +11,6 @@
   default = simple
 [credential]
   helper = {{ if eq .chezmoi.os "darwin" }}osxkeychain{{ else }}store{{ end }}
-{{- if .isWSL2 }}
-[core]
-  sshCommand = /mnt/c/Windows/System32/OpenSSH/ssh.exe
-{{- end }}
 [commit]
   gpgsign = true
 [tag]
@@ -22,7 +18,13 @@
 [gpg]
   format = ssh
 [gpg "ssh"]
-  program = {{ if eq .chezmoi.os "darwin" }}/Applications/1Password.app/Contents/MacOS/op-ssh-sign{{ else if .isWSL2 }}op-ssh-sign.exe{{ else }}/opt/1Password/op-ssh-sign{{ end }}
+{{- if eq .chezmoi.os "darwin" }}
+  program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+{{- else if not .isWSL2 }}
+  program = /opt/1Password/op-ssh-sign
+{{- end }}
+  # WSL2: no program — git's default ssh-keygen signs via SSH_AUTH_SOCK
+  # (the ssh-agent-bridge socket) using the public signingkey above.
   allowedSignersFile = ~/.ssh/allowed_signers
 [gitbutler]
   aiModelProvider = anthropic

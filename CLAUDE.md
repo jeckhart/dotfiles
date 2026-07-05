@@ -69,10 +69,18 @@ project directory:
 - `~/projects/personal/**` → personal
 - `~/projects/vela/**` → vela
 
-All commits are SSH-signed via the 1Password SSH agent (`op-ssh-sign`). Each identity has
+All commits are SSH-signed via the 1Password SSH agent. Each identity has
 its own ed25519 signing key in 1Password (`Private` vault: `git-signing-personal`,
 `git-signing-work`, `git-signing-vela`). Public keys are read at `chezmoi apply` via
-`onepasswordRead`; `SSH_AUTH_SOCK` points at the 1Password agent (set in `.zprofile`).
+`onepasswordRead`. `SSH_AUTH_SOCK` reaches the 1Password agent per platform:
+
+- **macOS**: points at the 1P agent socket directly (set in `.zprofile`); signing uses
+  `op-ssh-sign`.
+- **WSL2**: Windows named pipes aren't reachable from Linux, so the `ssh-agent-bridge`
+  systemd user unit (socat + npiperelay.exe, resolved at apply time) relays the pipe to
+  `$XDG_RUNTIME_DIR/ssh-agent.sock`. Shells get the path from `wsl2.zsh`, systemd
+  services from `~/.config/environment.d/`; signing uses git's default `ssh-keygen`
+  over that socket (no `op-ssh-sign`).
 
 ### Secrets
 

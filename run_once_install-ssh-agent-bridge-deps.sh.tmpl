@@ -1,0 +1,27 @@
+#!/bin/sh
+# Dependencies for the WSL2 ssh-agent bridge (see ssh-agent-bridge.service):
+# socat on the Linux side, npiperelay.exe (albertony fork) on the Windows side.
+{{ if .isWSL2 -}}
+set -e
+
+# socat via apt, not brew — the systemd unit points at /usr/bin/socat
+if [ ! -x /usr/bin/socat ]; then
+  sudo apt-get install -y socat
+fi
+
+# npiperelay opens \\.\pipe\openssh-ssh-agent; winget installs it under
+# %LOCALAPPDATA%\Microsoft\WinGet (Links\ alias and/or Packages\albertony.npiperelay*).
+npiperelay_found=""
+command -v npiperelay.exe >/dev/null 2>&1 && npiperelay_found=1
+for p in /mnt/c/Users/*/AppData/Local/Microsoft/WinGet/Links/npiperelay.exe \
+         /mnt/c/Users/*/AppData/Local/Microsoft/WinGet/Packages/albertony.npiperelay*/npiperelay.exe; do
+  [ -e "$p" ] && npiperelay_found=1
+done
+if [ -z "$npiperelay_found" ]; then
+  # cd to a Windows-visible dir so winget.exe doesn't fall over the UNC cwd
+  (cd /mnt/c && winget.exe install --id albertony.npiperelay --accept-source-agreements --accept-package-agreements)
+  echo "npiperelay installed — re-run 'chezmoi apply' to render its path into ssh-agent-bridge.service" >&2
+fi
+{{ else -}}
+exit 0
+{{ end -}}

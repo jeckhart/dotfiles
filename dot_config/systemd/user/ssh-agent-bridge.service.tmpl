@@ -1,0 +1,18 @@
+# 1Password SSH agent bridge (WSL2). Windows↔WSL2 AF_UNIX interop doesn't exist
+# (microsoft/WSL#5961), so socat listens on a Unix socket and relays each
+# connection to the agent's named pipe via npiperelay.exe. The npiperelay path
+# is resolved at chezmoi apply time (.chezmoitemplates/ssh-agent-bridge/) —
+# systemd user services never see the interop-appended Windows PATH.
+# Socket lives on tmpfs (%t = $XDG_RUNTIME_DIR), so no stale sockets survive a
+# reboot; ExecStartPre clears leftovers from a bridge restart.
+[Unit]
+Description=1Password SSH agent bridge (Windows named pipe -> Unix socket)
+
+[Service]
+ExecStartPre=/bin/rm -f %t/ssh-agent.sock
+ExecStart=/usr/bin/socat UNIX-LISTEN:%t/ssh-agent.sock,fork,umask=177 EXEC:"{{ includeTemplate "ssh-agent-bridge/npiperelay-path" . | trim }} -ei -s //./pipe/openssh-ssh-agent",nofork
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

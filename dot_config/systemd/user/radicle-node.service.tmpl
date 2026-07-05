@@ -7,6 +7,10 @@
 [Unit]
 Description=Radicle Node
 After=network-online.target
+# rad probes SSH_AUTH_SOCK when set (environment.d exports it) — make sure the
+# 1Password agent bridge is up first so the node never sees a dead socket path.
+Wants=ssh-agent-bridge.service
+After=ssh-agent-bridge.service
 
 [Service]
 EnvironmentFile={{ .chezmoi.homeDir }}/.config/radicle/node.env

@@ -18,9 +18,10 @@ dprint.json
 # tmux plugins: installed at runtime by TPM (prefix + I)
 .config/tmux/plugins
 
-# WSL2-only: X11 DISPLAY, op.exe/ssh.exe aliases, wslfetch — not relevant on macOS
+# WSL2-only: X11 DISPLAY, op.exe alias, SSH agent bridge — not relevant on macOS
 {{ if not .isWSL2 -}}
 .config/zsh/configs/wsl2.zsh
+.config/environment.d
 {{- end }}
 
 # Repo docs (radicle runbook etc.) — not deployed to ~
