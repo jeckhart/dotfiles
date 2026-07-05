@@ -40,7 +40,16 @@
 {{- if not (and (regexMatch $addrRe $selfAddr) (regexMatch $portRe $selfPort)) -}}
 {{- fail (printf "1Password item %s has a missing or malformed address/port field" $selfTitle) -}}
 {{- end -}}
-{{- $listen := printf "%s:%s" $selfAddr $selfPort -}}
+{{- /* Optional listen-address field: for hosts whose Tailscale IP is not bindable
+       in-distro (WSL2 NAT mode with Tailscale on the Windows host), listen binds
+       this address (e.g. 0.0.0.0) while externalAddresses keeps advertising the
+       roster address. Absent on normal nodes: listen = externalAddresses. */ -}}
+{{- $selfListenAddr := get $selfF "listen-address" | default $selfAddr -}}
+{{- if not (regexMatch $addrRe $selfListenAddr) -}}
+{{- fail (printf "1Password item %s has a malformed listen-address field" $selfTitle) -}}
+{{- end -}}
+{{- $listen := printf "%s:%s" $selfListenAddr $selfPort -}}
+{{- $external := printf "%s:%s" $selfAddr $selfPort -}}
 {{- $cfg := dict
       "publicExplorer" "https://radicle.network/nodes/$host/$rid$path"
       "preferredSeeds" (list)
@@ -49,7 +58,7 @@
         "alias" (get $selfF "alias" | default $name)
         "peers" (dict "type" "static")
         "listen" (list $listen)
-        "externalAddresses" (list $listen)
+        "externalAddresses" (list $external)
         "connect" ($connect | sortAlpha)
         "seedingPolicy" (dict "default" "block")
         "network" "main"

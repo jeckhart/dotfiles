@@ -55,6 +55,7 @@ hostname (that's how a machine recognizes itself; the Pi's is just `pi`):
 | `passphrase`      | key passphrase (concealed)                                    |
 | `private-key-b64` | base64 of `$RAD_HOME/keys/radicle`, byte-exact (concealed)    |
 | `public-key`      | contents of `radicle.pub`                                     |
+| `listen-address`  | *optional* — bind address when `address` isn't bindable in-distro (WSL2 NAT + host-side Tailscale → `0.0.0.0`) |
 
 **`radicle-mesh`** — one item; a `repos` section maps repo name → RID. Every enrolled
 node seeds every RID listed there (`run_onchange_after_radicle-2-seed`); edit the item
@@ -99,6 +100,14 @@ WSL2 prerequisites: Tailscale running *inside* the distro, systemd enabled
 Caveat: the WSL VM idles out when nothing holds it open — the node runs "while WSL is
 up". If true 24/7 matters, add a Windows scheduled task that keeps a `wsl.exe` session
 alive (deliberately out of dotfiles scope).
+
+WSL2 + host-side Tailscale caveat: if Tailscale runs on the *Windows host* instead of
+in-distro (NAT networking mode), the host's Tailscale IP is not bindable inside the
+distro — set the item's optional `listen-address` field to `0.0.0.0` so the node binds
+locally while `address` keeps advertising the host's Tailscale IP. Such a node is
+**outbound-only**: nothing can dial in through the Windows host without a portproxy or
+WSL mirrored networking, so it syncs by dialing the Pi and other peers. Items without
+`listen-address` render `listen = externalAddresses` as before.
 
 ## Conventions
 

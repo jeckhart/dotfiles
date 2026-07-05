@@ -37,7 +37,7 @@ brew 'duckdb'                     # In-process SQL OLAP DB — backs yazi's duck
 brew 'git-delta'                  # Syntax-highlighting git pager
 
 # Peer-to-peer code collaboration (private mesh over Tailscale — see docs/radicle.md)
-brew 'radicle'                    # rad CLI + radicle-node + git-remote-rad
+brew 'radicle' if OS.mac?         # rad CLI + radicle-node + git-remote-rad (WSL2: signed apt repo instead, see run_onchange_install-radicle-apt)
 cask 'tailscale-app' unless system "[ -e /Applications/Tailscale.app ]" # Mesh VPN the radicle nodes ride on (GUI app; login is manual)
 
 # GNU userland (gnubin-first PATH in configs/gnu.zsh: sed/date/grep use GNU under normal names)
@@ -93,7 +93,7 @@ brew 'kubernetes-cli'             # kubectl (zsh kubectl plugin expects it)
 brew 'opentofu'                   # Terraform-compatible IaC
 
 # Security / secrets
-brew 'pam-reattach'               # Touch ID for sudo inside tmux (used by run_once_configure-touchid-sudo)
+brew 'pam-reattach' if OS.mac?    # Touch ID for sudo inside tmux (used by run_once_configure-touchid-sudo); no Linux bottle
 cask '1password' unless system "[ -e /Applications/1Password.app ]" # Desktop app: SSH agent + op-ssh-sign for commit signing
 # On WSL2 we use the Windows op.exe/op-ssh-sign.exe (via WSL interop) instead —
 # see dot_config/zsh/configs/wsl2.zsh — so skip installing a redundant Linux op.
