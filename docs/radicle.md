@@ -113,6 +113,19 @@ WSL mirrored networking, so it syncs by dialing the Pi and other peers. Items wi
 
 - **Delegates vs allow-list:** machines you author from get `--delegate` (threshold 1);
   the Pi (and any pure relay) gets `--allow` only. Both take DIDs, not NIDs.
+- **Identity changes need a MAJORITY of delegates** — the doc's `threshold` field does
+  NOT govern this (it's for canonical branch refs). With N delegates, a `rad id update`
+  revision only lands once >N/2 delegate votes point at it (verified in heartwood
+  `radicle/src/cob/identity.rs`).
+- **One active identity revision at a time.** Votes are tracked by a per-delegate
+  *head* pointer that moves when you author **or** accept a revision. Authoring a new
+  revision while yours is still pending silently withdraws your vote from the old one;
+  `rad id redact` does **not** restore it; and you can't re-vote for your own revision
+  (`rad id accept` fails — your authorship signature already counts, and duplicate
+  verdicts are rejected). Author-then-redact-a-competitor therefore deadlocks the
+  original below quorum permanently. Escape hatch: reissue the same change as a fresh
+  revision from a **different** delegate and have the original author accept that one;
+  the stuck revision goes stale automatically on acceptance (hit live, 2026-07-04).
 - **New repo:** `rad init --private`, add delegates/allows, then add its RID to the
   `radicle-mesh` item — every node starts seeding it on next apply.
 - **Retiring a node:** delete its 1P item (other machines drop it from `connect` on next
@@ -131,6 +144,12 @@ WSL mirrored networking, so it syncs by dialing the Pi and other peers. Items wi
 - **`rad` prompts for passphrase / "invalid passphrase"** — a stale `RAD_PASSPHRASE` in
   the shell (another node's, or pre-rotation). `exec zsh` to reload the rendered value.
   `rad-bootstrap` unsets it before `rad auth` for exactly this reason.
+- **Identity revision stuck "active"/"Quorum no" although every delegate shows ✓** —
+  the ✓ marks are recorded verdicts, but quorum counts delegate *heads*, and a head
+  only points at one revision. Some delegate's head has moved on (they authored a later
+  revision, even a redacted one). `rad cob log --type xyz.radicle.id --object <cob-id>
+  --repo <rid>` shows each delegate's latest op. Fix: see "One active identity revision
+  at a time" above.
 - **chezmoi apply fails with "1Password is locked"** — intended; unlock and re-run.
 - **Config sanity:** `rad config` parses and prints the effective config; `rad self`
   shows the identity; compare with the 1P item.
