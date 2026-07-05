@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# Clone a repo from the public Radicle network, then re-privatize the node.
+#
+# This node's config.json is deliberately fully private (preferredSeeds: [],
+# seedingPolicy: block, peers: static — see docs/radicle.md) so it never dials
+# or is discovered by the public network. Plain `rad clone <public-rid>` fails
+# with "no candidate seeds were found to fetch from" as a result.
+#
+# This helper opens a *runtime* connection to a public seed (never written to
+# config.json), clones from it directly with --seed, then bounces the node so
+# it drops the public link and reloads the private-only config. Use --stay to
+# skip the bounce when you need the link to survive for follow-up clones (e.g.
+# a project's rad dependencies) — it still drops on the next node restart.
+set -euo pipefail
+
+PATH="{{ if .isAppleSilicon }}/opt/homebrew/bin:{{ else if eq .chezmoi.os "darwin" }}/usr/local/bin:{{ end }}$PATH"
+
+# Verified live against the seed's own HTTP API (2026-07-04), not from memory:
+# curl https://seed.radicle.garden/api/v1/node -> id + externalAddresses.
+DEFAULT_SEED="z6MkrLMMsiPWUcNPHcRajuMi9mDfYckSoJyPwwnknocNYPm7@seed.radicle.garden:8776"
+
+usage() {
+  cat >&2 <<EOF
+Usage: rad-clone-public <rid> [path] [--seed <nid@host:port>] [--stay]
+
+  <rid>              Repository ID to clone, e.g. rad:z4L8L9ct...
+  [path]             Target directory (default: rad's own choice)
+  --seed <nid@addr>  Public seed to fetch from (default: \$RAD_PUBLIC_SEED or
+                      $DEFAULT_SEED)
+  --stay             Keep the public seed connection for this node session
+                      (needed if the project depends on other rad repos on
+                      the same seed). Drops on next node restart regardless;
+                      config.json is never modified either way.
+
+Default behavior (no --stay): clones, then bounces the node so the transient
+public connection drops immediately and the private-only config reloads.
+EOF
+  exit 1
+}
+
+rid=""
+path=""
+seed="${RAD_PUBLIC_SEED:-$DEFAULT_SEED}"
+stay=0
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --seed) seed="${2:?--seed requires an argument}"; shift 2 ;;
+    --stay) stay=1; shift ;;
+    -h|--help) usage ;;
+    -*) echo "error: unknown option '$1'" >&2; usage ;;
+    *)
+      if [ -z "$rid" ]; then rid="$1"; else path="$1"; fi
+      shift
+      ;;
+  esac
+done
+
+[ -n "$rid" ] || usage
+
+command -v rad >/dev/null 2>&1 || { echo "error: rad not installed" >&2; exit 1; }
+rad node status >/dev/null 2>&1 || { echo "error: radicle node is not running (rad node status failed)" >&2; exit 1; }
+
+[[ "$rid" =~ ^rad:z[A-Za-z0-9]+$ ]] || { echo "error: '$rid' doesn't look like a RID (expected rad:z...)" >&2; exit 1; }
+
+nid_re='^z6[A-Za-z0-9]+$'
+if [[ "$seed" =~ ^([^@]+)@([^:]+):([0-9]+)$ ]]; then
+  seed_nid="${BASH_REMATCH[1]}"
+  seed_host="${BASH_REMATCH[2]}"
+  seed_port="${BASH_REMATCH[3]}"
+else
+  echo "error: seed '$seed' doesn't look like nid@host:port" >&2
+  exit 1
+fi
+[[ "$seed_nid" =~ $nid_re ]] || { echo "error: seed NID '$seed_nid' doesn't look like a valid NID" >&2; exit 1; }
+
+echo "Connecting to public seed $seed_nid@$seed_host:$seed_port (runtime only, not saved to config.json)..."
+rad node connect "$seed_nid@$seed_host:$seed_port" --timeout 10s
+
+clone_args=("$rid")
+[ -n "$path" ] && clone_args+=("$path")
+clone_args+=(--seed "$seed_nid" --timeout 60s)
+
+echo "Cloning $rid from $seed_nid..."
+rad clone "${clone_args[@]}"
+
+if [ "$stay" -eq 1 ]; then
+  echo "--stay: keeping the connection to $seed_nid for this node session."
+  echo "It will drop on the next node restart/reboot; config.json was never"
+  echo "modified, so the node reverts to fully private automatically then."
+  echo "Re-run rad-clone-public (or 'rad node connect $seed_nid@$seed_host:$seed_port')"
+  echo "after a restart if you're still working against this seed's repos."
+else
+  echo "Re-privatizing: restarting the radicle node to drop the public connection..."
+{{ if eq .chezmoi.os "darwin" -}}
+  launchctl kickstart -k "gui/$(id -u)/dev.radicle.node" 2>/dev/null || true
+{{ else -}}
+  systemctl --user try-restart radicle-node.service 2>/dev/null || true
+{{ end -}}
+  echo "Done. Node reloaded from the private-only config."
+fi

@@ -45,16 +45,16 @@ repo deliberately contains no actual machine details.)
 **`radicle-node-<name>`** — one per node; `<name>` is the machine's lowercased short
 hostname (that's how a machine recognizes itself; the Pi's is just `pi`):
 
-| field             | notes                                                         |
-| ----------------- | ------------------------------------------------------------- |
-| `alias`           | node alias (usually = name; may differ for legacy nodes)      |
-| `nid`             | node ID (`z6Mk…`)                                             |
-| `did`             | `did:key:z6Mk…` — used for `rad id update --allow/--delegate` |
-| `address`         | Tailscale IPv4                                                |
-| `port`            | `8776`                                                        |
-| `passphrase`      | key passphrase (concealed)                                    |
-| `private-key-b64` | base64 of `$RAD_HOME/keys/radicle`, byte-exact (concealed)    |
-| `public-key`      | contents of `radicle.pub`                                     |
+| field             | notes                                                                                                          |
+| ----------------- | -------------------------------------------------------------------------------------------------------------- |
+| `alias`           | node alias (usually = name; may differ for legacy nodes)                                                       |
+| `nid`             | node ID (`z6Mk…`)                                                                                              |
+| `did`             | `did:key:z6Mk…` — used for `rad id update --allow/--delegate`                                                  |
+| `address`         | Tailscale IPv4                                                                                                 |
+| `port`            | `8776`                                                                                                         |
+| `passphrase`      | key passphrase (concealed)                                                                                     |
+| `private-key-b64` | base64 of `$RAD_HOME/keys/radicle`, byte-exact (concealed)                                                     |
+| `public-key`      | contents of `radicle.pub`                                                                                      |
 | `listen-address`  | *optional* — bind address when `address` isn't bindable in-distro (WSL2 NAT + host-side Tailscale → `0.0.0.0`) |
 
 **`radicle-mesh`** — one item; a `repos` section maps repo name → RID. Every enrolled
@@ -69,6 +69,7 @@ and re-apply to change replication. Working copies are always manual (`rad clone
 | `~/.config/radicle/node.env` (0600)                                             | `dot_config/radicle/private_node.env.tmpl` | `RAD_HOME` + `RAD_PASSPHRASE` for the supervisor                    |
 | `~/.config/zsh/configs/radicle.zsh`                                             | template                                   | `RAD_PASSPHRASE` for the CLI (1P SSH agent rejects `ssh-add`)       |
 | `~/.bin/rad-bootstrap`                                                          | `dot_bin/`                                 | enrollment/restore tool (deployed even when un-enrolled)            |
+| `~/.bin/rad-clone-public`                                                       | `dot_bin/`                                 | clone from the public network without un-privatizing the node       |
 | `~/.bin/radicle-node-wrapper` + `~/Library/LaunchAgents/dev.radicle.node.plist` | macOS only                                 | always-on node (KeepAlive; logs: `~/Library/Logs/radicle-node.log`) |
 | `~/.config/systemd/user/radicle-node.service`                                   | WSL2 only                                  | always-on node (`Restart=always`)                                   |
 
@@ -133,8 +134,44 @@ WSL mirrored networking, so it syncs by dialing the Pi and other peers. Items wi
 - **Renaming a host:** the item title must match the new lowercased hostname; rename the
   item, re-apply.
 
+## Cloning a public repository
+
+The mesh is deliberately **fully private** (see above): `preferredSeeds: []`,
+`seedingPolicy: block`, `peers: static`. Plain `rad clone <public-rid>` therefore fails
+with `no candidate seeds were found to fetch from` — the node has no public seed and no
+routing entry for a RID outside our mesh. That's by design, not a bug.
+
+To clone a public repo without weakening the always-on node's privacy, use
+`rad-clone-public <rid>`. It:
+
+1. opens a **runtime-only** `rad node connect` to a public seed (never written to
+   `config.json`),
+2. clones with `rad clone --seed <nid>`,
+3. bounces the node so the transient public connection drops and the node reloads the
+   private-only config.
+
+```bash
+rad-clone-public rad:z4L8L9ctRYn2bcPuUT4GRz7sggG1v            # clone, then re-privatize
+rad-clone-public rad:z4L8L9ctRYn2bcPuUT4GRz7sggG1v --stay     # keep the seed link this session
+rad-clone-public <rid> --seed <nid@host:port>                 # override the default seed
+RAD_PUBLIC_SEED=<nid@host:port> rad-clone-public <rid>        # same, via env var
+```
+
+Default seed is `seed.radicle.garden` (verified live via its `/api/v1/node` HTTP
+endpoint). Use `--stay` when the repo you're building depends on other rad repos hosted
+on the same public seed — the link then survives for the rest of the node's current
+session (subsequent `rad clone`/`rad sync` calls can reuse it), and drops automatically
+on the next node restart/reboot regardless, since `config.json` was never modified.
+
+Tradeoff: while connected, that one public seed can see this node's NID and (per its
+`--scope`) query its inventory. The default (non-`--stay`) mode bounds that exposure to
+the duration of the clone.
+
 ## Troubleshooting
 
+- **"no candidate seeds were found to fetch from"** — expected for public RIDs; this
+  mesh doesn't carry public seeds by design. Use `rad-clone-public <rid>` instead of
+  `rad clone` (see "Cloning a public repository" above).
 - **"Target not met: could not fetch…"** — check `rad node status` on both ends (really
   *connected*, not just gossip-known); check the repo's allow-list has this node's DID;
   check `tailscale ping <peer>` below Radicle. (The historical "not configured to listen"
@@ -165,6 +202,7 @@ rad id update --allow <did>       # grant private-repo read access
 rad id update --delegate <did> --threshold N   # grant identity authorship
 rad seed <rid> --scope followed   # replicate without a working copy
 rad clone <rid>                   # replicate + working copy
+rad-clone-public <rid>            # clone a public repo, then re-privatize
 rad sync --fetch                  # pull from connected peers
 rad node start --foreground       # debug run (supervisor normally owns the node)
 ```
