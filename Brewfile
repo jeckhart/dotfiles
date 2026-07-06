@@ -66,6 +66,7 @@ brew 'mise'                       # Fast polyglot runtime/version manager (Rust)
 
 # JavaScript / TypeScript
 brew 'pnpm'                       # Fast npm alternative (standalone; not managed by mise)
+brew 'cloudflare-wrangler'        # Cloudflare Workers CLI
 
 # Java / JVM — commented out until JVM work resumes (java currently unprovisioned).
 # Re-add together with a JDK (e.g. brew 'openjdk') when needed.
