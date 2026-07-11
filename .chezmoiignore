@@ -32,6 +32,13 @@ docs
 Library/LaunchAgents/dev.radicle.node.plist
 .bin/radicle-node-wrapper
 {{- end }}
+
+# Beads shared Dolt server: macOS-only (launchd + /opt/homebrew). The wrapper and
+# its launchd agent don't apply on WSL2/Linux.
+{{ if ne .chezmoi.os "darwin" -}}
+Library/LaunchAgents/local.beads.dolt.plist
+.local/bin/beads-dolt-server.sh
+{{- end }}
 {{ if not .isWSL2 -}}
 .config/systemd
 {{- end }}
