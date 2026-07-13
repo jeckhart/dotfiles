@@ -35,6 +35,7 @@ brew 'vivid'                      # Generates the Catppuccin Macchiato LS_COLORS
 brew 'yazi'                       # Terminal file manager
 brew 'duckdb'                     # In-process SQL OLAP DB — backs yazi's duckdb.yazi data preview (CSV/TSV/JSON/Parquet)
 brew 'git-delta'                  # Syntax-highlighting git pager
+brew 'hunk'                       # Review-first terminal diff viewer for agent-authored changesets
 
 # Peer-to-peer code collaboration (private mesh over Tailscale — see docs/radicle.md)
 brew 'radicle' if OS.mac?         # rad CLI + radicle-node + git-remote-rad (WSL2: signed apt repo instead, see run_onchange_install-radicle-apt)
