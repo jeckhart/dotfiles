@@ -63,3 +63,7 @@
 	path = ~/.config/git/catppuccin.gitconfig
 [include]
 	path = ~/.config/git/config.local
+; Pin commit signing on at the user level so GitButler does not auto-disable it
+; per-repo after a transient signing failure (e.g. 1Password locked mid-commit).
+[gitbutler]
+	signCommits = true
