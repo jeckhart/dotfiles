@@ -1,0 +1,17 @@
+#!/bin/sh
+# Install wslu from apt (WSL2 only). We depend on it in dot_config/zsh/configs/wsl2.zsh:
+# wslview backs $BROWSER (open links in the Windows default browser) and wslfetch runs at
+# shell startup. Ubuntu's WSL images ship wslu preinstalled, but other distros/images may
+# not — so install it if wslview is missing. Runs once per machine; the check is idempotent
+# so a stale run_once record doesn't matter. Needs sudo; chezmoi apply may prompt.
+{{ if .isWSL2 -}}
+set -e
+if ! command -v apt-get >/dev/null 2>&1; then exit 0; fi
+
+if ! command -v wslview >/dev/null 2>&1; then
+  echo "Installing wslu from apt..."
+  sudo apt-get install -y wslu
+fi
+{{ else -}}
+exit 0  # darwin / non-WSL2 linux: wslu is WSL-specific, out of scope
+{{ end -}}

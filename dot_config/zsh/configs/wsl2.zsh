@@ -3,6 +3,16 @@
 if [ -e /proc ] && $(grep -oE 'WSL2' /proc/version >/dev/null 2>&1 ) ; then
   export LC_ALL=en_US.UTF-8
 
+  # Route $BROWSER-aware tools (gh, jupyter, dev servers) to the Windows default
+  # browser via wslview (wslu) — but only when WSL interop is live in THIS shell.
+  # xdg-open honours $BROWSER first (skipping the mime lookup that hangs here), and
+  # wslview needs interop to launch the .exe. sshd-spawned sessions don't inherit
+  # $WSL_INTEROP, so we leave BROWSER unset there rather than point it at a wslview
+  # that would fail (and would open a browser on this host, not the ssh client).
+  if [ -S "$WSL_INTEROP" ]; then
+    export BROWSER=wslview
+  fi
+
   # Point X11 apps at the Windows host's X server (VcXsrv/X410 over the WSL2 NAT)
   export DISPLAY="$(grep nameserver /etc/resolv.conf | awk '{print $2; exit;}'):0.0"
 
