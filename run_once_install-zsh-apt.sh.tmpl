@@ -1,0 +1,27 @@
+#!/bin/sh
+# Install zsh from apt and make it the login shell (WSL2 only — macOS gets zsh from the
+# OS, not Homebrew: https://github.com/jeckhart/dotfiles has never listed zsh in the
+# Brewfile). Runs once per machine; each step is idempotent so a stale run_once record
+# doesn't matter. Needs sudo; chezmoi apply may prompt for a password.
+{{ if .isWSL2 -}}
+set -e
+if ! command -v apt-get >/dev/null 2>&1; then exit 0; fi
+
+if [ ! -x /usr/bin/zsh ]; then
+  echo "Installing zsh from apt..."
+  sudo apt-get install -y zsh
+fi
+
+if ! grep -qx /usr/bin/zsh /etc/shells 2>/dev/null; then
+  echo "Adding /usr/bin/zsh to /etc/shells"
+  echo /usr/bin/zsh | sudo tee -a /etc/shells >/dev/null
+fi
+
+current_shell="$(getent passwd "$USER" | cut -d: -f7)"
+if [ "$current_shell" != "/usr/bin/zsh" ]; then
+  echo "Changing login shell to /usr/bin/zsh"
+  sudo chsh -s /usr/bin/zsh "$USER"
+fi
+{{ else -}}
+exit 0  # darwin: system zsh; non-WSL2 linux: out of scope
+{{ end -}}

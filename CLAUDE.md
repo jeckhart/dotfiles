@@ -47,7 +47,8 @@ not `*.local` shadow files.
 ### Zsh Configuration (XDG, ZDOTDIR)
 
 `~/.zshenv` sets the XDG base dirs and `ZDOTDIR=~/.config/zsh`, redirecting all zsh
-startup there:
+startup there. The zsh binary itself is system zsh on macOS and apt zsh on WSL2
+(`run_once_install-zsh-apt.sh.tmpl` installs it and sets the login shell — not Homebrew).
 
 1. `~/.config/zsh/.zprofile` — Homebrew init (Intel + Apple Silicon); 1Password SSH agent socket
 2. `~/.config/zsh/.zshrc` — loader; sources `configs/pre/*.zsh`, then `configs/*.zsh`, then `configs/post/*.zsh`
