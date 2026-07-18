@@ -13,5 +13,9 @@ Host github.com
   BatchMode yes
   ConnectTimeout 10
 
+Host *.ts.net
+  KexAlgorithms -mlkem768x25519-sha256
+
 Host *
+  KexAlgorithms -mlkem768x25519-sha256
   IdentityAgent {{ if eq .chezmoi.os "darwin" }}"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"{{ else if .isWSL2 }}${XDG_RUNTIME_DIR}/ssh-agent.sock{{ else }}"~/.1password/agent.sock"{{ end }}
