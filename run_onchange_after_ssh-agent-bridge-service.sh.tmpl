@@ -22,6 +22,9 @@ systemctl --user try-restart ssh-agent-bridge.service || true
 # environment.d needs a re-login to reach the user manager; set it now too so
 # already-running managers (and services started this session) see the socket.
 systemctl --user set-environment "SSH_AUTH_SOCK=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ssh-agent.sock"
+# Resting default: point the stable agent link at the bridge so non-interactive git
+# (and the first shell after apply) find an agent before any SSH forward repoints it.
+ln -sf "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ssh-agent.sock" "$HOME/.ssh/agent.sock"
 echo "ssh-agent-bridge systemd user unit (re)loaded"
 {{ else -}}
 exit 0

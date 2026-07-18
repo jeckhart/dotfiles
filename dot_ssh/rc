@@ -1,0 +1,17 @@
+#!/bin/sh
+# sshd runs this per inbound connection (before the user shell/command). Repoint the
+# stable agent link at this connection's forwarded 1Password agent so herdr panes,
+# which use ~/.ssh/agent.sock, pick it up even on a direct `herdr attach`.
+if [ -n "$SSH_AUTH_SOCK" ] && [ -S "$SSH_AUTH_SOCK" ] && [ "$SSH_AUTH_SOCK" != "$HOME/.ssh/agent.sock" ]; then
+  ln -sf "$SSH_AUTH_SOCK" "$HOME/.ssh/agent.sock"
+fi
+# Defining ~/.ssh/rc disables sshd's built-in X11 xauth handling; reproduce it so
+# `ssh -X` into this box still works (no-op when xauth or X11 forwarding is absent).
+if command -v xauth >/dev/null 2>&1; then
+  if read proto cookie && [ -n "$DISPLAY" ]; then
+    case "$DISPLAY" in
+      localhost:*) echo add "unix:${DISPLAY#localhost:}" "$proto" "$cookie" | xauth -q - 2>/dev/null || true ;;
+      *)           echo add "$DISPLAY" "$proto" "$cookie"                    | xauth -q - 2>/dev/null || true ;;
+    esac
+  fi
+fi

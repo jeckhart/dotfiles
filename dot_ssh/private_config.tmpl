@@ -7,15 +7,18 @@ Host github.com
   HostName ssh.github.com
   Port 443
   HostKeyAlias github.com
-  IdentityAgent {{ if eq .chezmoi.os "darwin" }}"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"{{ else if .isWSL2 }}${XDG_RUNTIME_DIR}/ssh-agent.sock{{ else }}"~/.1password/agent.sock"{{ end }}
+  IdentityAgent {{ if eq .chezmoi.os "darwin" }}"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"{{ else if .isWSL2 }}~/.ssh/agent.sock{{ else }}"~/.1password/agent.sock"{{ end }}
   IdentitiesOnly yes
   IdentityFile ~/.ssh/git-signing-work.pub
   BatchMode yes
   ConnectTimeout 10
 
+# Tailscale mesh: per-host ForwardAgent (1Password agent forwarding for remote
+# signing/push over herdr) lives in config.local from 1Password, keeping mesh
+# hostnames out of this public repo. This block only carries the shared Kex tweak.
 Host *.ts.net
   KexAlgorithms -mlkem768x25519-sha256
 
 Host *
   KexAlgorithms -mlkem768x25519-sha256
-  IdentityAgent {{ if eq .chezmoi.os "darwin" }}"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"{{ else if .isWSL2 }}${XDG_RUNTIME_DIR}/ssh-agent.sock{{ else }}"~/.1password/agent.sock"{{ end }}
+  IdentityAgent {{ if eq .chezmoi.os "darwin" }}"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"{{ else if .isWSL2 }}~/.ssh/agent.sock{{ else }}"~/.1password/agent.sock"{{ end }}

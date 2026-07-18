@@ -23,11 +23,23 @@ if [ -e /proc ] && $(grep -oE 'WSL2' /proc/version >/dev/null 2>&1 ) ; then
     export DISPLAY="$(grep nameserver /etc/resolv.conf | awk '{print $2; exit;}'):0.0"
   fi
 
-  # 1Password's SSH agent (a Windows named pipe) is bridged to a Unix socket by
-  # the ssh-agent-bridge systemd user unit (socat + npiperelay), so native
-  # ssh/ssh-add/git/radicle all work — no ssh.exe alias needed. The same path is
-  # exported to systemd services via ~/.config/environment.d/ssh_auth_sock.conf.
-  export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ssh-agent.sock"
+  # SSH_AUTH_SOCK indirection: remote/herdr sessions reach a forwarded 1Password
+  # agent (Hello runs on the connecting machine, not this host). Every shell uses the
+  # stable ~/.ssh/agent.sock link; its target follows context:
+  #   inbound SSH with a live forwarded agent -> that agent
+  #   otherwise, or a dead link -> the 1Password bridge socket
+  # herdr panes inherit the constant link path, so a reconnect that repoints the link
+  # is picked up without any herdr config.
+  [ -d "$HOME/.ssh" ] || mkdir -p -m 700 "$HOME/.ssh"
+  _agent_link="$HOME/.ssh/agent.sock"
+  _agent_bridge="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ssh-agent.sock"
+  if [ -n "$SSH_CONNECTION" ] && [ -S "$SSH_AUTH_SOCK" ] && [ "$SSH_AUTH_SOCK" != "$_agent_link" ]; then
+    ln -sf "$SSH_AUTH_SOCK" "$_agent_link"      # remote: track this connection's forwarded agent
+  elif [ ! -S "$_agent_link" ] && [ -S "$_agent_bridge" ]; then
+    ln -sf "$_agent_bridge" "$_agent_link"      # local / self-heal a dead link: 1P bridge
+  fi
+  export SSH_AUTH_SOCK="$_agent_link"
+  unset _agent_link _agent_bridge
 
   # No native op on this box; the Windows CLI (on $PATH via interop) talks
   # straight to the Windows 1Password app, and chezmoi itself uses op.exe.

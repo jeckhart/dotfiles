@@ -22,6 +22,7 @@ dprint.json
 {{ if not .isWSL2 -}}
 .config/zsh/configs/wsl2.zsh
 .config/environment.d
+.ssh/rc
 {{- end }}
 
 # Repo docs (radicle runbook etc.) — not deployed to ~
