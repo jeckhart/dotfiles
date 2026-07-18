@@ -9,6 +9,12 @@ done
 # extra files in $ZDOTDIR/configs/pre , $ZDOTDIR/configs , and $ZDOTDIR/configs/post
 # are loaded first, second, and third, respectively.
 _load_settings() {
+  # pre/ and post/ globs below use `~*.zwc` (exclude compiled files), which needs
+  # EXTENDED_GLOB. configs/options.zsh also sets this, but that's a top-level config
+  # loaded *after* the pre/ pass below — too late for it, so pre/ silently matched
+  # nothing and every pre/ file (e.g. pre/brew.zsh) was skipped. Set it here so both
+  # passes work regardless of load order.
+  setopt extended_glob
   _dir="$1"
   if [ -d "$_dir" ]; then
     if [ -d "$_dir/pre" ]; then
