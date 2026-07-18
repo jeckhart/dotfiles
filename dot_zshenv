@@ -8,3 +8,8 @@ export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 
 # Redirect the rest of zsh's startup files (.zprofile, .zshrc, .zlogin) to ~/.config/zsh
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
+
+# Never let git block on an interactive credential/terminal prompt. Keeps
+# `bd dolt push` (git+ssh) failing fast instead of hanging if a connection or
+# auth stalls — set for every zsh (incl. non-interactive hooks/subprocesses).
+export GIT_TERMINAL_PROMPT=0

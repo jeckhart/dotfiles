@@ -1,4 +1,16 @@
 Include config.local
 
+# github.com over 443: some networks block outbound port 22, which makes dolt's
+# git+ssh push (used by `bd dolt push`) hang forever in its retry loop. Route SSH
+# over ssh.github.com:443, pin the single authorized 1Password key, and fail fast.
+Host github.com
+  HostName ssh.github.com
+  Port 443
+  IdentityAgent {{ if eq .chezmoi.os "darwin" }}"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"{{ else if .isWSL2 }}${XDG_RUNTIME_DIR}/ssh-agent.sock{{ else }}"~/.1password/agent.sock"{{ end }}
+  IdentitiesOnly yes
+  IdentityFile ~/.ssh/git-signing-work.pub
+  BatchMode yes
+  ConnectTimeout 10
+
 Host *
   IdentityAgent {{ if eq .chezmoi.os "darwin" }}"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"{{ else if .isWSL2 }}${XDG_RUNTIME_DIR}/ssh-agent.sock{{ else }}"~/.1password/agent.sock"{{ end }}
