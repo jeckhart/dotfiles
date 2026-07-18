@@ -6,6 +6,7 @@ Include config.local
 Host github.com
   HostName ssh.github.com
   Port 443
+  HostKeyAlias github.com
   IdentityAgent {{ if eq .chezmoi.os "darwin" }}"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"{{ else if .isWSL2 }}${XDG_RUNTIME_DIR}/ssh-agent.sock{{ else }}"~/.1password/agent.sock"{{ end }}
   IdentitiesOnly yes
   IdentityFile ~/.ssh/git-signing-work.pub
