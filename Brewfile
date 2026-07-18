@@ -58,6 +58,12 @@ brew 'direnv'                     # Per-directory environment loading
 brew 'libyaml'                    # Should come after openssl
 brew 'gh'                         # GitHub CLI
 
+# Repo dev tooling — pre-commit hooks for this repo (hk.pkl), also pinned in
+# mise.toml for project-scoped installs; listed here too as a global fallback.
+brew 'hk'                         # Git hook / pre-commit lint manager (jdx)
+brew 'dprint'                     # Markdown/JSON/YAML formatter driven by hk.pkl
+brew 'pkl'                        # Config language used to write/format hk.pkl itself
+
 # Issue tracking (bd) — version floor enforced in run_onchange_install-packages.sh.tmpl
 brew 'beads'                      # Git-backed issue tracker (bd)
 brew 'dolt'                       # Versioned SQL DB backing beads
