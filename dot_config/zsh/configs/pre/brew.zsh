@@ -1,16 +1,21 @@
 
-# Homebrew goes somewhere different on the M1 Macs and newer, make sure we have
-# it in the path
-HOMEBREW_PREFIX="$(brew --prefix 2>/dev/null || true)"
-export HOMEBREW_PREFIX
-if [ -z "$HOMEBREW_PREFIX" ] || [ -z "$HOMEBREW_REPOSITORY" ]; then
-  UNAME_MACHINE="$(/usr/bin/uname -m)"
-  if [[ "$UNAME_MACHINE" == "arm64" ]]; then
-    HOMEBREW_PREFIX="/opt/homebrew"
-  else
-    HOMEBREW_PREFIX="/usr/local"
-  fi
-  export HOMEBREW_PREFIX
-  export PATH="$HOMEBREW_PREFIX/bin:$PATH"
+# Ensure Homebrew is initialized for ANY interactive shell, not just login shells.
+# Login shells get `brew shellenv` from ~/.config/zsh/.zprofile, but tools that spawn an
+# interactive *non-login* shell (e.g. herdr) skip .zprofile — leaving brew, and everything
+# that depends on it (mise, starship), off PATH. Mirror .zprofile's discovery ladder here,
+# guarded so it's a no-op when a login shell already ran it.
+if ! command -v brew >/dev/null 2>&1; then
+  for _brew in \
+    "$HOMEBREW_PREFIX/bin/brew" \
+    /opt/homebrew/bin/brew \
+    /usr/local/bin/brew \
+    /home/linuxbrew/.linuxbrew/bin/brew; do
+    if [ -x "$_brew" ]; then
+      eval "$("$_brew" shellenv)"
+      break
+    fi
+  done
+  unset _brew
 fi
+export HOMEBREW_PREFIX
 
