@@ -69,7 +69,7 @@ brew 'hk'                         # Git hook / pre-commit lint manager (jdx)
 brew 'dprint'                     # Markdown/JSON/YAML formatter driven by hk.pkl
 brew 'pkl'                        # Config language used to write/format hk.pkl itself
 
-# Issue tracking (bd) — version floor enforced in run_onchange_install-packages.sh.tmpl
+# Issue tracking (bd) + its backing store
 brew 'beads'                      # Git-backed issue tracker (bd)
 brew 'dolt'                       # Versioned SQL DB backing beads
 
