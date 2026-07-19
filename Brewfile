@@ -43,7 +43,7 @@ brew 'herdr'                      # Agent multiplexer that lives in your termina
 
 # Peer-to-peer code collaboration (private mesh over Tailscale — see docs/radicle.md)
 brew 'radicle' if OS.mac?         # rad CLI + radicle-node + git-remote-rad (WSL2: signed apt repo instead, see run_onchange_install-radicle-apt)
-cask 'tailscale-app' unless system "[ -e /Applications/Tailscale.app ]" # Mesh VPN the radicle nodes ride on (GUI app; login is manual)
+cask 'tailscale-app'              # Mesh VPN the radicle nodes ride on (GUI app; login is manual)
 
 # GNU userland (gnubin-first PATH in configs/gnu.zsh: sed/date/grep use GNU under normal names)
 brew 'coreutils'
@@ -111,17 +111,22 @@ brew 'opentofu'                   # Terraform-compatible IaC
 
 # Security / secrets
 brew 'pam-reattach' if OS.mac?    # Touch ID for sudo inside tmux (used by run_once_configure-touchid-sudo); no Linux bottle
-cask '1password' unless system "[ -e /Applications/1Password.app ]" # Desktop app: SSH agent + op-ssh-sign for commit signing
+cask '1password'                  # Desktop app: SSH agent + op-ssh-sign for commit signing
 # On WSL2 we use the Windows op.exe/op-ssh-sign.exe (via WSL interop) instead —
 # see dot_config/zsh/configs/wsl2.zsh — so skip installing a redundant Linux op.
 cask '1password-cli' unless system "grep -qi microsoft /proc/version 2>/dev/null"
+cask 'secretive'                  # SSH keys in the Secure Enclave
+
+# Containers
+cask 'podman-desktop'             # Container GUI (Podman)
 
 # Editors
 brew 'neovim'                     # LazyVim-based editor
 brew 'lazygit'                    # Terminal git UI (LazyVim <leader>gg)
-cask 'iterm2' unless system "[ -e /Applications/iTerm.app ]" # Terminal
-cask 'cursor' unless system "[ -e /Applications/Cursor.app ]" # AI editor
+cask 'iterm2'                     # Terminal
+cask 'cursor'                     # AI editor
 cask 'cursor-cli'                 # cursor-agent CLI
+cask 'supacode'                   # Terminal coding agents command center
 
 # Fonts
 cask 'font-meslo-lg-nerd-font'    # Nerd font used by starship / powerlevel10k
