@@ -1,6 +1,9 @@
 # Homebrew dependencies for these dotfiles. Installed by
 # run_onchange_install-packages.sh.tmpl (re-runs when this file changes).
 
+# Taps
+tap 'can1357/tap'                 # omp (listed here so `brew bundle cleanup` keeps the tap)
+
 # Early requirements
 brew 'openssl'                    # Recent openssl other formulae depend on
 
@@ -57,6 +60,8 @@ brew 'direnv'                     # Per-directory environment loading
 # profile; dot_config/direnv/direnvrc sources it from there when present.
 brew 'libyaml'                    # Should come after openssl
 brew 'gh'                         # GitHub CLI
+brew 'just'                       # Command runner (per-repo justfiles)
+brew 'can1357/tap/omp'            # omp CLI (can1357's tap)
 
 # Repo dev tooling — pre-commit hooks for this repo (hk.pkl), also pinned in
 # mise.toml for project-scoped installs; listed here too as a global fallback.
@@ -95,6 +100,9 @@ brew 'cargo-deny'
 brew 'cargo-generate'
 brew 'cargo-make'
 brew 'cargo-nextest'
+
+# Embedded / ESP32 (toolchain env: configs/export-esp.zsh; serial: dot_bin/monitor-serial.sh)
+brew 'espflash'                   # Flash + monitor ESP32 boards over serial
 
 # DevOps
 brew 'awscli' unless system "[ -e /usr/local/bin/aws ]" # AWS CLI
