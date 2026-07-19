@@ -27,16 +27,22 @@ if [ -e /proc ] && $(grep -oE 'WSL2' /proc/version >/dev/null 2>&1 ) ; then
   # agent (Hello runs on the connecting machine, not this host). Every shell uses the
   # stable ~/.ssh/agent.sock link; its target follows context:
   #   inbound SSH with a live forwarded agent -> that agent
-  #   otherwise, or a dead link -> the 1Password bridge socket
+  #   otherwise -> the 1Password bridge socket
   # herdr panes inherit the constant link path, so a reconnect that repoints the link
   # is picked up without any herdr config.
+  #
+  # NB: a forwarded-agent socket doesn't go away when its SSH connection does — the
+  # socket file (and its -S test) stays alive while any request through it hangs
+  # forever, backed by a channel to a client that's long gone. So the local branch
+  # below must unconditionally repoint to the bridge rather than only on a dead
+  # link, or a shell started after such a session ends inherits the zombie socket.
   [ -d "$HOME/.ssh" ] || mkdir -p -m 700 "$HOME/.ssh"
   _agent_link="$HOME/.ssh/agent.sock"
   _agent_bridge="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ssh-agent.sock"
   if [ -n "$SSH_CONNECTION" ] && [ -S "$SSH_AUTH_SOCK" ] && [ "$SSH_AUTH_SOCK" != "$_agent_link" ]; then
     ln -sf "$SSH_AUTH_SOCK" "$_agent_link"      # remote: track this connection's forwarded agent
-  elif [ ! -S "$_agent_link" ] && [ -S "$_agent_bridge" ]; then
-    ln -sf "$_agent_bridge" "$_agent_link"      # local / self-heal a dead link: 1P bridge
+  elif [ -z "$SSH_CONNECTION" ] && [ -S "$_agent_bridge" ]; then
+    ln -sf "$_agent_bridge" "$_agent_link"      # local: always point at the 1P bridge
   fi
   export SSH_AUTH_SOCK="$_agent_link"
   unset _agent_link _agent_bridge
