@@ -4,8 +4,9 @@
 # Activation lives in ~/.config/zsh/configs/mise.zsh. Python venvs/packaging: use uv.
 
 [tools]
-node = "lts"    # track current LTS — low-maintenance; bump anytime
-python = "3.13" # modern stable; mise auto-installs project-pinned versions on demand
+node = "lts"              # track current LTS — low-maintenance; bump anytime
+python = "3.13"           # modern stable; mise auto-installs project-pinned versions on demand
+cargo-binstall = "latest" # installs prebuilt cargo crate binaries instead of building from source
 
 [settings]
 # Honor existing .python-version / .node-version project files (these are OFF by default in
