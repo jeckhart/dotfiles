@@ -27,5 +27,14 @@ defaults write com.apple.screencapture location -string "$HOME/Downloads/screens
 defaults write com.apple.screencapture type -string "png"
 defaults write com.apple.screencapture disable-shadow -bool true
 
+# Terminals: hold a key to repeat it (e.g. vim hjkl) instead of showing the
+# accent-picker popover. Takes effect on next launch — not killed here since
+# that would kill an in-use terminal session out from under you.
+defaults write dev.warp.Warp-Stable ApplePressAndHoldEnabled -bool false
+defaults write com.googlecode.iterm2 ApplePressAndHoldEnabled -bool false
+defaults write com.apple.Terminal ApplePressAndHoldEnabled -bool false
+defaults write app.supabit.supacode ApplePressAndHoldEnabled -bool false
+defaults write com.mitchellh.ghostty ApplePressAndHoldEnabled -bool false
+
 killall Finder SystemUIServer 2>/dev/null || true
 {{ end -}}
