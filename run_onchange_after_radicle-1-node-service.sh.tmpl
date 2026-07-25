@@ -28,6 +28,24 @@ while launchctl print "gui/$(id -u)/dev.radicle.node" >/dev/null 2>&1; do
 done
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
 echo "radicle-node LaunchAgent (re)loaded"
+
+# Confirm the node actually came up. launchctl print can't tell us: the
+# wrapper's sleep-30 no-identity path is a *running* job for 30s, so it would
+# report healthy on exactly the failure this check exists to catch. `rad node
+# status --only nid` is a control-socket round-trip -- no passphrase needed,
+# can't hang on the network -- that exits non-zero until the node is up.
+if command -v rad >/dev/null 2>&1; then
+  i=0
+  until rad node status --only nid >/dev/null 2>&1; do
+    i=$((i + 1))
+    if [ "$i" -ge 20 ]; then
+      echo "radicle: WARNING: node not responding on its control socket after reload." >&2
+      echo "radicle: check: tail -20 $HOME/Library/Logs/radicle-node.log (\"no identity\" means: run rad-bootstrap)" >&2
+      break
+    fi
+    sleep 0.5
+  done
+fi
 {{ else if .isWSL2 -}}
 # config hash: {{ includeTemplate "radicle/config.json" . | sha256sum }}
 # unit hash: {{ include "dot_config/systemd/user/radicle-node.service.tmpl" | sha256sum }}
@@ -41,6 +59,21 @@ loginctl enable-linger "$USER" 2>/dev/null || true
 systemctl --user enable --now radicle-node.service
 systemctl --user try-restart radicle-node.service || true
 echo "radicle-node systemd user unit (re)loaded"
+
+# See the darwin branch above for why this check exists and why rad node
+# status is the right primitive (no passphrase, no network dependency).
+if command -v rad >/dev/null 2>&1; then
+  i=0
+  until rad node status --only nid >/dev/null 2>&1; do
+    i=$((i + 1))
+    if [ "$i" -ge 20 ]; then
+      echo "radicle: WARNING: node not responding on its control socket after reload." >&2
+      echo "radicle: check: systemctl --user status radicle-node; journalctl --user -u radicle-node -n 20" >&2
+      break
+    fi
+    sleep 0.5
+  done
+fi
 {{ else -}}
 exit 0
 {{ end -}}

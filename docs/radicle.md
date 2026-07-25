@@ -63,15 +63,15 @@ and re-apply to change replication. Working copies are always manual (`rad clone
 
 ## What chezmoi deploys (when this host's item exists)
 
-| target                                                                          | source                                     | purpose                                                             |
-| ------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------- |
-| `~/.radicle/config.json`                                                        | `.chezmoitemplates/radicle/config.json`    | full node config from the vault roster                              |
-| `~/.config/radicle/node.env` (0600)                                             | `dot_config/radicle/private_node.env.tmpl` | `RAD_HOME` + `RAD_PASSPHRASE` for the supervisor                    |
-| `~/.config/zsh/configs/radicle.zsh`                                             | template                                   | `RAD_PASSPHRASE` for the CLI (1P SSH agent rejects `ssh-add`)       |
-| `~/.bin/rad-bootstrap`                                                          | `dot_bin/`                                 | enrollment/restore tool (deployed even when un-enrolled)            |
-| `~/.bin/rad-clone-public`                                                       | `dot_bin/`                                 | clone from the public network without un-privatizing the node       |
-| `~/.bin/radicle-node-wrapper` + `~/Library/LaunchAgents/dev.radicle.node.plist` | macOS only                                 | always-on node (KeepAlive; logs: `~/Library/Logs/radicle-node.log`) |
-| `~/.config/systemd/user/radicle-node.service`                                   | WSL2 only                                  | always-on node (`Restart=always`)                                   |
+| target                                                                          | source                                     | purpose                                                                                                                            |
+| ------------------------------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `~/.radicle/config.json`                                                        | `.chezmoitemplates/radicle/config.json`    | full node config from the vault roster                                                                                             |
+| `~/.config/radicle/node.env` (0600)                                             | `dot_config/radicle/private_node.env.tmpl` | `RAD_HOME` + `RAD_PASSPHRASE` for the supervisor                                                                                   |
+| `~/.config/zsh/configs/radicle.zsh`                                             | template                                   | `RAD_PASSPHRASE` for the CLI (1P SSH agent rejects `ssh-add`)                                                                      |
+| `~/.bin/rad-bootstrap`                                                          | `dot_bin/`                                 | enrollment/restore tool (deployed even when un-enrolled)                                                                           |
+| `~/.bin/rad-clone-public`                                                       | `dot_bin/`                                 | clone from the public network without un-privatizing the node                                                                      |
+| `~/.bin/radicle-node-wrapper` + `~/Library/LaunchAgents/dev.radicle.node.plist` | macOS only                                 | node runs while a GUI session is logged in (Aqua LaunchAgent, not boot-scoped; KeepAlive; logs: `~/Library/Logs/radicle-node.log`) |
+| `~/.config/systemd/user/radicle-node.service`                                   | WSL2 only                                  | always-on node (`Restart=always`)                                                                                                  |
 
 Gating lives in `.chezmoiignore` via `.chezmoitemplates/radicle/enabled`: item present →
 deploy; item absent → skip radicle targets; 1Password locked → **fail the whole run**
@@ -178,6 +178,10 @@ the duration of the clone.
   root cause is designed out — config.json always sets `node.listen`.)
 - **Node won't start after crash loop** — see `~/Library/Logs/radicle-node.log` (macOS)
   or `journalctl --user -u radicle-node` (WSL2). "No identity" → run `rad-bootstrap`.
+- **Node missing for hours after a reboot (macOS)** — expected: the LaunchAgent is
+  Aqua-scoped, so it loads at GUI login, not at boot. Verify with
+  `ps -o lstart -p $(pgrep -f radicle-node)` vs `sysctl -n kern.boottime`; the mesh's other
+  always-on peers cover replication in the gap.
 - **`rad` prompts for passphrase / "invalid passphrase"** — a stale `RAD_PASSPHRASE` in
   the shell (another node's, or pre-rotation). `exec zsh` to reload the rendered value.
   `rad-bootstrap` unsets it before `rad auth` for exactly this reason.

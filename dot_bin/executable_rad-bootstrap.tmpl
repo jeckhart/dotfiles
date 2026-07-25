@@ -106,6 +106,9 @@ if [ -f "$HOME/Library/LaunchAgents/dev.radicle.node.plist" ]; then
 fi
 {{ else -}}
 if [ -d /run/systemd/system ]; then
-  systemctl --user try-restart radicle-node.service 2>/dev/null || true
+  # restart, not try-restart: try-restart is a no-op on an *inactive* unit,
+  # which is exactly the state an un-bootstrapped host is in -- the case this
+  # line exists to recover from.
+  systemctl --user restart radicle-node.service 2>/dev/null || true
 fi
 {{ end -}}

@@ -10,10 +10,27 @@ set +a
 BREW_PREFIX="{{ if .isAppleSilicon }}/opt/homebrew{{ else }}/usr/local{{ end }}"
 export PATH="$BREW_PREFIX/bin:/usr/bin:/bin"
 
+if [ ! -x "$BREW_PREFIX/bin/radicle-node" ]; then
+  echo "radicle-node-wrapper: no radicle-node binary at $BREW_PREFIX/bin -- brew install radicle" >&2
+  sleep 30   # same throttle as the identity guard below: don't spin at ThrottleInterval
+  exit 1
+fi
+
 if [ ! -f "$RAD_HOME/keys/radicle" ]; then
   echo "radicle-node-wrapper: no identity at $RAD_HOME/keys/radicle — run rad-bootstrap" >&2
   sleep 30   # throttle launchd KeepAlive respawn until enrollment happens
   exit 1
 fi
+
+# Bound the launchd-owned log and keep it private (peer NIDs + Tailscale IPs).
+# launchd opens StandardOutPath O_APPEND, so truncating the inode in place is
+# safe -- a rename would orphan its held fd. Checked once per start; the job
+# restarts often enough (every GUI login/reload, not just once in weeks) that
+# this will actually fire at the ~45KB/day this log accumulates.
+LOG="$HOME/Library/Logs/radicle-node.log"
+if [ -f "$LOG" ] && [ "$(/usr/bin/stat -f%z "$LOG")" -gt $((5 * 1024 * 1024)) ]; then
+  cp "$LOG" "$LOG.1" && : >"$LOG"
+fi
+chmod 600 "$LOG" "$LOG.1" 2>/dev/null || true
 
 exec "$BREW_PREFIX/bin/radicle-node" --force

@@ -6,18 +6,40 @@
 # "while WSL is up", not truly 24/7 (see docs/radicle.md for the optional keep-alive).
 [Unit]
 Description=Radicle Node
-After=network-online.target
+# Deliberately no After=network-online.target: that target only exists in the
+# system manager, so ordering a *user* unit after it is a silent no-op here.
+# Restart= below is what actually copes with a not-yet-ready network.
 # rad probes SSH_AUTH_SOCK when set (environment.d exports it) — make sure the
 # 1Password agent bridge is up first so the node never sees a dead socket path.
 Wants=ssh-agent-bridge.service
 After=ssh-agent-bridge.service
+# Never give up. An enrolled-but-not-yet-bootstrapped host (this unit deployed,
+# but rad-bootstrap hasn't restored keys yet) fails ExecStart immediately and
+# must keep retrying so it self-heals the moment the identity lands -- same
+# contract as the macOS wrapper's sleep-30 no-identity loop. Explicit because
+# the defaults (burst 5 / interval 10s) sit right on a boundary with
+# RestartSec=30 below and the resulting behavior would otherwise be
+# timing-dependent instead of a deliberate choice.
+StartLimitIntervalSec=0
 
 [Service]
 EnvironmentFile={{ .chezmoi.homeDir }}/.config/radicle/node.env
 ExecStart=/usr/bin/radicle-node --force
-KillMode=process
+# Deliberately no KillMode=process (inherited from heartwood's shipped unit):
+# radicle-node spawns `git upload-pack` and `git gc --auto` children, and
+# KillMode=process only signals the main process -- even for the final
+# SIGKILL -- leaving those children running unsupervised. A `systemctl
+# restart` (which the reload script runs on every config change) would then
+# start a second node alongside orphaned git processes on the same storage,
+# and --force means there's no control-socket interlock to catch it. The
+# control-group default reaps the whole cgroup, matching launchd's
+# process-group kill on the macOS side.
 Restart=always
-RestartSec=3
+# 30s, not 3s: parity with the macOS wrapper's sleep-30 throttle for an
+# unenrolled/locked host. At 3s the fixed rate-limit window above never trips
+# (see StartLimitIntervalSec), so a bare RestartSec=3 crash-loops ~28,800
+# times/day instead of ~2,880.
+RestartSec=30
 
 [Install]
 WantedBy=default.target

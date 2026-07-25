@@ -18,5 +18,27 @@
 	<string>{{ .chezmoi.homeDir }}/Library/Logs/radicle-node.log</string>
 	<key>StandardErrorPath</key>
 	<string>{{ .chezmoi.homeDir }}/Library/Logs/radicle-node.log</string>
+
+	<!-- Deliberately NO ExitTimeOut. radicle-node's graceful shutdown is ~3ms
+	     end to end (Termination signal -> reactor Shutdown, measured across
+	     multiple restarts in the log) -- no need for the beads Dolt server's
+	     ExitTimeOut 60 here (that one flushes a multi-database NBS store). -->
+
+	<!-- Deliberately NO ProcessType. Not Interactive: unlike dolt, this node is
+	     on no command's synchronous critical path. Not Background either: that
+	     would throttle CPU/IO for a process holding live TCP sessions that
+	     already flap on their own timeouts. Standard (the default) is correct. -->
+
+	<!-- Deliberately NO WorkingDirectory or plist-level EnvironmentVariables
+	     PATH: the wrapper (~/.bin/radicle-node-wrapper) already owns PATH, and
+	     radicle-node derives every path from RAD_HOME, not cwd. -->
+
+	<!-- Deliberately NO LimitLoadToSessionType. Absent means Aqua (gui/$UID),
+	     so this node only runs while a GUI session is logged in -- a known,
+	     accepted limitation (the mesh's other always-on peers cover the gap
+	     while this one is down; see docs/radicle.md). Do NOT "fix" this by
+	     adding [Aqua, Background]: those are different launchd domains, and
+	     since --force disables the control-socket single-instance interlock,
+	     double-loading the label would run two nodes against one ~/.radicle. -->
 </dict>
 </plist>
