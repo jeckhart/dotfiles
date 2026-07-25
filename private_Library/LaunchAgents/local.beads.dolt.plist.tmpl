@@ -2,30 +2,67 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>KeepAlive</key>
-	<true/>
 	<key>Label</key>
 	<string>local.beads.dolt</string>
-	<key>LimitLoadToSessionType</key>
-	<array>
-		<string>Aqua</string>
-		<string>Background</string>
-		<string>LoginWindow</string>
-		<string>StandardIO</string>
-		<string>System</string>
-	</array>
+
 	<key>ProgramArguments</key>
 	<array>
 		<string>/bin/bash</string>
 		<string>{{ .chezmoi.homeDir }}/.local/bin/beads-dolt-server.sh</string>
 	</array>
+
 	<key>RunAtLoad</key>
 	<true/>
-	<key>StandardErrorPath</key>
-	<string>/opt/homebrew/var/log/dolt.error.log</string>
-	<key>StandardOutPath</key>
-	<string>/opt/homebrew/var/log/dolt.log</string>
+	<!-- Unconditional on purpose. NOT a {SuccessfulExit: false} dict: a graceful
+	     SIGTERM shutdown exits 0, and "restart only on failure" would leave the
+	     server down after every clean logout/restart. -->
+	<key>KeepAlive</key>
+	<true/>
+
+	<!-- Deliberately no LimitLoadToSessionType. Aqua (gui/$UID) and Background
+	     (user/$UID) are different launchd domains; listing both risks bootstrapping
+	     this label into each and running two dolt processes against one data_dir --
+	     the exact condition that corrupted the DB on 2026-07-04. Absent means Aqua,
+	     which is what actually runs today. Session type governs where the job
+	     loads, not who can connect: an ssh session reaches 127.0.0.1:3308 fine as
+	     long as the job is running, and Aqua survives lock/display sleep. -->
+
 	<key>WorkingDirectory</key>
 	<string>{{ .chezmoi.homeDir }}/.beads/shared-server/dolt</string>
+
+	<!-- launchd-owned channel, deliberately NOT dolt-server.log: bd owns that name
+	     and rotates it by rename when bd starts the server itself, which would
+	     orphan an fd launchd holds open. This file only catches failures before
+	     the wrapper redirects (bad interpreter, unwritable server dir). dolt's own
+	     output goes to dolt-server.log, opened and rotated by the wrapper. -->
+	<key>StandardOutPath</key>
+	<string>{{ .chezmoi.homeDir }}/.beads/shared-server/dolt-server-launchd.log</string>
+	<key>StandardErrorPath</key>
+	<string>{{ .chezmoi.homeDir }}/.beads/shared-server/dolt-server-launchd.log</string>
+
+	<!-- launchd's default PATH is /usr/bin:/bin:/usr/sbin:/sbin. dolt shells out to
+	     git for CALL DOLT_PUSH over the git+ssh remote; use the brew git rather
+	     than the Apple CLT shim. Both candidate brew bin dirs are listed rather
+	     than picking one by arch: PATH lookups silently skip a dir that doesn't
+	     exist, and arch doesn't guarantee which prefix has git (Rosetta brew at
+	     /usr/local can coexist with a native /opt/homebrew install). -->
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+	</dict>
+
+	<!-- Every bd command blocks on this server synchronously; treat it as an
+	     interactive app for scheduling/resource purposes, not a background job. -->
+	<key>ProcessType</key>
+	<string>Interactive</string>
+
+	<!-- launchctl print reports an effective exit timeout of 5s (Apple's documented
+	     default is 20s) -- too short for dolt to flush and close a multi-database
+	     NBS store cleanly. Honored for bootout / kickstart -k / logout; best-effort
+	     at system shutdown; irrelevant to a panic or power loss. Never 0 (means
+	     wait forever). -->
+	<key>ExitTimeOut</key>
+	<integer>60</integer>
 </dict>
 </plist>

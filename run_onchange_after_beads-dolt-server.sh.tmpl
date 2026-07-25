@@ -1,0 +1,53 @@
+#!/bin/sh
+# (Re)load the beads shared Dolt server LaunchAgent when its inputs change. The
+# hashes below embed the plist and wrapper sources into this script's content,
+# so chezmoi re-runs it whenever either one changes.
+#
+# This exists because local.beads.dolt previously had no reload path at all: a
+# plist edit sat inert in ~/Library/LaunchAgents/ until next login, and hand-
+# running `launchctl bootout` in the meantime let bd's own auto-start fire a
+# second dolt process against the same data_dir
+{{ if ne .chezmoi.os "darwin" -}}
+exit 0  # beads shared Dolt server is macOS-only (launchd + /opt/homebrew)
+{{ else -}}
+# plist hash: {{ include "private_Library/LaunchAgents/local.beads.dolt.plist.tmpl" | sha256sum }}
+# wrapper hash: {{ include "private_dot_local/bin/executable_beads-dolt-server.sh" | sha256sum }}
+set -e
+PLIST="$HOME/Library/LaunchAgents/local.beads.dolt.plist"
+if ! launchctl print "gui/$(id -u)" >/dev/null 2>&1; then
+  # e.g. chezmoi apply over SSH with no graphical session: there is no gui launchd
+  # domain to bootstrap into. The plist is in place; launchd loads it at next login.
+  echo "beads-dolt: no GUI launchd domain (SSH session?); LaunchAgent will load at next login" >&2
+  exit 0
+fi
+launchctl bootout "gui/$(id -u)/local.beads.dolt" 2>/dev/null || true
+# bootout is asynchronous — bootstrapping before the label is gone fails with EIO
+i=0
+while launchctl print "gui/$(id -u)/local.beads.dolt" >/dev/null 2>&1; do
+  i=$((i + 1))
+  [ "$i" -ge 20 ] && break
+  sleep 0.5
+done
+launchctl bootstrap "gui/$(id -u)" "$PLIST"
+echo "beads-dolt LaunchAgent (re)loaded"
+
+# Guard against exactly the failure mode this script exists to prevent: confirm
+# there is one, and only one, dolt process holding the port after reload.
+# `grep -c` exits 1 on zero matches, which set -e would treat as this script
+# failing — count with `|| true` so a still-starting (or crashed) server is
+# reported below instead of aborting here.
+i=0
+listeners=0
+while [ "$listeners" -eq 0 ]; do
+  listeners="$(lsof -nP -iTCP:3308 -sTCP:LISTEN 2>/dev/null | grep -c '^dolt' || true)"
+  i=$((i + 1))
+  [ "$i" -ge 20 ] && break
+  [ "$listeners" -eq 0 ] && sleep 0.5
+done
+if [ "$listeners" -eq 0 ]; then
+  echo "beads-dolt: WARNING: no dolt process is listening on :3308 after reload -- check launchctl print gui/$(id -u)/local.beads.dolt and $HOME/.beads/shared-server/dolt-server-launchd.log" >&2
+elif [ "$listeners" -gt 1 ]; then
+  echo "beads-dolt: WARNING: $listeners dolt processes are listening on :3308 after reload (expected 1)" >&2
+  echo "beads-dolt: check 'launchctl list | grep dolt' for a rogue/unmanaged LaunchAgent" >&2
+fi
+{{ end -}}
