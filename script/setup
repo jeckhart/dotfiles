@@ -7,6 +7,10 @@
 
 set -e
 
+# Cache a sudo credential now: Homebrew's NONINTERACTIVE installer only does a
+# non-prompting sudo check and aborts instead of prompting if none is cached yet.
+sudo -v
+
 fancy_echo() {
 	local fmt="$1"
 	shift
