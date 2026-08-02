@@ -3,13 +3,15 @@
 if [ -e /proc ] && $(grep -oE 'WSL2' /proc/version >/dev/null 2>&1 ) ; then
   export LC_ALL=en_US.UTF-8
 
-  # Route $BROWSER-aware tools (gh, jupyter, dev servers) to the Windows default
-  # browser via wslview (wslu) — but only when WSL interop is live in THIS shell.
-  # wslview needs interop to launch the .exe. sshd-spawned sessions don't inherit
-  # $WSL_INTEROP, so we leave BROWSER unset there rather than point it at a wslview
-  # that would fail (and would open a browser on this host, not the ssh client).
+  # Route $BROWSER-aware tools (gh, jupyter, dev servers) and `open` to the Windows
+  # default handler via wsl-open (~/.bin, wraps explorer.exe) — but only when WSL
+  # interop is live in THIS shell. wsl-open needs interop to launch explorer.exe.
+  # sshd-spawned sessions don't inherit $WSL_INTEROP, so we leave both unset there
+  # rather than point them at a wsl-open that would fail (and would open a browser
+  # on this host, not the ssh client).
   if [ -S "$WSL_INTEROP" ]; then
-    export BROWSER=wslview
+    export BROWSER=wsl-open
+    alias open=wsl-open
   fi
 
   # X server for GUI apps. Prefer WSLg's native server (:0 via /tmp/.X11-unix/X0
@@ -50,6 +52,4 @@ if [ -e /proc ] && $(grep -oE 'WSL2' /proc/version >/dev/null 2>&1 ) ; then
   # No native op on this box; the Windows CLI (on $PATH via interop) talks
   # straight to the Windows 1Password app, and chezmoi itself uses op.exe.
   alias op='op.exe'
-
-  wslfetch
 fi

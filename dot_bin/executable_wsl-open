@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+#
+# wsl-open <url|path> [url|path...] — open a URL or file with the Windows default
+# handler. Backs $BROWSER and `open` on WSL2 (see dot_config/zsh/configs/wsl2.zsh).
+#
+#   wsl-open https://example.com
+#   wsl-open .
+#   wsl-open ./report.pdf
+
+set -euo pipefail
+
+if [[ $# -eq 0 ]]; then
+	printf 'usage: wsl-open <url|path> [url|path...]\n' >&2
+	exit 1
+fi
+
+if ! command -v explorer.exe >/dev/null 2>&1; then
+	printf 'wsl-open: explorer.exe not found on PATH (WSL interop not live?)\n' >&2
+	exit 1
+fi
+
+for target in "$@"; do
+	# Leave URIs (scheme:...) alone; translate anything that looks like an existing
+	# local path to its Windows form so explorer.exe can resolve it.
+	if [[ ! $target =~ ^[a-zA-Z][a-zA-Z0-9+.-]*: ]] && [[ -e $target ]]; then
+		target=$(wslpath -w "$target")
+	fi
+	# explorer.exe always exits 1, even on success — never treat that as failure.
+	explorer.exe "$target" || true
+done
+
+exit 0
