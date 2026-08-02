@@ -23,6 +23,12 @@
 # Known limit: .chezmoi.os/.chezmoi.arch come from the real runtime, not the [data]
 # fixtures below — this script only ever exercises the OS-gated branches for the OS
 # it's running on. The CI workflow's ubuntu-latest + macos-latest matrix covers both.
+#
+# --source is not optional: without it, `chezmoi execute-template` resolves
+# `includeTemplate`/`include` against chezmoi's DEFAULT source dir (~/.local/share/chezmoi),
+# not this checkout. That default happens to BE this repo on a real dev machine, so the bug
+# is invisible locally — every render with an `include` fails on a CI runner, where no such
+# path exists.
 
 set -euo pipefail
 
@@ -65,7 +71,7 @@ for f in "$@"; do
 	[ -f "$f" ] || continue # deleted/renamed file in this changeset
 
 	for profile in "${profiles[@]}"; do
-		if ! chezmoi execute-template --config "$profile" --file "$f" >"$tmp_render" 2>"$tmp_err"; then
+		if ! chezmoi execute-template --source "$repo_root" --config "$profile" --file "$f" >"$tmp_render" 2>"$tmp_err"; then
 			if grep -qE 'onepasswordRead|op\.exe|op (read|item)|not found on PATH|1Password is locked' "$tmp_err"; then
 				echo "chezmoi-templates: SKIP $f ($profile): hit a 1Password code path mock-bin/op doesn't cover — extend the mock, this shouldn't happen" >&2
 				continue

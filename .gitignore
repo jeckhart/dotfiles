@@ -5,3 +5,6 @@
 
 # Beads / Dolt files (added by bd init)
 .beads/proxieddb/
+
+# Claude Code worktrees (per-session scratch checkouts)
+.claude/worktrees/
