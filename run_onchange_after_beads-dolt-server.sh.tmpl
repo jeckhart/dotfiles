@@ -1,18 +1,18 @@
 #!/bin/sh
-# (Re)load the beads shared Dolt server LaunchAgent when its inputs change. The
-# hashes below embed the plist and wrapper sources into this script's content,
-# so chezmoi re-runs it whenever either one changes.
+# (Re)load the beads shared Dolt server supervisor when its inputs change. The
+# hashes below embed the wrapper, plist, and unit sources into this script's
+# content, so chezmoi re-runs it whenever any of them changes.
 #
 # This exists because local.beads.dolt previously had no reload path at all: a
 # plist edit sat inert in ~/Library/LaunchAgents/ until next login, and hand-
 # running `launchctl bootout` in the meantime let bd's own auto-start fire a
-# second dolt process against the same data_dir
-{{ if ne .chezmoi.os "darwin" -}}
-exit 0  # beads shared Dolt server is macOS-only (launchd + /opt/homebrew)
-{{ else -}}
-# plist hash: {{ include "private_Library/LaunchAgents/local.beads.dolt.plist.tmpl" | sha256sum }}
+# second dolt process against the same data_dir. The WSL2/systemd branch below
+# mirrors ssh-agent-bridge and radicle-node's reload scripts.
 # wrapper hash: {{ include "private_dot_local/bin/executable_beads-dolt-server.sh" | sha256sum }}
+# plist hash:   {{ include "private_Library/LaunchAgents/local.beads.dolt.plist.tmpl" | sha256sum }}
+# unit hash:    {{ include "dot_config/systemd/user/beads-dolt.service.tmpl" | sha256sum }}
 set -eu
+{{ if eq .chezmoi.os "darwin" -}}
 PLIST="$HOME/Library/LaunchAgents/local.beads.dolt.plist"
 if ! launchctl print "gui/$(id -u)" >/dev/null 2>&1; then
   # e.g. chezmoi apply over SSH with no graphical session: there is no gui launchd
@@ -50,4 +50,40 @@ elif [ "$listeners" -gt 1 ]; then
   echo "beads-dolt: WARNING: $listeners dolt processes are listening on :3308 after reload (expected 1)" >&2
   echo "beads-dolt: check 'launchctl list | grep dolt' for a rogue/unmanaged LaunchAgent" >&2
 fi
+{{ else if .isWSL2 -}}
+set -e
+if [ ! -d /run/systemd/system ]; then
+  echo "beads-dolt: systemd not enabled in WSL ([boot] systemd=true in /etc/wsl.conf); skipping" >&2
+  exit 0
+fi
+{{ includeTemplate "systemd/user-manager-probe" . }}
+if ! systemd_user_bus_ok; then
+  echo "beads-dolt: systemd user manager unreachable; see the wsl2-systemd-preflight diagnosis above. Skipping." >&2
+  exit 0
+fi
+systemctl --user daemon-reload
+loginctl enable-linger "$USER" 2>/dev/null || true
+systemctl --user enable --now beads-dolt.service
+systemctl --user try-restart beads-dolt.service || true
+echo "beads-dolt systemd user unit (re)loaded"
+
+# Same guard as the darwin branch above: confirm there is one, and only one,
+# dolt process holding the port after reload. ss over lsof — iproute2 is base
+# Ubuntu/WSL2, lsof is not guaranteed present on a fresh rootfs.
+i=0
+listeners=0
+while [ "$listeners" -eq 0 ]; do
+  listeners="$(ss -Hlntp 'sport = :3308' 2>/dev/null | grep -c 'users:(("dolt"' || true)"
+  i=$((i + 1))
+  [ "$i" -ge 20 ] && break
+  [ "$listeners" -eq 0 ] && sleep 0.5
+done
+if [ "$listeners" -eq 0 ]; then
+  echo "beads-dolt: WARNING: no dolt process is listening on :3308 after reload -- check 'systemctl --user status beads-dolt' and 'journalctl --user -u beads-dolt -n 20'" >&2
+elif [ "$listeners" -gt 1 ]; then
+  echo "beads-dolt: WARNING: $listeners dolt processes are listening on :3308 after reload (expected 1)" >&2
+  echo "beads-dolt: check 'systemctl --user list-units | grep dolt' for a rogue/unmanaged unit" >&2
+fi
+{{ else -}}
+exit 0  # beads shared Dolt server only has a supervisor on macOS (launchd) and WSL2 (systemd)
 {{ end -}}

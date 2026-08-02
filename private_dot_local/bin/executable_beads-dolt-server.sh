@@ -1,36 +1,39 @@
 #!/bin/bash
 # Launch the shared Dolt SQL server for beads (bd) issue tracking.
-# Invoked by the launchd agent ~/Library/LaunchAgents/local.beads.dolt.plist.
-# Managed by chezmoi (~/.local/bin) so the daemon setup is reproducible.
+# Invoked by the launchd agent ~/Library/LaunchAgents/local.beads.dolt.plist
+# (macOS) or the systemd user unit ~/.config/systemd/user/beads-dolt.service
+# (WSL2). Managed by chezmoi (~/.local/bin) so the daemon setup is reproducible.
 #
-# Owns three things launchd/the plist cannot express:
+# Owns three things neither supervisor's manifest can express:
 #  1. dolt-config.yaml is generated here (see below) so the port has exactly one
 #     definition and can't drift from dolt-server.port, which bd treats as the
 #     primary source for discovering the running server.
-#  2. dolt's stdout/stderr fd is opened here (exec >>"$LOG" 2>&1), not by
-#     launchd, so the log can be copy-truncate rotated before the fd exists.
-#     Renaming would orphan a launchd-held fd; bd's own rotation renames, so
-#     launchd must never hold this file's fd either.
+#  2. dolt's stdout/stderr fd is opened here (exec >>"$LOG" 2>&1), not by the
+#     supervisor, so the log can be copy-truncate rotated before the fd exists.
+#     Renaming would orphan a supervisor-held fd; bd's own rotation renames, so
+#     the supervisor must never hold this file's fd either (this is also why
+#     the systemd unit points StandardOutput/Error at the journal, not this log).
 #  3. exec (not a backgrounded dolt + wait) means bash is gone once dolt starts,
-#     so launchd's SIGTERM reaches dolt's graceful shutdown handler directly,
-#     and $$ recorded below is the real dolt pid. Do NOT add a `trap` for
-#     cleanup: that requires dropping exec, which inserts bash as a signal
+#     so the supervisor's SIGTERM reaches dolt's graceful shutdown handler
+#     directly, and $$ recorded below is the real dolt pid. Do NOT add a `trap`
+#     for cleanup: that requires dropping exec, which inserts bash as a signal
 #     middleman and breaks the pid file.
 set -euo pipefail
 
 # Homebrew's prefix isn't determined by CPU arch alone -- an Apple Silicon Mac
 # can carry both a native /opt/homebrew and a Rosetta /usr/local install side by
-# side. Probe for the actual formula, mirroring the discovery ladder in
-# dot_zprofile.tmpl / configs/pre/brew.zsh rather than assuming one.
+# side, and this same script now also runs unmodified on WSL2/Linuxbrew. Probe
+# for the actual formula, mirroring the discovery ladder in dot_zprofile.tmpl /
+# configs/pre/brew.zsh rather than assuming one.
 DOLT=""
-for _prefix in "${HOMEBREW_PREFIX:-}" /opt/homebrew /usr/local; do
+for _prefix in "${HOMEBREW_PREFIX:-}" /opt/homebrew /usr/local /home/linuxbrew/.linuxbrew; do
 	if [ -n "$_prefix" ] && [ -x "$_prefix/opt/dolt/bin/dolt" ]; then
 		DOLT="$_prefix/opt/dolt/bin/dolt"
 		break
 	fi
 done
 unset _prefix
-: "${DOLT:?dolt formula not found under /opt/homebrew or /usr/local}"
+: "${DOLT:?dolt formula not found under /opt/homebrew, /usr/local, or /home/linuxbrew/.linuxbrew}"
 
 SERVER_DIR="$HOME/.beads/shared-server"
 DATA_DIR="$SERVER_DIR/dolt"
@@ -70,7 +73,11 @@ mv -f "$CONFIG_FILE.tmp" "$CONFIG_FILE" # atomic: bd can never read a partial co
 # Backstop only, checked once at startup. Copy-truncate keeps the inode so any
 # other reader's fd survives (a rename would not). At ~20 KB/day post-"warning"
 # this should effectively never fire.
-if [ -f "$LOG" ] && [ "$(/usr/bin/stat -f%z "$LOG")" -gt "$MAX_LOG_BYTES" ]; then
+# GNU stat (Linux/Linuxbrew) takes -c%s; BSD stat (macOS) only understands -f%z.
+# Try GNU first and fall back, rather than branching on uname, so this stays a
+# single line if a third stat flavor ever shows up.
+file_size() { stat -c%s "$1" 2>/dev/null || stat -f%z "$1"; }
+if [ -f "$LOG" ] && [ "$(file_size "$LOG")" -gt "$MAX_LOG_BYTES" ]; then
 	cp "$LOG" "$LOG.1" && : >"$LOG"
 fi
 

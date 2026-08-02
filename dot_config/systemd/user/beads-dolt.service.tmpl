@@ -1,0 +1,43 @@
+# Shared Dolt SQL server for beads (bd) issue tracking (WSL2). systemd counterpart to
+# the macOS LaunchAgent local.beads.dolt.plist — both supervisors run the same wrapper
+# (~/.local/bin/beads-dolt-server.sh), which does what neither manifest can: generate
+# dolt-config.yaml, own dolt's log fd so it survives bd's own rotation, and write the
+# pid/port files bd uses to discover the running server. See that script's header.
+[Unit]
+Description=Shared Dolt SQL server for beads (bd)
+# Deliberately no After=network.target: it only exists in the system manager, so
+# ordering a *user* unit after it is a silent no-op (same reasoning as
+# radicle-node.service). The server only ever binds 127.0.0.1 anyway.
+# Never give up: a fresh host with this unit rendered before `brew install dolt`
+# has run must keep retrying so it self-heals the moment dolt lands.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/beads-dolt-server.sh
+# Unconditional, matching the plist's KeepAlive=true: a graceful SIGTERM exits 0,
+# so Restart=on-failure would leave the server down after `bd dolt stop` or after
+# bd's own KillStaleServers reaping it (bd has been observed killing dolt servers
+# it doesn't own — gastownhall/beads#2641). Unlike launchd's KeepAlive, systemd
+# still honors an explicit `systemctl --user stop`.
+Restart=always
+RestartSec=3
+# dolt needs a clean SIGTERM to flush and close the multi-database NBS store;
+# 60s mirrors the plist's ExitTimeOut. SendSIGKILL stays at its default (yes):
+# never escalating would strand a hung dolt holding the port, which is the
+# failure this whole unit exists to avoid.
+TimeoutStopSec=60
+# The journal is this platform's dolt-server-launchd.log: it only catches
+# failures before the wrapper redirects (bad interpreter, dolt missing, an
+# unwritable server dir). Deliberately NOT `append:.../dolt-server.log` — that
+# would hold an fd across the rename-based rotation described in the wrapper.
+StandardOutput=journal
+StandardError=journal
+# User units get no login PATH; dolt shells out to git for CALL DOLT_PUSH over
+# the git+ssh remote. brew/prefix is the ADR-0001 way to resolve this at render
+# time (the wrapper itself still probes for dolt at run time, since a machine
+# can carry more than one brew prefix — see its own comment).
+Environment=PATH={{ includeTemplate "brew/prefix" . | trim }}/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
+[Install]
+WantedBy=default.target
