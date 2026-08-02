@@ -17,7 +17,8 @@ sign in, and enable **Settings → Developer → CLI integration** and the **SSH
 Secrets and commit signing are read from 1Password at apply time.
 
 One-shot bootstrap (installs Homebrew + chezmoi, applies the dotfiles, sets zsh as the
-login shell). Fetched from a tagged release, not `main`:
+login shell). Fetched from a tagged release, not `main` — see
+[docs/adr/0002](docs/adr/0002-ci-and-github-hardening.md) for why:
 
 ```bash
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/jeckhart/dotfiles/v1.0.0/script/setup)"
@@ -137,7 +138,18 @@ sniffing and `dot_config/zsh/functions|completion/*` via `zsh -n`), taplo (TOML)
 plus three gates native to this repo: `chezmoi-templates` (renders every `*.tmpl` under a
 darwin + synthetic-WSL2 data fixture and shellchecks the result —
 `script/lint/chezmoi-templates.sh`), `machine-identifiers` (blocks radicle DIDs/RIDs,
-Tailscale addresses, and `*.ts.net` hostnames from landing in a tracked file), and
-`hk-pin-drift`/`chezmoiignore-drift` (config self-checks). Vendored content (`.beads/**`,
-`.agents/**`) and plugin-manager-generated files (`lazy-lock.json`, `lazyvim.json`) are
-excluded throughout.
+Tailscale addresses/`*.ts.net` hostnames, email addresses, and RFC1918 private IPs from
+landing in a tracked file), and `hk-pin-drift`/`chezmoiignore-drift` (config self-checks).
+Vendored content (`.beads/**`, `.agents/**`) and plugin-manager-generated files
+(`lazy-lock.json`, `lazyvim.json`) are excluded throughout.
+
+CI (`.github/workflows/hk.yml`) runs the exact same gates on `ubuntu-24.04` + `macos-15`
+on every push/PR — required status checks on `main`, which also requires signed commits,
+blocks force-push/history-rewrite, and requires a PR (repo-admin bypass only, logged by
+GitHub on every use). Secret scanning + push protection are on; Actions are restricted to
+SHA-pinned, explicitly-allowlisted actions with read-only default token permissions.
+[Renovate](https://docs.renovatebot.com/) keeps GitHub Actions SHAs, `mise.lock`, and the
+third-party zsh/tmux plugin pins below current. Full rationale, including where this
+intentionally stops short (an unpinned `chezmoi init --apply`, one unpinnable tmux
+plugin, a beads Dolt DB scan that's deferred rather than half-built):
+[docs/adr/0002](docs/adr/0002-ci-and-github-hardening.md).
