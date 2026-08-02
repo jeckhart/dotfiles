@@ -18,12 +18,14 @@ defer = """{{ hooks?.pre | nl }}{% for file in files %}zsh-defer source "{{ file
 # 1. zsh-defer must load first so the `defer` template works for later plugins.
 [plugins.zsh-defer]
 github = "romkatv/zsh-defer"
+rev = "53a26e287fbbe2dcebb3aa1801546c6de32416fa"
 
 # 2. Extra completion definitions — fpath only (no source). NOTE: its fpath dir is
 #    ALSO prepended in configs/post/completion.zsh *before* compinit, because this
 #    entry's fpath line would otherwise run after compinit (too late).
 [plugins.zsh-completions]
 github = "zsh-users/zsh-completions"
+rev = "6ea4709fbc64f813ffa013fdd062fa0f0d9a0dab"
 apply = ["fpath"]
 
 # 3. vi keybindings (richer than oh-my-zsh's vi-mode). Owns its own keybinding init;
@@ -31,23 +33,28 @@ apply = ["fpath"]
 #    configs/keybindings.zsh) so this plugin's init can't clobber them.
 [plugins.zsh-vi-mode]
 github = "jeffreytse/zsh-vi-mode"
+rev = "91cafe4a09b6670cb8e761aa413e5f7b9e00816f"
 
 # 4. fzf-powered tab completion. MUST be after compinit and before
 #    zsh-syntax-highlighting; MUST NOT be deferred.
 [plugins.fzf-tab]
 github = "Aloxaf/fzf-tab"
+rev = "24105b15714bfec37989ed5c5b6e60f572253019"
 
 # 5. Autosuggestions — deferred (appears a beat after the first prompt).
 [plugins.zsh-autosuggestions]
 github = "zsh-users/zsh-autosuggestions"
+rev = "85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5"
 apply = ["defer"]
 
 # 6. Catppuccin Macchiato styles for the highlighter — MUST be sourced before
 #    zsh-users/zsh-syntax-highlighting (it populates ZSH_HIGHLIGHT_STYLES).
 [plugins.catppuccin-syntax]
 github = "catppuccin/zsh-syntax-highlighting"
+rev = "7926c3d3e17d26b3779851a2255b95ee650bd928"
 use = ["themes/catppuccin_macchiato-zsh-syntax-highlighting.zsh"]
 
 # 7. Syntax highlighting — MUST be last of everything.
 [plugins.zsh-syntax-highlighting]
 github = "zsh-users/zsh-syntax-highlighting"
+rev = "1d85c692615a25fe2293bdd44b34c217d5d2bf04"

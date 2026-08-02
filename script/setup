@@ -9,6 +9,10 @@ set -e
 
 # Cache a sudo credential now: Homebrew's NONINTERACTIVE installer only does a
 # non-prompting sudo check and aborts instead of prompting if none is cached yet.
+# Deliberately stays first, not after the install: NONINTERACTIVE=1 needs the
+# credential warmed *before* it runs, so moving this later would break the installer
+# on any machine without an already-cached credential. The SHA + checksum verification
+# below is what actually closes the "unverified code with warm sudo" gap, not reordering.
 sudo -v
 
 fancy_echo() {
@@ -29,8 +33,28 @@ fi
 # Install Homebrew if it is not already on PATH.
 if ! command -v brew >/dev/null 2>&1; then
 	fancy_echo "==> Installing Homebrew…"
-	NONINTERACTIVE=1 /bin/bash -c \
-		"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	# Pinned to a specific commit + checksum, not HEAD — this is remote code executed
+	# with sudo already cached above. Bump both together when Homebrew's installer
+	# changes (no automation covers this one; it's not a GitHub Actions pin Renovate
+	# tracks, and it isn't a mise-managed tool either).
+	homebrew_installer_ref="39a0c068274254a7658fd9761d59bce9d0e2151f"
+	homebrew_installer_sha256="8ff338091a5e10bb5fc040b38316648110f42feff057ecf9feaab51fd0a13ef9"
+	homebrew_installer="$(mktemp)"
+	trap 'rm -f "$homebrew_installer"' EXIT
+	curl -fsSL "https://raw.githubusercontent.com/Homebrew/install/$homebrew_installer_ref/install.sh" -o "$homebrew_installer"
+	# sha256sum (Linux/coreutils) vs shasum (macOS's built-in Perl one) — neither is
+	# guaranteed on both platforms, so probe instead of assuming either.
+	if command -v sha256sum >/dev/null 2>&1; then
+		echo "$homebrew_installer_sha256  $homebrew_installer" | sha256sum -c - >/dev/null
+	elif command -v shasum >/dev/null 2>&1; then
+		echo "$homebrew_installer_sha256  $homebrew_installer" | shasum -a 256 -c - >/dev/null
+	else
+		fancy_echo "==> ERROR: no sha256sum or shasum available to verify the Homebrew installer"
+		exit 1
+	fi
+	NONINTERACTIVE=1 /bin/bash "$homebrew_installer"
+	rm -f "$homebrew_installer"
+	trap - EXIT
 fi
 
 # Find the brew binary — never guess the prefix from arch (Linuxbrew/nix-homebrew live elsewhere).
