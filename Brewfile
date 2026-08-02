@@ -2,7 +2,8 @@
 # run_onchange_install-packages.sh.tmpl (re-runs when this file changes).
 
 # Taps
-tap 'can1357/tap'                 # omp (listed here so `brew bundle cleanup` keeps the tap)
+tap 'can1357/tap'                 # omp (kept here so `brew bundle cleanup` keeps the tap;
+                                   # trusted explicitly in install-packages.sh.tmpl)
 
 # Early requirements
 brew 'openssl'                    # Recent openssl other formulae depend on
