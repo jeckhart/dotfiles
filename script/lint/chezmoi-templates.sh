@@ -11,13 +11,14 @@
 # (uses `promptString`, only defined under `chezmoi init`/`execute-template --init`),
 # not deployed content, so this gate never renders it at all.
 #
-# A template calling `onepasswordRead`/`onepassword`, or shelling out to the `op`/
-# `op.exe` CLI directly (the radicle templates' enrollment probe), may fail without a
-# live, unlocked 1Password session or the op.exe binary (only ever real under actual
-# WSL2 — the wsl2.toml fixture fakes the *data*, not the binary). Detected by matching
-# the render's stderr for that failure class, not a hardcoded file list, so a future
-# template with the same dependency is picked up automatically instead of silently
-# passing.
+# Templates calling `onepasswordRead`/`onepassword`, or shelling out to the `op`/
+# `op.exe` CLI directly (the radicle templates' enrollment probe), go through
+# mock-bin/{op,op.exe} instead of a live 1Password session — deterministic, offline,
+# and identical locally and in CI (which has no real `op` binary at all). See
+# mock-bin/op's header for the exact argv shapes it answers to. The stderr-pattern
+# check below is now a defensive fallback only: it should never fire in normal
+# operation, since the mock always succeeds — if it does fire, that's a signal the
+# mock needs extending for some new 1Password code path, not an accepted steady state.
 #
 # Known limit: .chezmoi.os/.chezmoi.arch come from the real runtime, not the [data]
 # fixtures below — this script only ever exercises the OS-gated branches for the OS
@@ -27,6 +28,10 @@ set -euo pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 cd "$repo_root"
+
+# Deterministic 1Password stand-in — see mock-bin/op's header. Prepended, not appended,
+# so it wins over any real `op`/`op.exe` already on PATH.
+export PATH="$repo_root/script/lint/mock-bin:$PATH"
 
 profiles_dir="script/lint/profiles"
 shopt -s nullglob
@@ -62,7 +67,7 @@ for f in "$@"; do
 	for profile in "${profiles[@]}"; do
 		if ! chezmoi execute-template --config "$profile" --file "$f" >"$tmp_render" 2>"$tmp_err"; then
 			if grep -qE 'onepasswordRead|op\.exe|op (read|item)|not found on PATH|1Password is locked' "$tmp_err"; then
-				echo "chezmoi-templates: SKIP $f ($profile): requires a live 1Password session or op(.exe) binary" >&2
+				echo "chezmoi-templates: SKIP $f ($profile): hit a 1Password code path mock-bin/op doesn't cover — extend the mock, this shouldn't happen" >&2
 				continue
 			fi
 			echo "chezmoi-templates: FAIL $f ($profile): template render error" >&2

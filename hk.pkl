@@ -150,9 +150,12 @@ local fastSteps: Mapping<String, Step> = new {
   // Renders every *.tmpl under each script/lint/profiles/*.toml data fixture
   // (darwin + a synthetic WSL2 profile — real WSL2-only branches are otherwise
   // unreachable from a Mac) and shellchecks any render that turns out to be a shell
-  // script. See the script's header for the full contract and its two documented
-  // gaps (the .chezmoi.os-gated branches this host can't reach; the 1Password-
-  // dependent renders it detects and skips rather than hard-failing).
+  // script. 1Password calls (onepasswordRead/onepassword, and the two
+  // .chezmoitemplates/radicle/* partials that shell out to $op directly) go through
+  // script/lint/mock-bin/{op,op.exe} — deterministic and offline, no live vault or
+  // Touch ID needed, identical result locally and in CI. See the script's header for
+  // the full contract and its one remaining documented gap (the .chezmoi.os-gated
+  // branches this host can't reach — the CI matrix's two OSes cover those).
   ["chezmoi-templates"] {
     glob = "**/*.tmpl"
     check = "\(lintDir)/chezmoi-templates.sh {{files}}"
@@ -168,9 +171,11 @@ local fastSteps: Mapping<String, Step> = new {
   // a public repo's RID used twice as documentation, not a machine identifier. hk.pkl
   // itself is excluded: its `tests {}` below necessarily embeds a fake-but-pattern-
   // matching DID fixture, which this step would otherwise flag against its own source.
+  // script/lint/mock-bin/** is excluded for the identical reason — its canned radicle
+  // nid/RID test data is deliberately shaped like the real thing.
   ["machine-identifiers"] {
     glob = "**/*"
-    exclude = vendored + generated + List("hk.pkl")
+    exclude = vendored + generated + List("hk.pkl", "script/lint/mock-bin/**")
     check =
       #"""
       pattern='did:key:z6M[1-9A-HJ-NP-Za-km-z]{40,}|rad:z[1-9A-HJ-NP-Za-km-z]{20,}|(^|[^0-9.])100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.[0-9]{1,3}\.[0-9]{1,3}|[a-zA-Z0-9-]+\.ts\.net'

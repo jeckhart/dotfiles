@@ -1,0 +1,136 @@
+#!/usr/bin/env sh
+# script/lint/mock-bin/op — deterministic stand-in for the 1Password CLI, used ONLY by
+# script/lint/chezmoi-templates.sh (which prepends this directory to PATH for that
+# render). Every template that calls onepasswordRead/onepassword, or shells out to $op
+# directly (the two .chezmoitemplates/radicle/* partials), goes through this instead of
+# a live `op` — no network, no Touch ID, no vault state, same result every run.
+# op.exe is a symlink to this file (WSL2's configured 1Password binary name; the two
+# radicle/* partials resolve $op to a literal "op"/"op.exe" themselves, independent of
+# chezmoi's [onepassword] command config, so both names must exist and behave alike).
+#
+# Argv shapes handled (verified against chezmoi v2.71.1 source,
+# internal/cmd/onepasswordtemplatefuncs.go, plus this repo's own template-authored
+# calls — not guessed):
+#   op read [--no-newline] <op://ref>                    (onepasswordRead)
+#   op item get [--format json] <title-or-id> [--vault <v>]  (onepassword; also the
+#                                                              bare probe-only form)
+#   op item list [--vault <v>] [--format json]           (radicle/config.json's peer walk)
+#   op vault get <v>                                     (radicle/enabled's probe)
+# Anything else exits 1 with a message — a loud failure if a future template starts
+# calling something this mock doesn't know about yet, not a silent wrong-shape pass.
+
+set -eu
+
+# chezmoi prepends `--session <token>` (the value our own `signin` case below hands
+# back) ahead of the real subcommand on every read/item call — confirmed empirically,
+# strip it before dispatching.
+if [ "${1:-}" = "--session" ]; then
+	shift 2>/dev/null || true
+	shift 2>/dev/null || true
+fi
+
+subcommand=${1:-}
+[ $# -gt 0 ] && shift
+
+case "$subcommand" in
+read)
+	ref=""
+	for arg in "$@"; do
+		case "$arg" in
+		-*) ;;
+		*) ref="$arg" ;;
+		esac
+	done
+	case "$ref" in
+	*passphrase) printf '%s' "mock-passphrase" ;;
+	*"public key" | *public-key) printf '%s' "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMockMockMockMockMockMockMockMockMockMockMockMock mock@example.invalid" ;;
+	*email) printf '%s' "mock@example.invalid" ;;
+	*name) printf '%s' "Mock Name" ;;
+	*config) printf 'Host *\n  IdentityAgent none\n' ;;
+	*) printf '%s' "mock-value" ;;
+	esac
+	;;
+
+item)
+	action=${1:-}
+	[ $# -gt 0 ] && shift
+	target=""
+	saw_format_json=0
+	skip_next=0
+	prev_flag=""
+	for arg in "$@"; do
+		if [ "$skip_next" = 1 ]; then
+			[ "$prev_flag" = "--format" ] && [ "$arg" = "json" ] && saw_format_json=1
+			skip_next=0
+			continue
+		fi
+		case "$arg" in
+		--format | --vault | --account)
+			skip_next=1
+			prev_flag="$arg"
+			;;
+		-*) ;;
+		*) [ -z "$target" ] && target="$arg" ;;
+		esac
+	done
+
+	case "$action" in
+	get)
+		# Probe-only callers (radicle/enabled, the radicle-mesh existence check) never
+		# pass --format json and redirect all output to /dev/null — only the exit code
+		# (success = item exists) matters, so there's nothing to print.
+		if [ "$saw_format_json" != 1 ]; then
+			exit 0
+		fi
+		if [ "$target" = "radicle-mesh" ]; then
+			cat <<'JSON'
+{"fields":[{"label":"dotfiles","section":{"label":"repos"},"value":"rad:zEXAMPLEFAKEMESHRIDNOTREAL0000"}]}
+JSON
+		else
+			# Generic radicle-node shape — only the fields
+			# .chezmoitemplates/radicle/config.json actually reads via the full-item path
+			# (nid/address/port/alias). did/passphrase/private-key-b64/public-key are only
+			# ever read via `op read` above, never via `item get`, so they're omitted here.
+			cat <<'JSON'
+{"fields":[
+  {"label":"nid","value":"z6MkMOCKNODEIDXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"},
+  {"label":"address","value":"203.0.113.10"},
+  {"label":"port","value":"8776"},
+  {"label":"alias","value":"mock-node"}
+]}
+JSON
+		fi
+		;;
+	list)
+		# Zero peers still exercises the same range/regexMatch/sortAlpha code path as a
+		# real single-node mesh — no need to synthesize a second peer identity.
+		printf '[]'
+		;;
+	*)
+		echo "mock-op: unhandled 'item $action' $*" >&2
+		exit 1
+		;;
+	esac
+	;;
+
+vault)
+	# radicle/enabled's probe only checks the exit code (output redirected to /dev/null).
+	exit 0
+	;;
+
+signin)
+	# chezmoi calls `op signin --raw` ahead of every onepasswordRead/onepassword
+	# invocation regardless of [onepassword] prompt=false (confirmed empirically —
+	# every 1Password-touching template fails here without this case, even though
+	# chezmoi's own session-token-refresh logic is documented as a no-op when
+	# prompt=false). A real signed-in `op` returns a session token on stdout; the
+	# actual value is never read back by these templates (op read/item get don't
+	# take a --session flag from chezmoi in this config), so any fixed string works.
+	printf 'mock-session-token'
+	;;
+
+*)
+	echo "mock-op: unhandled subcommand '$subcommand' $*" >&2
+	exit 1
+	;;
+esac
