@@ -1,0 +1,26 @@
+name: scan
+# Weekly deep secret scan over full git history. hk's own gitleaks step (see hk.yml) only
+# scans working-tree files on push/PR — it never inspects the commit log, so a secret that
+# lands in history and is later removed from HEAD would otherwise go unnoticed forever.
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Monday 06:00 UTC
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  gitleaks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654 # v4.2.4
+        with:
+          install_args: --locked
+      - run: gitleaks detect --log-opts=--all --redact --verbose --no-banner
