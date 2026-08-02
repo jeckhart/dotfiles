@@ -163,38 +163,43 @@ local fastSteps: Mapping<String, Step> = new {
 
   // Mechanizes the beads-no-machine-identifiers rule (this repo's beads DB syncs to
   // refs/dolt/data on this PUBLIC remote): no full-length radicle DIDs/RIDs,
-  // Tailscale CGNAT addresses, or Tailscale MagicDNS hostnames in any tracked file.
-  // Arbitrary machine hostnames aren't syntactically detectable (no fixed pattern
+  // Tailscale CGNAT addresses, Tailscale MagicDNS hostnames, email addresses, or
+  // RFC1918 private IPs (10/8, 172.16/12, 192.168/16) in any tracked file. Arbitrary
+  // machine hostnames still aren't syntactically detectable (no fixed pattern
   // distinguishes "gerald" the hostname from any other word) — this covers the
   // mechanically-detectable subset; the rest still relies on review + `bd memories`.
-  // The one allowlisted string is docs/radicle.md's `rad-clone-public` example RID —
-  // a public repo's RID used twice as documentation, not a machine identifier. hk.pkl
-  // itself is excluded: its `tests {}` below necessarily embeds a fake-but-pattern-
-  // matching DID fixture, which this step would otherwise flag against its own source.
-  // script/lint/mock-bin/** is excluded for the identical reason — its canned radicle
-  // nid/RID test data is deliberately shaped like the real thing.
+  // Three allowlisted strings, all already-public identity, not leaks: docs/radicle.md's
+  // `rad-clone-public` example RID; this identity's own personal email (visible on every
+  // commit's authorship anyway); and rad-clone-public.tmpl's default public seed address
+  // (radicle.garden's own seed service — an NID@host:port string, incidentally
+  // email-shaped). hk.pkl itself is excluded: its `tests {}` below necessarily embeds
+  // fake-but-pattern-matching fixtures, which this step would otherwise flag against its
+  // own source. script/lint/mock-bin/** is excluded for the identical reason — its
+  // canned radicle nid/RID test data is deliberately shaped like the real thing.
   ["machine-identifiers"] {
     glob = "**/*"
     exclude = vendored + generated + List("hk.pkl", "script/lint/mock-bin/**")
     check =
       #"""
-      pattern='did:key:z6M[1-9A-HJ-NP-Za-km-z]{40,}|rad:z[1-9A-HJ-NP-Za-km-z]{20,}|(^|[^0-9.])100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.[0-9]{1,3}\.[0-9]{1,3}|[a-zA-Z0-9-]+\.ts\.net'
-      allow='rad:z4L8L9ctRYn2bcPuUT4GRz7sggG1v'
+      pattern='did:key:z6M[1-9A-HJ-NP-Za-km-z]{40,}|rad:z[1-9A-HJ-NP-Za-km-z]{20,}|(^|[^0-9.])100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.[0-9]{1,3}\.[0-9]{1,3}|[a-zA-Z0-9-]+\.ts\.net|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|(^|[^0-9.])10\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|(^|[^0-9.])172\.(1[6-9]|2[0-9]|3[0-1])\.[0-9]{1,3}\.[0-9]{1,3}|(^|[^0-9.])192\.168\.[0-9]{1,3}\.[0-9]{1,3}'
+      allow1='rad:z4L8L9ctRYn2bcPuUT4GRz7sggG1v'
+      allow2='jeckhart@hey.com'
+      allow3='z6MkrLMMsiPWUcNPHcRajuMi9mDfYckSoJyPwwnknocNYPm7@seed.radicle.garden'
       hits=$(grep -HnE "$pattern" {{files}} 2>/dev/null || true)
       if [ -n "$hits" ]; then
         # `|| true` on the assignment itself, not just inside the loop: hk's default
         # shell runs with `errexit`, and the while loop's last command is a `grep -q
         # && printf` whose LHS legitimately fails whenever a line has nothing left to
-        # report after stripping $allow — that failure is what errexit sees as the
-        # exit status of the whole `real=$(...)` assignment, aborting the step before
-        # the exit-1 branch below ever runs (confirmed: reproduced verbatim under
-        # `sh -o errexit -c`).
+        # report after stripping the allowlist — that failure is what errexit sees as
+        # the exit status of the whole `real=$(...)` assignment, aborting the step
+        # before the exit-1 branch below ever runs (confirmed: reproduced verbatim
+        # under `sh -o errexit -c`).
         real=$(printf '%s\n' "$hits" | while IFS= read -r line; do
-          printf '%s\n' "$line" | sed "s|$allow||g" | grep -qE "$pattern" && printf '%s\n' "$line"
+          printf '%s\n' "$line" | sed -e "s|$allow1||g" -e "s|$allow2||g" -e "s|$allow3||g" | grep -qE "$pattern" && printf '%s\n' "$line"
         done) || true
         if [ -n "$real" ]; then
           printf '%s\n' "$real" >&2
-          echo 'beads-no-machine-identifiers: DID/RID/Tailscale-IP/hostname found in tracked file(s) above' >&2
+          echo 'beads-no-machine-identifiers: DID/RID/Tailscale-IP/email/private-IP found in tracked file(s) above' >&2
           exit 1
         fi
       fi
@@ -203,10 +208,30 @@ local fastSteps: Mapping<String, Step> = new {
       ["F fake-did"] {
         write { ["{{tmp}}/leak.md"] = "did:key:z6MkfakefakefakefakefakefakefakefakefakeXXXX\n" }
         files = List("{{tmp}}/leak.md")
-        expect { code = 1; stderr = "DID/RID/Tailscale-IP/hostname" }
+        expect { code = 1; stderr = "DID/RID/Tailscale-IP/email/private-IP" }
       }
       ["P allowlisted-rid"] {
         write { ["{{tmp}}/doc.md"] = "rad-clone-public rad:z4L8L9ctRYn2bcPuUT4GRz7sggG1v\n" }
+        files = List("{{tmp}}/doc.md")
+        expect { code = 0 }
+      }
+      ["F work-email"] {
+        write { ["{{tmp}}/leak.md"] = "email = someone@example.com\n" }
+        files = List("{{tmp}}/leak.md")
+        expect { code = 1; stderr = "DID/RID/Tailscale-IP/email/private-IP" }
+      }
+      ["P allowlisted-personal-email"] {
+        write { ["{{tmp}}/doc.md"] = "  email = jeckhart@hey.com\n" }
+        files = List("{{tmp}}/doc.md")
+        expect { code = 0 }
+      }
+      ["F private-ip"] {
+        write { ["{{tmp}}/leak.md"] = "connect to 192.168.1.1\n" }
+        files = List("{{tmp}}/leak.md")
+        expect { code = 1; stderr = "DID/RID/Tailscale-IP/email/private-IP" }
+      }
+      ["P public-ip"] {
+        write { ["{{tmp}}/doc.md"] = "dns server 8.8.8.8\n" }
         files = List("{{tmp}}/doc.md")
         expect { code = 0 }
       }
