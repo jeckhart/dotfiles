@@ -1,0 +1,18 @@
+{{- /* Puts brew on PATH if it isn't already, by probing for the binary — never derive
+       the prefix from OS/arch (see docs/adr/0001-homebrew-prefix-discovery.md). No-op if
+       brew isn't found. script/setup can't include this (runs via curl|bash before the
+       repo exists) and inlines an equivalent copy instead. */ -}}
+if ! command -v brew >/dev/null 2>&1; then
+  for _brew in \
+    "$HOMEBREW_PREFIX/bin/brew" \
+    /opt/homebrew/bin/brew \
+    /usr/local/bin/brew \
+    /home/linuxbrew/.linuxbrew/bin/brew; do
+    if [ -x "$_brew" ]; then
+      eval "$("$_brew" shellenv)"
+      break
+    fi
+  done
+  unset _brew
+fi
+[ -n "$HOMEBREW_PREFIX" ] && export HOMEBREW_PREFIX

@@ -1,0 +1,13 @@
+{{- /* Resolves the Homebrew prefix by probing for an actual brew binary — never derive
+       it from OS/arch (see docs/adr/0001-homebrew-prefix-discovery.md). Emits "" if brew
+       isn't installed; callers keep their own runtime guard. Shell scripts that need
+       brew on PATH at run time should use brew/shellenv instead. */ -}}
+{{- $prefix := "" -}}
+{{- $brew := lookPath "brew" -}}
+{{- if $brew }}{{ $prefix = ($brew | dir | dir) }}{{ end -}}
+{{- if not $prefix -}}
+{{-   range list "/opt/homebrew" "/usr/local" "/home/linuxbrew/.linuxbrew" -}}
+{{-     if and (not $prefix) (stat (printf "%s/bin/brew" .)) }}{{ $prefix = . }}{{ end -}}
+{{-   end -}}
+{{- end -}}
+{{- $prefix -}}

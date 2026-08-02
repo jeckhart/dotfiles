@@ -11,7 +11,7 @@ if [ -e /run/current-system/darwin-version ]; then
   exit 0
 fi
 
-reattach_mod="$(brew --prefix 2>/dev/null || true)/lib/pam/pam_reattach.so"
+reattach_mod="{{ includeTemplate "brew/prefix" . }}/lib/pam/pam_reattach.so"
 
 want="auth       sufficient     pam_tid.so"
 if [ -f "$reattach_mod" ]; then

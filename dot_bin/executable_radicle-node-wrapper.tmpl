@@ -7,7 +7,7 @@ set -a
 . "$HOME/.config/radicle/node.env"
 set +a
 
-BREW_PREFIX="{{ if .isAppleSilicon }}/opt/homebrew{{ else }}/usr/local{{ end }}"
+BREW_PREFIX="{{ includeTemplate "brew/prefix" . }}"
 export PATH="$BREW_PREFIX/bin:/usr/bin:/bin"
 
 if [ ! -x "$BREW_PREFIX/bin/radicle-node" ]; then

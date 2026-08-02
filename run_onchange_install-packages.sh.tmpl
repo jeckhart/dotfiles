@@ -5,7 +5,11 @@
 # Brewfile hash: {{ include "Brewfile" | sha256sum }}
 set -e
 
-# Brew may be absent on non-macOS / not-yet-bootstrapped machines.
-command -v brew >/dev/null 2>&1 || exit 0
+{{ includeTemplate "brew/shellenv" . }}
+# Brew may be absent on a not-yet-bootstrapped machine (see script/setup).
+if ! command -v brew >/dev/null 2>&1; then
+  echo "install-packages: brew not found, skipping 'brew bundle' — Brewfile packages will be missing" >&2
+  exit 0
+fi
 
 brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"

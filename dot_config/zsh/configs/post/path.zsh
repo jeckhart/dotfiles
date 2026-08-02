@@ -3,7 +3,7 @@
 if [ -n "$HOMEBREW_PREFIX" ] && [ -e "$HOMEBREW_PREFIX/sbin" ]; then
   PATH="$HOME/.bin:$HOMEBREW_PREFIX/sbin:$PATH"
 else
-  PATH="$HOME/.bin:/usr/local/sbin:$PATH"
+  PATH="$HOME/.bin:$PATH"
 fi
 
 # User-installed binaries (pipx, uv tool, etc.)

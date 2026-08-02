@@ -4,5 +4,9 @@
 # `after_` ensures it runs once the theme file has been written to ~/.config/bat.
 #
 # bat theme hash: {{ include "dot_config/bat/themes/Catppuccin Macchiato.tmTheme" | sha256sum }}
-command -v bat >/dev/null 2>&1 || exit 0
+{{ includeTemplate "brew/shellenv" . }}
+if ! command -v bat >/dev/null 2>&1; then
+  echo "build-bat-cache: bat not found, skipping 'bat cache --build' — theme cache will be stale" >&2
+  exit 0
+fi
 bat cache --build

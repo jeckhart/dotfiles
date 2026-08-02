@@ -19,7 +19,8 @@ NODE={{ .chezmoi.hostname | lower | squote }}
 ITEM="radicle-node-$NODE"
 RAD_HOME="${RAD_HOME:-$HOME/.radicle}"
 KEY="$RAD_HOME/keys/radicle"
-PATH="{{ if .isAppleSilicon }}/opt/homebrew/bin:{{ else if eq .chezmoi.os "darwin" }}/usr/local/bin:{{ end }}$PATH"
+{{ $brewPrefix := includeTemplate "brew/prefix" . -}}
+PATH="{{ if $brewPrefix }}{{ $brewPrefix }}/bin:{{ end }}$PATH"
 
 # A stale RAD_PASSPHRASE (e.g. another node's, or rendered before enrollment)
 # would be silently used by rad auth instead of our generated one.

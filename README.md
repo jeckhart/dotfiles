@@ -82,6 +82,9 @@ renders correctly on both macOS and WSL2.
   `.chezmoi.os`) and 1Password — there are no `.local` / `.donotcommit` shadow files.
 - **Commit signing** is SSH-based via the 1Password agent; each identity has its own
   ed25519 key in 1Password. See CLAUDE.md → *Git Identity* and *Secrets*.
+- **Homebrew prefix** (`/opt/homebrew`, `/usr/local`, or WSL2's Linuxbrew) is always
+  probed at apply/run time, never guessed from OS or arch — see
+  `docs/adr/0001-homebrew-prefix-discovery.md`.
 
 ## Adding tools & dependencies
 

@@ -4,5 +4,9 @@
 # the config has been written to ~/.config/mise before `mise install` reads it.
 #
 # mise tools hash: {{ include "dot_config/mise/config.toml" | sha256sum }}
-command -v mise >/dev/null 2>&1 || exit 0
+{{ includeTemplate "brew/shellenv" . }}
+if ! command -v mise >/dev/null 2>&1; then
+  echo "install-mise-tools: mise not found, skipping 'mise install' — pinned runtimes will be missing" >&2
+  exit 0
+fi
 mise install

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# script/setup: Bootstrap a machine from scratch with chezmoi.
-#               Installs Homebrew + chezmoi, then `chezmoi init --apply` to lay
-#               down the dotfiles, installs the Homebrew bundle, and sets zsh as
-#               the login shell.
+# Bootstraps a machine from scratch: installs Homebrew + chezmoi, then hands off to
+# `chezmoi init --apply`. Fetched via `curl | bash` before the repo exists, so it
+# inlines the brew-prefix probe ladder instead of sharing brew/shellenv (never derive
+# the prefix from OS/arch — see docs/adr/0001-homebrew-prefix-discovery.md).
 
 set -e
 
@@ -15,12 +15,11 @@ fancy_echo() {
 	printf "\\n$fmt\\n" "$@"
 }
 
-# Determine the Homebrew prefix for this architecture.
-UNAME_MACHINE="$(/usr/bin/uname -m)"
-if [ "$UNAME_MACHINE" = "arm64" ]; then
-	HOMEBREW_PREFIX="/opt/homebrew"
-else
-	HOMEBREW_PREFIX="/usr/local"
+# Homebrew's Linux prerequisites (it only prints the apt-get command, doesn't run it).
+if command -v apt-get >/dev/null 2>&1; then
+	fancy_echo "==> Installing Homebrew's Linux build dependencies…"
+	sudo apt-get update -y
+	sudo apt-get install -y build-essential bubblewrap procps curl file git
 fi
 
 # Install Homebrew if it is not already on PATH.
@@ -29,30 +28,33 @@ if ! command -v brew >/dev/null 2>&1; then
 	NONINTERACTIVE=1 /bin/bash -c \
 		"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
-eval "$("$HOMEBREW_PREFIX/bin/brew" shellenv)"
+
+# Find the brew binary — never guess the prefix from arch (Linuxbrew/nix-homebrew live elsewhere).
+BREW=""
+for _brew in \
+	"$HOMEBREW_PREFIX/bin/brew" \
+	/opt/homebrew/bin/brew \
+	/usr/local/bin/brew \
+	/home/linuxbrew/.linuxbrew/bin/brew; do
+	if [ -x "$_brew" ]; then
+		BREW="$_brew"
+		break
+	fi
+done
+unset _brew
+
+if [ -z "$BREW" ]; then
+	fancy_echo "==> ERROR: brew not found after install (checked \$HOMEBREW_PREFIX, /opt/homebrew, /usr/local, /home/linuxbrew/.linuxbrew)"
+	exit 1
+fi
+eval "$("$BREW" shellenv)"
 
 # Install chezmoi.
 fancy_echo "==> Installing chezmoi…"
 brew install chezmoi
 
-# Lay down the dotfiles from the default branch (main). This also runs
-# run_onchange_install-packages.sh, which installs the Homebrew bundle from the
-# Brewfile (and re-runs whenever the Brewfile changes).
+# Applies the dotfiles and runs brew bundle; login shell is set separately per-platform.
 fancy_echo "==> Applying dotfiles with chezmoi…"
 chezmoi init --apply jeckhart/dotfiles
-
-# Set zsh as the login shell.
-update_shell() {
-	local shell_path
-	shell_path="$HOMEBREW_PREFIX/bin/zsh"
-
-	fancy_echo "Changing your shell to zsh ..."
-	if ! grep "$shell_path" /etc/shells >/dev/null 2>&1; then
-		fancy_echo "Adding '$shell_path' to /etc/shells"
-		sudo sh -c "echo $shell_path >> /etc/shells"
-	fi
-	sudo chsh -s "$shell_path" "$USER"
-}
-update_shell
 
 fancy_echo "==> Dotfiles now ready to go!"

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Personal dotfiles for macOS, managed by [chezmoi](https://www.chezmoi.io/) with an
+Personal dotfiles for macOS + WSL2, managed by [chezmoi](https://www.chezmoi.io/) with an
 XDG-first layout (`~/.config`, `~/.local/state`, `~/.cache`). The chezmoi source state
 lives in this repo; machine and identity differences are handled with templates + 1Password
 rather than per-file overrides. (Historically these dotfiles layered the
@@ -20,9 +20,10 @@ chezmoi edit <file>    # Edit a managed file's source
 chezmoi cd             # Open the source repo
 ```
 
-New-machine bootstrap is `script/setup` (being migrated to `chezmoi init --apply`,
-tracked in dotfiles-06f). On a fresh machine, answer the 1Password vault prompt at
-`chezmoi init` so `op:///...` templates render.
+New-machine bootstrap is `script/setup` (fetched standalone via `curl | bash`, see
+README) — it installs Homebrew + chezmoi, then hands off to `chezmoi init --apply`. On a
+fresh machine, answer the 1Password vault prompt at `chezmoi init` so `op:///...`
+templates render.
 
 ## Architecture
 
@@ -50,7 +51,8 @@ not `*.local` shadow files.
 startup there. The zsh binary itself is system zsh on macOS and apt zsh on WSL2
 (`run_once_install-zsh-apt.sh.tmpl` installs it and sets the login shell — not Homebrew).
 
-1. `~/.config/zsh/.zprofile` — Homebrew init (Intel + Apple Silicon); 1Password SSH agent socket
+1. `~/.config/zsh/.zprofile` — Homebrew init (Intel/Apple Silicon/Linuxbrew, see
+   Homebrew Dependencies below); 1Password SSH agent socket
 2. `~/.config/zsh/.zshrc` — loader; sources `configs/pre/*.zsh`, then `configs/*.zsh`, then `configs/post/*.zsh`
 3. `configs/post/plugins.zsh` — zsh plugins via [sheldon](https://sheldon.cli.rs)
    (`~/.config/sheldon/plugins.toml`): zsh-vi-mode, fzf-tab, autosuggestions, syntax-highlighting.
@@ -101,12 +103,12 @@ app); `chezmoi.toml` sets `[onepassword] command = "op"`, `prompt = false`.
 
 ### Key Tool Configurations
 
-| Tool     | Source                                 | Notes                                          |
-| -------- | -------------------------------------- | ---------------------------------------------- |
-| Helix    | `dot_config/helix/config.toml`         | Catppuccin Mocha, vi keybindings               |
-| Tmux     | `dot_config/tmux/tmux.conf`            | Prefix `Ctrl-Space`, vi keys, Catppuccin Mocha |
-| Starship | `dot_config/starship.toml`             | Catppuccin Macchiato palette                   |
-| Neovim   | `dot_config/nvim/`                     | LazyVim (lang extras: rust/python/ts/go)       |
+| Tool     | Source                         | Notes                                          |
+| -------- | ------------------------------ | ---------------------------------------------- |
+| Helix    | `dot_config/helix/config.toml` | Catppuccin Mocha, vi keybindings               |
+| Tmux     | `dot_config/tmux/tmux.conf`    | Prefix `Ctrl-Space`, vi keys, Catppuccin Mocha |
+| Starship | `dot_config/starship.toml`     | Catppuccin Macchiato palette                   |
+| Neovim   | `dot_config/nvim/`             | LazyVim (lang extras: rust/python/ts/go)       |
 
 ### Nix Coexistence (work machines)
 
@@ -141,6 +143,18 @@ serial devices (auto-reconnects) for ESP32 debugging.
 Tracked in `Brewfile`. Notable: chezmoi, 1password-cli, sheldon, starship, fzf, fd, bat, eza,
 yazi, zoxide, atuin, git-delta, neovim, awscli, opentofu, radicle. (Runtimes: mise manages
 node + python, uv for Python venvs/packaging; Rust via rustup.)
+
+The Homebrew prefix (`/opt/homebrew`, `/usr/local`, or Linuxbrew's
+`/home/linuxbrew/.linuxbrew`) is never guessed from OS/arch — always probed via
+`.chezmoitemplates/brew/prefix` (templates) or `.chezmoitemplates/brew/shellenv` (shell
+scripts). Full rationale: `docs/adr/0001-homebrew-prefix-discovery.md`.
+
+## Comment Style
+
+Comments state current behavior or contract, not narrative history (bead ids, prior
+bugs, "why we changed X"). A needed "why" is one clause, not a paragraph — history
+belongs in commit messages, PR descriptions, and (for durable decisions) an ADR
+(`docs/adr/`).
 
 ## Adding New Configurations
 

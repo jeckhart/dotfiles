@@ -6,5 +6,9 @@
 # now the single source of truth for the flavor AND every plugin.
 #
 # yazi package hash: {{ include "dot_config/yazi/package.toml" | sha256sum }}
-command -v ya >/dev/null 2>&1 || exit 0
+{{ includeTemplate "brew/shellenv" . }}
+if ! command -v ya >/dev/null 2>&1; then
+  echo "install-yazi-packages: ya not found, skipping 'ya pkg install' — flavors/plugins will be missing" >&2
+  exit 0
+fi
 ya pkg install

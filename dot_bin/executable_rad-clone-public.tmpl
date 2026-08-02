@@ -13,7 +13,8 @@
 # a project's rad dependencies) — it still drops on the next node restart.
 set -euo pipefail
 
-PATH="{{ if .isAppleSilicon }}/opt/homebrew/bin:{{ else if eq .chezmoi.os "darwin" }}/usr/local/bin:{{ end }}$PATH"
+{{ $brewPrefix := includeTemplate "brew/prefix" . -}}
+PATH="{{ if $brewPrefix }}{{ $brewPrefix }}/bin:{{ end }}$PATH"
 
 # Verified live against the seed's own HTTP API (2026-07-04), not from memory:
 # curl https://seed.radicle.garden/api/v1/node -> id + externalAddresses.
