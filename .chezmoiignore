@@ -19,6 +19,7 @@ mise.lock
 hk.pkl
 hk.local.pkl
 typos.toml
+renovate.json
 
 # p10k config: generated fresh per machine via 'p10k configure'
 .p10k.zsh

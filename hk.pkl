@@ -253,9 +253,9 @@ local heavySteps: Mapping<String, Step> = new {
   // (.rumdl.toml, .editorconfig, .github, …) structurally can never be a deployable
   // target — confirmed via `chezmoi managed` against an isolated test source dir, and
   // matches the .chezmoiignore comment. This gate only covers the genuinely-at-risk
-  // set: mise.toml/mise.lock/hk.pkl/hk.local.pkl/typos.toml.
+  // set: mise.toml/mise.lock/hk.pkl/hk.local.pkl/typos.toml/renovate.json.
   ["chezmoiignore-drift"] {
-    glob = List(".chezmoiignore", "mise.toml", "hk.pkl", "mise.lock", "typos.toml")
+    glob = List(".chezmoiignore", "mise.toml", "hk.pkl", "mise.lock", "typos.toml", "renovate.json")
     check =
       #"""
       # `chezmoi managed` parses .chezmoiignore, which includeTemplate's radicle/enabled
@@ -272,7 +272,8 @@ local heavySteps: Mapping<String, Step> = new {
       hk.pkl
       hk.local.pkl
       mise.lock
-      typos.toml'
+      typos.toml
+      renovate.json'
       hits=""
       while IFS= read -r f; do
         [ -z "$f" ] && continue

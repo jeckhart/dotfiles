@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigestsToSemver",
+    ":semanticCommits"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "^dot_config/sheldon/plugins\\.toml$"
+      ],
+      "matchStrings": [
+        "github = \"(?<depName>[^\"]+)\"\\s*\\n(?:[^\\n]*\\n)*?rev = \"(?<currentDigest>[a-f0-9]{40})\""
+      ],
+      "datasourceTemplate": "git-refs",
+      "depNameTemplate": "https://github.com/{{depName}}"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "^dot_config/tmux/tmux\\.conf$"
+      ],
+      "matchStrings": [
+        "@plugin '(?<depName>[^#']+)#(?<currentValue>[^']+)'"
+      ],
+      "datasourceTemplate": "github-tags"
+    }
+  ]
+}
