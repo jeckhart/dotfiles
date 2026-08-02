@@ -13,3 +13,4 @@ cargo-binstall = "latest" # installs prebuilt cargo crate binaries instead of bu
 # mise, whose native files are mise.toml/.tool-versions). Keeps per-project pins working,
 # e.g. brezza-kasa-power's .python-version.
 idiomatic_version_file_enable_tools = ["node", "python"]
+lockfile = true
