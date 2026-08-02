@@ -7,6 +7,7 @@ tap 'can1357/tap'                 # omp (kept here so `brew bundle cleanup` keep
 
 # Early requirements
 brew 'openssl'                    # Recent openssl other formulae depend on
+brew 'unzip'                      # Cask unpacking needs this on Linux; no system unzip there
 
 # Dotfiles / config management
 brew 'chezmoi'                    # Manage personal configuration files across machines
