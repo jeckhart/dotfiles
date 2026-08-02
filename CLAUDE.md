@@ -68,7 +68,8 @@ file back only if a genuine machine-specific, non-secret override ever needs one
 `~/.config/git/config` pulls in `config.local` plus conditional identity includes by
 project directory:
 
-- `~/projects/work/**`, `~/projects/lsp/**` → work identity (Courier Health)
+- `~/projects/work/**`, plus any client/employer directory listed in the `git-work-dirs`
+  1Password item's `roster` field → work identity
 - `~/projects/personal/**` → personal
 - `~/projects/vela/**` → vela
 

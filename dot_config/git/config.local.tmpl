@@ -32,21 +32,16 @@
 
 [includeIf "gitdir:~/projects/work/**"]
   path = ~/.config/git/config.work
+{{- /* This repo is public; the identifying employer/client directory names this
+     roster used to spell out in literal includeIf blocks live in 1Password instead
+     (not a secret exactly, but not something to publish either). Add a new project
+     dir name to the "roster" field on the git-work-dirs item (Private vault) to
+     add another one; no template change needed. */ -}}
+{{- range (onepasswordRead (printf "op://%s/git-work-dirs/roster" .opVault) | trim | splitList "\n") }}
 
-[includeIf "gitdir:~/projects/ch/**"]
+[includeIf "gitdir:~/projects/{{ . }}/**"]
   path = ~/.config/git/config.work
-
-[includeIf "gitdir:~/projects/shopkeep/**"]
-  path = ~/.config/git/config.work
-
-[includeIf "gitdir:~/projects/lsp/**"]
-  path = ~/.config/git/config.work
-
-[includeIf "gitdir:~/projects/lightspeed-payments/**"]
-  path = ~/.config/git/config.work
-
-[includeIf "gitdir:~/projects/lightspeedretail/**"]
-  path = ~/.config/git/config.work
+{{- end }}
 
 [includeIf "gitdir:~/projects/personal/**"]
   path = ~/.config/git/config.personal
