@@ -17,13 +17,15 @@ sign in, and enable **Settings → Developer → CLI integration** and the **SSH
 Secrets and commit signing are read from 1Password at apply time.
 
 One-shot bootstrap (installs Homebrew + chezmoi, applies the dotfiles, sets zsh as the
-login shell):
+login shell). Fetched from a tagged release, not `main`:
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/jeckhart/dotfiles/main/script/setup)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/jeckhart/dotfiles/v1.0.0/script/setup)"
 ```
 
-Or, if Homebrew + chezmoi are already present, do it manually:
+Or, if Homebrew + chezmoi are already present, do it manually. This one **does** track
+`main`, deliberately — pinning it to a tag would leave the chezmoi source checkout in a
+detached HEAD, breaking `chezmoi update`/`git pull` (see "Stay up to date" below):
 
 ```bash
 chezmoi init --apply jeckhart/dotfiles
