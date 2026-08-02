@@ -1,0 +1,104 @@
+#!/bin/sh
+# Diagnose (but never block on) an unreachable systemd --user manager before any other
+# script or file update runs. Silent when healthy. WSL2 runs every distro in one VM
+# sharing one kernel and one cgroup2 hierarchy: the first distro to boot with
+# `[boot] systemd=true` claims /user.slice/user-<uid>.slice/user@<uid>.service in that
+# shared hierarchy, and every other systemd-enabled distro's user manager then fails to
+# start with "Failed to spawn executor: Device or resource busy" -- only one distro per
+# UID may run systemd. Without this check that failure surfaces only much later, as an
+# opaque `systemctl --user daemon-reload` abort inside radicle-1-node-service /
+# ssh-agent-bridge-service.
+{{ if .isWSL2 -}}
+if [ ! -d /run/systemd/system ]; then
+  echo "wsl2-systemd-preflight: systemd not enabled in WSL ([boot] systemd=true in /etc/wsl.conf); skipping systemd-dependent steps" >&2
+  exit 0
+fi
+
+{{ includeTemplate "systemd/user-manager-probe" . }}
+if systemd_user_bus_ok; then
+  exit 0
+fi
+
+uid=$(id -u)
+unit="user@${uid}.service"
+cgroup_base="/sys/fs/cgroup/user.slice/user-${uid}.slice/${unit}"
+
+# Confirm the multi-distro signature before blaming it: the claiming distro's manager
+# left this one's user@.service cgroup "populated" with PIDs that don't exist in our PID
+# namespace, and systemd recorded the exact refusal reason.
+result=$(systemctl show "$unit" --property=Result --value 2>/dev/null)
+populated=$(grep '^populated' "${cgroup_base}/cgroup.events" 2>/dev/null | cut -d' ' -f2)
+foreign_pids=0
+if [ -f "${cgroup_base}/init.scope/cgroup.procs" ]; then
+  while IFS= read -r pid; do
+    [ -d "/proc/$pid" ] || foreign_pids=1
+  done <"${cgroup_base}/init.scope/cgroup.procs"
+fi
+
+echo "wsl2-systemd-preflight: the systemd user manager ($unit) is not running on this distro." >&2
+if [ "$result" = "resources" ] && [ "$populated" = "1" ] && [ "$foreign_pids" = "1" ]; then
+  echo "" >&2
+  echo "Cause: another WSL distro in this VM is running systemd as the same UID ($uid)." >&2
+  echo "All WSL2 distros share one VM and one cgroup hierarchy, so the first distro to" >&2
+  echo "boot claims /user.slice/user-${uid}.slice/${unit}; every other distro's user" >&2
+  echo "manager then fails with \"Failed to spawn executor: Device or resource busy\"." >&2
+  echo "You can have as many WSL distros as you like, but only ONE of them per UID may" >&2
+  echo "have systemd enabled." >&2
+  echo "" >&2
+
+  # Best-effort: resolve real distro names so the fix below is copy-pasteable, not a
+  # <placeholder>. Bare `wsl` (no .exe) is unreliable from inside WSL -- it resolves via
+  # this distro's own $PATH, which can shadow it with an unrelated same-named entry (e.g.
+  # usbipd-win ships a directory literally named "wsl") -- so every command here uses the
+  # unambiguous `wsl.exe`. Every cross-distro `wsl.exe -d <other>` call also gets an
+  # explicit `--cd ~`: invoking wsl.exe for a DIFFERENT distro from inside a WSL session
+  # tries to translate the current working directory into that distro's namespace, and
+  # when one distro's name is a prefix of another's (e.g. "Ubuntu" / "Ubuntu-26.04") that
+  # translation mangles the path and the child process fails outright
+  # (CreateProcessCommon: chdir(...) failed) -- `--cd` sets the target cwd explicitly and
+  # skips the broken auto-translation.
+  this_distro="${WSL_DISTRO_NAME:-}"
+  other_distros=""
+  if command -v wsl.exe >/dev/null 2>&1; then
+    distro_list=$(wsl.exe --list --running --verbose 2>/dev/null | tr -d '\000\r')
+    echo "Distros currently running:" >&2
+    printf '%s\n' "$distro_list" | sed 's/^/  /' >&2
+    echo "" >&2
+    other_distros=$(printf '%s\n' "$distro_list" | tail -n +2 | sed 's/^\*//' | awk '{print $1}' | grep -v -x -F "$this_distro")
+  fi
+
+  echo "Fix -- keep systemd on this distro${this_distro:+ ($this_distro)}, turn it off in the others:" >&2
+  # `for` (not `| while read`) so the counter survives each iteration in THIS shell --
+  # a piped while-read loop runs in a subshell and its variable updates never escape it.
+  step=1
+  if [ -n "$other_distros" ]; then
+    for other in $other_distros; do
+      echo "  $step. wsl.exe -d $other --cd ~ -u root -- sed -i 's/^systemd=true/systemd=false/' /etc/wsl.conf" >&2
+      step=$((step + 1))
+    done
+  else
+    echo "  $step. wsl.exe -d <other-distro> --cd ~ -u root -- sed -i 's/^systemd=true/systemd=false/' /etc/wsl.conf" >&2
+    step=$((step + 1))
+  fi
+  if [ -n "$this_distro" ]; then
+    echo "  $step. wsl.exe --set-default $this_distro   # so a bare 'wsl' does not wake another one" >&2
+  else
+    echo "  $step. wsl.exe --set-default <this-distro>   # so a bare 'wsl' does not wake another one" >&2
+  fi
+  step=$((step + 1))
+  echo "  $step. wsl.exe --shutdown   # restart the VM so the change takes effect" >&2
+  step=$((step + 1))
+  echo "  $step. reopen this distro and re-run: chezmoi apply" >&2
+else
+  echo "" >&2
+  echo "Cause: unknown -- this doesn't match the known multi-distro cgroup collision" >&2
+  echo "(Result=$result populated=$populated foreign_pids=$foreign_pids). Check:" >&2
+  echo "  systemctl status $unit" >&2
+  echo "  journalctl -u $unit" >&2
+fi
+echo "" >&2
+echo "Skipping systemd user services (ssh-agent-bridge, radicle-node) for this run." >&2
+exit 0
+{{ else -}}
+exit 0
+{{ end -}}

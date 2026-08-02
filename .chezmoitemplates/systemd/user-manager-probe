@@ -1,0 +1,9 @@
+# Shared by the WSL2 systemd preflight and the systemd-dependent run_onchange scripts
+# (radicle-node, ssh-agent-bridge). `show --property=Version` is a pure read against the
+# user session bus -- it never touches unit state -- so it's safe to call from anywhere.
+# `systemctl --user is-system-running` is deliberately NOT used here: it also returns
+# non-zero for the legitimate transient states ("starting"/"degraded"), which would read
+# as "unreachable" when the bus is actually fine.
+systemd_user_bus_ok() {
+  systemctl --user show --property=Version >/dev/null 2>&1
+}

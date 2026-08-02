@@ -15,6 +15,11 @@ if grep -q NPIPERELAY_NOT_FOUND "$HOME/.config/systemd/user/ssh-agent-bridge.ser
   echo "ssh-agent-bridge: npiperelay.exe was not installed when the unit rendered — re-run 'chezmoi apply'" >&2
   exit 0
 fi
+{{ includeTemplate "systemd/user-manager-probe" . }}
+if ! systemd_user_bus_ok; then
+  echo "ssh-agent-bridge: systemd user manager unreachable; see the wsl2-systemd-preflight diagnosis above. Skipping." >&2
+  exit 0
+fi
 systemctl --user daemon-reload
 loginctl enable-linger "$USER" 2>/dev/null || true
 systemctl --user enable --now ssh-agent-bridge.service

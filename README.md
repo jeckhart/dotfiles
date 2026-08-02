@@ -33,6 +33,14 @@ At first `chezmoi init` you'll be asked for the **1Password vault** that holds t
 secrets (answer it so `op://…` templates render). WSL2 is auto-detected from `/proc/version`;
 Apple Silicon from the arch — no manual flags.
 
+**WSL2: only one distro per Windows user may run systemd.** All WSL2 distros share one VM
+and one cgroup hierarchy, so if more than one has `[boot] systemd=true` in `/etc/wsl.conf`,
+only the first one to boot gets a working `systemd --user` — every other one fails with
+`user@<uid>.service: Failed to spawn executor: Device or resource busy`, and `chezmoi apply`
+skips the systemd-dependent steps (ssh-agent-bridge, radicle-node) as a result. `chezmoi
+apply` detects and explains this itself; the fix is to set `systemd=false` in every distro
+except the one you want to own it, then `wsl --shutdown` to restart the VM.
+
 ## Stay up to date
 
 Pull the latest source and re-render in one step:

@@ -54,6 +54,11 @@ if [ ! -d /run/systemd/system ]; then
   echo "radicle: systemd not enabled in WSL ([boot] systemd=true in /etc/wsl.conf); skipping node service" >&2
   exit 0
 fi
+{{ includeTemplate "systemd/user-manager-probe" . }}
+if ! systemd_user_bus_ok; then
+  echo "radicle: systemd user manager unreachable; see the wsl2-systemd-preflight diagnosis above. Skipping." >&2
+  exit 0
+fi
 systemctl --user daemon-reload
 loginctl enable-linger "$USER" 2>/dev/null || true
 systemctl --user enable --now radicle-node.service
