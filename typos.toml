@@ -1,0 +1,12 @@
+# typos.toml — spell-check config for hk's typos step (hk.pkl). File selection and
+# exclusion live in hk.pkl's Step definitions, not here — this file only extends the
+# dictionary for this repo's tool/domain jargon. Populated from real `hk check --all`
+# findings, not guessed in advance.
+
+[default.extend-words]
+# "tio" — the serial terminal program (dot_bin/executable_monitor-serial.sh), not "to".
+tio = "tio"
+# "mis-detects" — hyphenated prefix, not a misspelling of "miss"/"mist".
+mis = "mis"
+# "kend" — terminfo capname for the End key (dot_config/zsh/configs/zz_keybindings.local.zsh).
+kend = "kend"

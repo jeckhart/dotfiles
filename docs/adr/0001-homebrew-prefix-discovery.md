@@ -6,7 +6,7 @@ Status: Accepted
 
 A fresh WSL2 Ubuntu bootstrap (`bash -c "$(curl … script/setup)"`) failed:
 
-```
+```text
 /home/linuxbrew/.linuxbrew/bin/brew          ← what the installer actually created
 bash: line 32: /usr/local/bin/brew: No such file or directory
 bash: line 36: brew: command not found

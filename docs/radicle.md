@@ -11,7 +11,7 @@ hand-rolled runbook (`radicle-private-seed-runbook.md` era): node details now li
 
 ## Architecture
 
-```
+```text
 laptop (macOS)  <------ Tailscale mesh ------>  desktop (WSL2)
         \                                           /
          \                                         /
@@ -197,7 +197,7 @@ the duration of the clone.
 
 ## Cheat sheet
 
-```
+```text
 rad self --did / --nid            # this node's identity
 rad node status                   # peer connections
 rad .                             # current repo's RID

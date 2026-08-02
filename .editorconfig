@@ -1,0 +1,25 @@
+# .editorconfig — repo-only (see .chezmoiignore; not deployed to $HOME, same reasoning
+# as mise.toml/hk.pkl). Codifies the tabs-vs-spaces split already implicit across this
+# tree: shfmt's default indent is tabs, stylua/taplo/yamlfmt default to 2-space.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{sh,bash}]
+indent_style = tab
+
+[*.{toml,yaml,yml,json,lua,md}]
+indent_style = space
+indent_size = 2
+
+[*.pkl]
+indent_style = space
+indent_size = 2
+
+[dot_ssh/*.tmpl]
+# ssh config uses tab-indented Host blocks by convention.
+indent_style = tab

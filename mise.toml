@@ -1,17 +1,59 @@
 # Project-scoped dev toolchain for hacking on these dotfiles (NOT deployed — see
-# .chezmoiignore). Active only inside this repo. `mise install` here installs hk + the
-# linters it drives; run `mise run setup` (or `hk install`) once per clone to wire the hook.
-# node (for npm:prettier) comes from the global ~/.config/mise/config.toml.
+# .chezmoiignore). Active only inside this repo. `mise install` installs hk + every
+# linter hk.pkl drives, then wires the git hook via [hooks] postinstall below.
 
 [tools]
 hk = "latest"         # git-hook manager (jdx) — config in hk.pkl
+chezmoi = "latest"    # the chezmoi-templates gate renders every *.tmpl via execute-template
 shellcheck = "latest" # shell lint
 shfmt = "latest"      # shell format
 taplo = "latest"      # TOML lint/format
 stylua = "latest"     # Lua format (nvim configs)
 pkl = "latest"        # parse/format hk.pkl
-dprint = "latest"     # markdown / json / yaml (native Rust — no node)
+rumdl = "latest"      # markdown lint/format (.rumdl.toml)
+yamlfmt = "latest"    # YAML format
+yamllint = "latest"   # YAML lint (.yamllint)
+jq = "latest"         # JSON format
+gitleaks = "latest"   # secret scan — public repo
+typos = "latest"      # spell-check (typos.toml)
+actionlint = "latest" # GitHub Actions workflow lint
+zizmor = "latest"     # GitHub Actions security lint
+pinact = "latest"     # verifies Actions are pinned to full SHAs
+
+[settings]
+lockfile = true
+
+[env]
+# Makes `hk install` mise-aware by default: the installed git hook shim runs
+# `mise x -- hk …`, so hooks always resolve the tool versions pinned above even from
+# an unactivated shell.
+HK_MISE = "1"
+
+[hooks]
+# The only hook-installation step — contributors never run `hk install` themselves.
+# `--mise` writes shims that invoke `mise x -- hk …` (see HK_MISE above).
+postinstall = "hk install --mise"
 
 [tasks.setup]
-description = "One-shot dev bootstrap: wire the hk pre-commit hook into this repo"
-run = "hk install"
+description = "One-shot dev bootstrap: wire the hk pre-commit + pre-push hooks into this repo"
+run = "hk install --mise"
+
+[tasks.check]
+description = "Every gate hk knows about, full tree — the pre-commit set plus the pre-push set, from the same hk.pkl step definitions the git hooks use"
+run = "hk check --all --no-fail-fast"
+
+[tasks.fix]
+description = "Apply every auto-fix hk has. Never stages — review the diff, then stage and commit deliberately"
+run = "hk fix --all --no-stage"
+
+[tasks.fix-changed]
+description = "Same as fix, restricted to unstaged + untracked files — for agent stop-hooks"
+run = "hk fix --unstaged --no-stage"
+
+[tasks.test]
+description = "Run every native step's inline tests {} (hk.pkl) via hk test"
+run = "hk test"
+
+[tasks.doctor]
+description = "Read-only health check: chezmoi doctor + hk/beads hook-wiring collision guard"
+run = ["chezmoi doctor", "script/lint/hook-wiring.sh"]

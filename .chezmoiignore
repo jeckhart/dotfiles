@@ -6,11 +6,18 @@ Brewfile
 script
 .beads
 
-# Dev tooling for hacking on this repo (hk + linters via mise) — not deployed to ~
+# Dev tooling for hacking on this repo (hk + linters via mise) — not deployed to ~.
+# Only files WITHOUT a leading dot need listing here: chezmoi requires the dot_ prefix
+# to represent a hidden target, so a literal dot-prefixed source file/dir is never a
+# deployable target in the first place — confirmed via `chezmoi managed`, which lists
+# none of .rumdl.toml/.yamllint/.editorconfig/.shellcheckrc/.github regardless of this
+# file. mise.toml/mise.lock/hk.pkl/hk.local.pkl/typos.toml have no leading dot, so they
+# DO need listing or chezmoi deploys them as-is.
 mise.toml
+mise.lock
 hk.pkl
 hk.local.pkl
-dprint.json
+typos.toml
 
 # p10k config: generated fresh per machine via 'p10k configure'
 .p10k.zsh

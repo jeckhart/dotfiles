@@ -1,0 +1,8 @@
+# .rumdl.toml — markdown lint config for hk's rumdl / rumdl-format steps (hk.pkl). File
+# selection and exclusion live in hk.pkl's Step definitions (glob/exclude), not here —
+# this file only tunes rule behavior.
+
+[global]
+# MD013 (line length): docs/adr/** and docs/radicle.md use long prose lines and wide
+# tables by design.
+disable = ["MD013"]

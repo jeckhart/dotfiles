@@ -1,59 +1,313 @@
-amends "package://github.com/jdx/hk/releases/download/v1.49.0/hk@1.49.0#/Config.pkl"
-import "package://github.com/jdx/hk/releases/download/v1.49.0/hk@1.49.0#/Builtins.pkl"
+amends "package://github.com/jdx/hk/releases/download/v1.54.0/hk@1.54.0#/Config.pkl"
 
-// Linters/formatters for this dotfiles repo. All native (no node). chezmoi *.tmpl
-// files are excluded automatically because every builtin globs on the final
-// extension (e.g. **/*.sh, **/*.toml), so foo.sh.tmpl / .chezmoi.toml.tmpl never match.
-// dprint's file scope (markdown/json/yaml + generated-file excludes) lives in dprint.json.
-local linters = new Mapping<String, Step> {
-  // shell: also cover our extensionless bash scripts (no .sh extension)
-  ["shellcheck"] = (Builtins.shellcheck) {
+import "package://github.com/jdx/hk/releases/download/v1.54.0/hk@1.54.0#/Builtins.pkl"
+
+// Every gate for this dotfiles repo, native hk wherever hk already has the mechanism —
+// file selection (glob/types/match_any/exclude) is data here, not a bash `case`
+// statement — and a script only where the body is a real loop/state-machine that earns
+// shellcheck coverage. `mise run check`/`fix`/`test` (mise.toml) all invoke `hk
+// check`/`fix`/`test` against the SAME step definitions the git hooks use, so hooks,
+// mise tasks, and CI can never drift from each other.
+//
+// Installed mise-aware: mise.toml sets `HK_MISE = 1` and `postinstall = "hk install
+// --mise"`, so hooks always resolve the tool versions pinned in mise.toml even from an
+// unactivated shell — never run bare `hk install` (that resolves from ambient PATH).
+
+// hk's default only shows profile skips. Every other reason here is load-bearing: an
+// invisible skip (a typo'd glob silently matching nothing) is exactly the failure this
+// repo's enforcement exists to prevent.
+display_skip_reasons =
+  List(
+    "profile-not-enabled",
+    "no-files-to-process",
+    "condition-false",
+    "missing-required-env",
+    "no-command-for-run-type",
+    "disabled-by-cli",
+  )
+
+// CI checks out a detached HEAD with no local `main` branch, so `--pr` (unused today,
+// but load-bearing for anyone who reaches for it later) must resolve against the
+// remote-tracking ref, not the bare branch name.
+default_branch = "origin/main"
+
+local lintDir = "script/lint"
+
+// Every adopted `Builtins.*` step ships its own `tests {}` — a full fixture suite for
+// the *upstream tool*, some needing that tool's own dependencies (network, in a couple
+// of cases). Adopting a builtin without clearing this would silently inject ~dozens of
+// upstream test cases into `hk test` (mise run test), turning "this repo's gates pass"
+// into "upstream's linters work" — not the signal that command exists to give.
+// `tests = new Mapping {}` is an assignment (replacing the inherited value), not a
+// `tests { }` amend (a no-op on an already-populated Mapping).
+local noTests: Mapping<String, StepTest> = new Mapping<String, StepTest> {}
+
+// Third-party-managed content this repo doesn't own the formatting/content of.
+local vendored = List(".beads/**", ".agents/**")
+// Generated-by-plugin-manager files — hand-reformatting/spell-checking them is pure
+// churn; they're rewritten wholesale by their own tool on next use.
+local generated = List("**/lazy-lock.json", "**/lazyvim.json")
+// Go template syntax that extension-/shebang-based selectors would otherwise treat as
+// real shell/TOML/JSON/YAML/Markdown and fail to parse. `.chezmoitemplates/**` holds
+// `includeTemplate`-only partials (no standalone shebang or `.tmpl` extension, so they
+// already dodge shebang-sniffing selectors) — except `radicle/config.json`, which DOES
+// carry a `.json` extension and needs the same treatment.
+local goTmpl = List("**/*.tmpl", ".chezmoitemplates/**")
+
+// The pre-commit set.
+local fastSteps: Mapping<String, Step> = new {
+  // Shebang-sniffing (types = sh/bash, upstream) already finds script/setup,
+  // dot_bin/executable_{clear-port,whats-in-port}, and dot_ssh/rc — no hand-listed
+  // glob needed. *.tmpl must be excluded or these steps shellcheck raw Go template
+  // syntax (a run_*.sh.tmpl starts with a real `#!/bin/sh`, so shebang-sniffing
+  // would otherwise match it directly); the chezmoi-templates step below is what
+  // actually shellchecks their *rendered* output instead.
+  ["shellcheck"] = (Builtins.shellcheck) { tests = noTests; exclude = vendored + goTmpl }
+  // shfmt's parser errors on zsh syntax (e.g. `for x (...)`) — zsh is syntax-checked
+  // separately below with `zsh -n`, since no reliable zsh formatter exists.
+  ["shfmt"] = (Builtins.shfmt) { tests = noTests; exclude = vendored + goTmpl + List("**/*.zsh") }
+  ["taplo-format"] = (Builtins.taplo_format) { tests = noTests; exclude = vendored }
+  ["taplo"] = (Builtins.taplo) {
+    tests = noTests
+    exclude = vendored
+    depends = List("taplo-format")
+  }
+  ["rumdl-format"] = (Builtins.rumdl_format) { tests = noTests; exclude = vendored }
+  ["rumdl"] = (Builtins.rumdl) {
+    tests = noTests
+    exclude = vendored
+    depends = List("rumdl-format")
+  }
+  ["yamlfmt"] = (Builtins.yamlfmt) { tests = noTests; exclude = vendored }
+  ["yamllint"] = (Builtins.yamllint) {
+    tests = noTests
+    exclude = vendored
+    depends = List("yamlfmt")
+  }
+  // jq's inherited `fix` is `jq -S` (sorts object keys) — overridden to plain `jq .`:
+  // sorting would needlessly reorder e.g. .claude/settings.json's hook ordering on
+  // the first run for no readability gain. `.chezmoitemplates/radicle/config.json`
+  // has a `.json` extension but is Go template text, not JSON — jq can't parse it,
+  // hence goTmpl in the exclude.
+  ["jq"] = (Builtins.jq) {
+    tests = noTests
+    exclude = vendored + generated + goTmpl
+    fix = "jq . {{files}}"
+  }
+  ["stylua"] = (Builtins.stylua) { tests = noTests; exclude = vendored }
+  ["pkl-format"] = (Builtins.pkl_format) { tests = noTests }
+  ["mise-fmt"] = (Builtins.mise) { tests = noTests }
+  ["newlines"] = (Builtins.newlines) { tests = noTests; exclude = vendored + generated }
+  ["trailing-whitespace"] = (Builtins.trailing_whitespace) {
+    tests = noTests
+    exclude = vendored + generated
+  }
+  ["mixed-line-ending"] = (Builtins.mixed_line_ending) {
+    tests = noTests
+    exclude = vendored + generated
+  }
+  ["merge-conflict"] = (Builtins.check_merge_conflict) { tests = noTests }
+  ["private-key"] = (Builtins.detect_private_key) { tests = noTests }
+  ["large-files"] = (Builtins.check_added_large_files) { tests = noTests }
+  ["case-conflict"] = (Builtins.check_case_conflict) { tests = noTests }
+  ["symlinks"] = (Builtins.check_symlinks) { tests = noTests }
+  ["typos"] = (Builtins.typos) { tests = noTests; exclude = vendored + generated }
+  // Public repo — every commit gets scanned, not just CI.
+  ["gitleaks"] = (Builtins.gitleaks) { tests = noTests; exclude = vendored }
+  ["actionlint"] = (Builtins.actionlint) { tests = noTests }
+  ["zizmor"] = (Builtins.zizmor) { tests = noTests }
+  ["pinact"] = (Builtins.pinact) { tests = noTests }
+
+  // zsh: no reliable formatter exists; syntax-check only, via zsh's own `zsh -n` (one
+  // file per invocation — it takes a single script argument). Widened beyond
+  // **/*.zsh to the extensionless functions/completions, which had no coverage at
+  // all before this — verified all clean today.
+  ["zsh-syntax"] {
     glob =
       List(
-        "**/*.sh",
-        "**/*.bash",
-        "script/setup",
-        "dot_bin/executable_clear-port",
-        "dot_bin/executable_whats-in-port",
+        "**/*.zsh",
+        "dot_zshenv",
+        "dot_config/zsh/dot_zshrc",
+        "dot_config/zsh/functions/*",
+        "dot_config/zsh/completion/*",
       )
-  }
-  // shfmt: same scripts, but DROP **/*.zsh — shfmt's parser errors on zsh syntax
-  // (e.g. `for x (...)`); zsh is syntax-checked separately below with `zsh -n`.
-  ["shfmt"] = (Builtins.shfmt) {
-    glob =
-      List(
-        "**/*.sh",
-        "**/*.bash",
-        "script/setup",
-        "dot_bin/executable_clear-port",
-        "dot_bin/executable_whats-in-port",
-      )
-  }
-  // zsh: no reliable formatter exists; lint syntax only with zsh's own `zsh -n`
-  // (per-file, since `zsh -n` takes a single script argument).
-  ["zsh_syntax"] {
-    glob = List("**/*.zsh")
     shell = "sh -c"
     check = "for f in {{ files }}; do zsh -n \"$f\" || exit 1; done"
+    tests {
+      ["P valid-syntax"] {
+        write { ["{{tmp}}/ok.zsh"] = "echo hello\n" }
+        files = List("{{tmp}}/ok.zsh")
+        expect { code = 0 }
+      }
+      ["F unterminated-if"] {
+        write { ["{{tmp}}/bad.zsh"] = "if [ 1 -eq 1 ]; then\necho oops\n" }
+        files = List("{{tmp}}/bad.zsh")
+        expect { code = 1 }
+      }
+    }
   }
-  ["taplo"] = Builtins.taplo // toml lint (**/*.toml)
-  ["taplo_format"] = Builtins.taplo_format // toml format
-  ["stylua"] = Builtins.stylua // lua format (nvim)
-  ["dprint"] = Builtins.dprint // markdown / json / yaml (see dprint.json)
-  ["pkl_format"] = Builtins.pkl_format // format this hk.pkl itself
+
+  // Renders every *.tmpl under each script/lint/profiles/*.toml data fixture
+  // (darwin + a synthetic WSL2 profile — real WSL2-only branches are otherwise
+  // unreachable from a Mac) and shellchecks any render that turns out to be a shell
+  // script. See the script's header for the full contract and its two documented
+  // gaps (the .chezmoi.os-gated branches this host can't reach; the 1Password-
+  // dependent renders it detects and skips rather than hard-failing).
+  ["chezmoi-templates"] {
+    glob = "**/*.tmpl"
+    check = "\(lintDir)/chezmoi-templates.sh {{files}}"
+  }
+
+  // Mechanizes the beads-no-machine-identifiers rule (this repo's beads DB syncs to
+  // refs/dolt/data on this PUBLIC remote): no full-length radicle DIDs/RIDs,
+  // Tailscale CGNAT addresses, or Tailscale MagicDNS hostnames in any tracked file.
+  // Arbitrary machine hostnames aren't syntactically detectable (no fixed pattern
+  // distinguishes "gerald" the hostname from any other word) — this covers the
+  // mechanically-detectable subset; the rest still relies on review + `bd memories`.
+  // The one allowlisted string is docs/radicle.md's `rad-clone-public` example RID —
+  // a public repo's RID used twice as documentation, not a machine identifier. hk.pkl
+  // itself is excluded: its `tests {}` below necessarily embeds a fake-but-pattern-
+  // matching DID fixture, which this step would otherwise flag against its own source.
+  ["machine-identifiers"] {
+    glob = "**/*"
+    exclude = vendored + generated + List("hk.pkl")
+    check =
+      #"""
+      pattern='did:key:z6M[1-9A-HJ-NP-Za-km-z]{40,}|rad:z[1-9A-HJ-NP-Za-km-z]{20,}|(^|[^0-9.])100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.[0-9]{1,3}\.[0-9]{1,3}|[a-zA-Z0-9-]+\.ts\.net'
+      allow='rad:z4L8L9ctRYn2bcPuUT4GRz7sggG1v'
+      hits=$(grep -HnE "$pattern" {{files}} 2>/dev/null || true)
+      if [ -n "$hits" ]; then
+        # `|| true` on the assignment itself, not just inside the loop: hk's default
+        # shell runs with `errexit`, and the while loop's last command is a `grep -q
+        # && printf` whose LHS legitimately fails whenever a line has nothing left to
+        # report after stripping $allow — that failure is what errexit sees as the
+        # exit status of the whole `real=$(...)` assignment, aborting the step before
+        # the exit-1 branch below ever runs (confirmed: reproduced verbatim under
+        # `sh -o errexit -c`).
+        real=$(printf '%s\n' "$hits" | while IFS= read -r line; do
+          printf '%s\n' "$line" | sed "s|$allow||g" | grep -qE "$pattern" && printf '%s\n' "$line"
+        done) || true
+        if [ -n "$real" ]; then
+          printf '%s\n' "$real" >&2
+          echo 'beads-no-machine-identifiers: DID/RID/Tailscale-IP/hostname found in tracked file(s) above' >&2
+          exit 1
+        fi
+      fi
+      """#
+    tests {
+      ["F fake-did"] {
+        write { ["{{tmp}}/leak.md"] = "did:key:z6MkfakefakefakefakefakefakefakefakefakeXXXX\n" }
+        files = List("{{tmp}}/leak.md")
+        expect { code = 1; stderr = "DID/RID/Tailscale-IP/hostname" }
+      }
+      ["P allowlisted-rid"] {
+        write { ["{{tmp}}/doc.md"] = "rad-clone-public rad:z4L8L9ctRYn2bcPuUT4GRz7sggG1v\n" }
+        files = List("{{tmp}}/doc.md")
+        expect { code = 0 }
+      }
+      ["P plain-text"] {
+        write { ["{{tmp}}/doc.md"] = "This repo uses chezmoi and mise on WSL2.\n" }
+        files = List("{{tmp}}/doc.md")
+        expect { code = 0 }
+      }
+    }
+  }
+}
+
+// The pre-push set: cheap config-drift assertions plus every native step's own
+// `tests {}`. No compiled code lives in this repo, so there's no build/test-suite
+// step to scope here — the near-term cost of a `git push` stays proportional to the
+// three checks below.
+local heavySteps: Mapping<String, Step> = new {
+  // hk.pkl's `amends` version must track the installed binary (mise.toml pins
+  // `hk = "latest"`, so this drifts on every upstream release unless checked — it's
+  // exactly what let this repo's config sit two minor versions stale before this
+  // restructuring). POSIX `sed`, not `grep -oP` — `-P` is GNU-only and silently
+  // no-ops on macOS's BSD grep, which would make this gate a permanent, undetected
+  // pass on this repo's primary dev platform. No `tests {}`: exercising this for
+  // real would mean faking `hk --version` output, which isn't worth a fixture.
+  ["hk-pin-drift"] {
+    glob = List("hk.pkl", "mise.lock")
+    check =
+      #"""
+      pinned=$(sed -n '1s|.*hk@\([0-9][0-9.]*\)#.*|\1|p' hk.pkl)
+      running=$(hk --version | awk '{print $2}')
+      if [ "$pinned" != "$running" ]; then
+        echo "hk.pkl amends hk@$pinned but the installed hk is $running — bump the amends URL" >&2
+        exit 1
+      fi
+      """#
+  }
+  // Every dev-tooling file added for this gate system must also be added to
+  // .chezmoiignore, or chezmoi deploys it straight into $HOME. Catches the exact
+  // "add .rumdl.toml, forget the ignore entry" mistake mechanically. No `tests {}`:
+  // it asserts against this repo's actual `chezmoi managed` output, which a sandbox
+  // fixture repo can't reproduce.
+  // Only files WITHOUT a leading dot are actually at risk: chezmoi requires the dot_
+  // prefix to represent a hidden target, so a literal dot-prefixed source file/dir
+  // (.rumdl.toml, .editorconfig, .github, …) structurally can never be a deployable
+  // target — confirmed via `chezmoi managed` against an isolated test source dir, and
+  // matches the .chezmoiignore comment. This gate only covers the genuinely-at-risk
+  // set: mise.toml/mise.lock/hk.pkl/hk.local.pkl/typos.toml.
+  ["chezmoiignore-drift"] {
+    glob = List(".chezmoiignore", "mise.toml", "hk.pkl", "mise.lock", "typos.toml")
+    check =
+      #"""
+      managed=$(chezmoi managed 2>/dev/null || true)
+      devFiles='mise.toml
+      hk.pkl
+      hk.local.pkl
+      mise.lock
+      typos.toml'
+      hits=""
+      while IFS= read -r f; do
+        [ -z "$f" ] && continue
+        printf '%s\n' "$managed" | grep -qxF "$f" && hits="$hits $f"
+      done <<EOF
+      $devFiles
+      EOF
+      if [ -n "$hits" ]; then
+        echo "chezmoiignore-drift: dev-tooling file(s) would be deployed to \$HOME (missing from .chezmoiignore):$hits" >&2
+        exit 1
+      fi
+      """#
+  }
+  // Runs every native step's own tests {} above (every adopted Builtins.* step had
+  // its inherited tests stripped via noTests, so this doesn't also run upstream's
+  // own suites).
+  ["hk-test"] = (Builtins.hk_test) { glob = "hk.pkl" }
+}
+
+local allSteps: Mapping<String, Step> = new {
+  ...fastSteps
+  ...heavySteps
 }
 
 hooks {
   ["pre-commit"] {
     fix = true
     stash = "git"
-    steps = linters
+    steps = fastSteps
   }
+
+  ["pre-push"] {
+    steps = heavySteps
+  }
+
+  // `mise run check`: every gate hk knows about, full tree, in parallel — the
+  // pre-commit set plus the pre-push set, from the same step definitions the git
+  // hooks use.
+  ["check"] {
+    steps = allSteps
+  }
+
+  // `mise run fix`: every auto-fix hk has. `stash = "none"` (nothing to stash
+  // outside a commit) and `stage = false` so running this never silently stages
+  // files behind your back — review the diff, then stage and commit deliberately.
   ["fix"] {
     fix = true
-    steps = linters
-  }
-  ["check"] {
-    steps = linters
+    stash = "none"
+    stage = false
+    steps = allSteps
   }
 }

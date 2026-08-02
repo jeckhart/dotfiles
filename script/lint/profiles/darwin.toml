@@ -1,0 +1,11 @@
+# Deterministic chezmoi data fixture for script/lint/chezmoi-templates.sh — NOT this
+# machine's real ~/.config/chezmoi/chezmoi.toml. Values match what .chezmoi.toml.tmpl
+# derives on a real macOS host, so templates render identically in CI as on a Mac.
+# `.chezmoi.os`/`.chezmoi.arch` themselves can't be faked here (chezmoi sets those from
+# the actual runtime); the CI matrix's macos-latest leg is what exercises this branch
+# for real. This fixture only fakes the *derived* `isWSL2`/`isAppleSilicon`/`opVault`
+# data fields that .chezmoi.toml.tmpl computes at `chezmoi init` time.
+[data]
+isWSL2 = false
+isAppleSilicon = true
+opVault = "Private"

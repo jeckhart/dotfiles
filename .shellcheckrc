@@ -1,0 +1,11 @@
+# .shellcheckrc — repo-wide shellcheck configuration for hk's shellcheck step (hk.pkl)
+# and script/lint/chezmoi-templates.sh's embedded shellcheck call. No bare suppressions
+# live here — every entry below is a resolution setting, not a disable.
+#
+# external-sources=true (same effect as -x on the CLI): several run_onchange_*.sh.tmpl
+# scripts source "$HOME/.config/..." paths that are only known at chezmoi-apply time,
+# not statically — shellcheck still refuses to open a computed path even with
+# external-sources on, so this alone doesn't silence those (see SC1091's explicit
+# per-call exclusion in chezmoi-templates.sh); it's set here for any future script that
+# sources a real, resolvable relative path.
+external-sources=true

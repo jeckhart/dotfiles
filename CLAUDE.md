@@ -34,7 +34,7 @@ Source-state files map to `$HOME` by chezmoi naming: `dot_` → `.`, `executable
 content hash), `run_onchange_` (re-run whenever the script's contents change), and plain
 `run_` (every apply). Examples:
 
-```
+```text
 dot_zshenv                          -> ~/.zshenv
 dot_config/git/config               -> ~/.config/git/config
 dot_bin/executable_clear-port       -> ~/.bin/clear-port   (executable)
@@ -92,7 +92,7 @@ Secrets come from 1Password via chezmoi templates — never committed, never in 
 env var, create a template under `dot_config/zsh/configs/` (it's machine-generic — the value
 is the same on every machine because it's pulled from the vault):
 
-```
+```text
 # dot_config/zsh/configs/<name>.zsh.tmpl
 export SOME_TOKEN={{ onepasswordRead "op://Private/<item>/<field>" }}
 ```
@@ -185,7 +185,7 @@ bd close <id>         # Complete work
 - Run `bd prime` for detailed command reference and session close protocol
 - Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
 
-**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md for details and anti-patterns.
+**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See <https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md> for details and anti-patterns.
 
 ## Agent Context Profiles
 
@@ -203,6 +203,7 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 2. **Run quality gates** (if code changed) - Tests, linters, builds
 3. **Update issue status** - Close finished work, update in-progress items
 4. **Handle git/sync by active profile**:
+
    ```bash
    # Conservative/minimal/default: report status and proposed commands; wait for approval.
    git status
@@ -212,6 +213,7 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
    git push
    git status
    ```
+
 5. **Hand off** - Summarize changes, validation, issue status, and any blocked sync/commit/push step
 
 **Critical rules:**

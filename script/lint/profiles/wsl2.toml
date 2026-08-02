@@ -1,0 +1,12 @@
+# Deterministic chezmoi data fixture for script/lint/chezmoi-templates.sh. Reaches the
+# WSL2-only template branches (ssh-agent-bridge, apt installers, radicle systemd units)
+# that a Mac's real ~/.config/chezmoi/chezmoi.toml never renders — this is the fixture
+# that gives those branches ANY coverage at all on a macOS dev machine. `.chezmoi.os`
+# stays "darwin" even under this fixture (chezmoi derives it from the real runtime, not
+# from [data]); the CI matrix's ubuntu-latest leg is what exercises `.chezmoi.os`-gated
+# branches for real. This fixture only fakes the *derived* `isWSL2`/`isAppleSilicon`/
+# `opVault` data fields that .chezmoi.toml.tmpl computes at `chezmoi init` time.
+[data]
+isWSL2 = true
+isAppleSilicon = false
+opVault = "Private"

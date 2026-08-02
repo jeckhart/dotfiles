@@ -1,0 +1,23 @@
+# .yamllint — YAML lint config for hk's yamllint step (hk.pkl). File selection and
+# exclusion live in hk.pkl's Step definitions, not here.
+extends: default
+
+rules:
+  # GitHub Actions workflow YAML is naturally wide (job/step names, expression syntax).
+  line-length:
+    max: 120
+    level: warning
+  # This repo's YAML files are short and don't use document-start markers.
+  document-start: disable
+  # check-keys: false — GitHub Actions workflows use a top-level `on:` key, which YAML
+  # 1.1 parses as boolean true; that's the workflow schema, not a real truthy-value bug.
+  # Still checks *values* (an actual "yes"/"no" typo'd as a value is still caught).
+  truthy:
+    check-keys: false
+  # yamlfmt (this repo's formatter, which runs before yamllint) normalizes to a single
+  # space before a trailing comment — yamllint's own default of 2 would fight the
+  # formatter every `hk fix` (yamlfmt re-collapses to 1, yamllint then re-flags it).
+  # Matching yamllint to what the formatter actually produces, not the other way
+  # around, since yamlfmt has no equivalent "spaces before comment" setting to raise.
+  comments:
+    min-spaces-from-content: 1

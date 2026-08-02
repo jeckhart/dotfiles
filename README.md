@@ -93,29 +93,41 @@ renders correctly on both macOS and WSL2.
 - New dotfile → `chezmoi add ~/.foo`, then `chezmoi apply`.
 - New Homebrew package → add it to `Brewfile` (next `chezmoi apply` runs `brew bundle`).
 
-## Developing these dotfiles (lint & format)
+## Developing these dotfiles (lint, format, test)
 
-This repo lints and formats itself with [`hk`](https://hk.jdx.dev) (jdx's git-hook manager).
-The toolchain is pinned in `mise.toml` (repo-root, not deployed) and is all native — no node.
-One-time setup per clone:
+This repo enforces itself with [`hk`](https://hk.jdx.dev) (jdx's git-hook manager) and
+[Pkl](https://hk.jdx.dev/pkl_introduction.html) — every gate's file selection lives in
+`hk.pkl` as data (glob/exclude), not a bash `case` statement. The toolchain is pinned in
+`mise.toml` (repo-root, not deployed) and `mise.lock`; hooks, `mise run *` tasks, and CI
+(`.github/workflows/hk.yml`) all drive the exact same step definitions, so they can't
+drift from each other. One-time setup per clone:
 
 ```bash
 cd $(chezmoi source-path)
-mise install     # installs hk + linters (shellcheck, shfmt, taplo, stylua, dprint, pkl)
-mise run setup   # = hk install — wires the pre-commit hook into THIS repo's .git
+mise install     # installs hk + every linter it drives (see mise.toml [tools])
+mise run setup   # = hk install --mise — wires the pre-commit + pre-push hooks
 ```
 
-Then it runs automatically on `git commit` (formats staged files, blocks on lint errors).
-Run it manually anytime:
+Pre-commit then runs automatically on `git commit` (formats staged files, blocks on
+lint errors); pre-push runs a few extra config-drift/self-test checks. Run any of it
+manually anytime:
 
 ```bash
-hk check         # lint/format-check staged files (read-only)
-hk check --all   # …across the whole repo
-hk fix           # apply formatters to staged files
-hk fix --all     # …across the whole repo (one-time baseline reformat)
+mise run check   # every gate, full tree, read-only (= hk check --all --no-fail-fast)
+mise run fix     # every auto-fix, full tree — never stages; review the diff yourself
+mise run test    # hk's own step tests { } (= hk test)
+mise run doctor  # chezmoi doctor + hk/beads git-hook wiring sanity check
 ```
 
-Coverage: shellcheck + shfmt (shell), taplo (TOML), stylua (Lua), `dprint` (Markdown/JSON/YAML,
-config in `dprint.json`), pkl (the `hk.pkl` config itself). chezmoi `*.tmpl` files are excluded
-automatically (extension globs never match `*.sh.tmpl` etc.); generated files (`lazy-lock.json`)
-and vendored content (`.agents/`, `.beads/`) are excluded in `dprint.json`.
+Coverage: shellcheck + shfmt (shell, including extensionless scripts via shebang
+sniffing and `dot_config/zsh/functions|completion/*` via `zsh -n`), taplo (TOML), stylua
+(Lua), rumdl (Markdown, `.rumdl.toml`), yamlfmt + yamllint (YAML, `.yamllint`), jq
+(JSON), pkl (`hk.pkl` itself), mise (`mise.toml`), typos (`typos.toml`), gitleaks
+(secrets — public repo, every commit), actionlint + zizmor + pinact (`.github/workflows/**`),
+plus three gates native to this repo: `chezmoi-templates` (renders every `*.tmpl` under a
+darwin + synthetic-WSL2 data fixture and shellchecks the result —
+`script/lint/chezmoi-templates.sh`), `machine-identifiers` (blocks radicle DIDs/RIDs,
+Tailscale addresses, and `*.ts.net` hostnames from landing in a tracked file), and
+`hk-pin-drift`/`chezmoiignore-drift` (config self-checks). Vendored content (`.beads/**`,
+`.agents/**`) and plugin-manager-generated files (`lazy-lock.json`, `lazyvim.json`) are
+excluded throughout.
