@@ -32,8 +32,8 @@ a nix-homebrew work machine where `HOMEBREW_REPOSITORY` points into `/nix/store`
 
 | Strategy                                                                                 | Verdict                                                                                                      |
 | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Runtime probe ladder incl. Linuxbrew (`dot_zprofile.tmpl`, `pre/brew.zsh`)               | correct everywhere                                                                                           |
-| Runtime probe, macOS prefixes only (`beads-dolt-server.sh`, its LaunchAgent plist)       | correct *only* because darwin-gated by `.chezmoiignore`                                                      |
+| Runtime probe ladder incl. Linuxbrew (`dot_zprofile.tmpl`, `pre/brew.zsh`, `beads-dolt-server.sh`) | correct everywhere                                                                                  |
+| Runtime probe, macOS prefixes only (`local.beads.dolt.plist.tmpl`'s LaunchAgent `PATH`)  | correct *only* because darwin-gated by `.chezmoiignore`                                                      |
 | Template-time arch/`.isAppleSilicon` guess (`script/setup`, `radicle-node-wrapper.tmpl`) | **wrong on Linux** — the wrapper survived by being darwin-gated too; `script/setup` wasn't gated by anything |
 
 `.chezmoi.toml.tmpl` exposes `isWSL2` / `isAppleSilicon` / `opVault` but no brew prefix, so
@@ -75,13 +75,19 @@ one place this rule has to be kept in sync manually — comment it points back h
   Brewfile itself) now source `brew/shellenv` first and print a warning before skipping,
   instead of silently no-op'ing on a host where brew exists but isn't on `chezmoi apply`'s
   PATH.
-- Two darwin-gated exceptions are staying as-is, not switched to the partial, because they
-  intentionally check *both* macOS prefixes rather than resolve to one (a machine can
-  carry a native `/opt/homebrew` Apple Silicon install alongside a Rosetta `/usr/local`
-  one, and the caller wants whichever has the formula): `beads-dolt-server.sh`'s `dolt`
-  lookup and `local.beads.dolt.plist.tmpl`'s LaunchAgent `PATH`. Both are gated to
-  `.chezmoi.os == "darwin"` by `.chezmoiignore`, so the Linux case this ADR is about never
-  reaches them.
+- `beads-dolt-server.sh`'s own `dolt` lookup stays a hand-rolled probe, not switched to
+  the `brew/prefix` partial: it intentionally checks *every* known prefix rather than
+  resolving to one (a machine can carry a native `/opt/homebrew` Apple Silicon install
+  alongside a Rosetta `/usr/local` one, and the caller wants whichever has the `dolt`
+  formula), and now that the wrapper also runs on WSL2 its ladder includes
+  `/home/linuxbrew/.linuxbrew` too — the whole point being a runtime probe, not an
+  apply-time guess, so it works unmodified regardless of which host applies it.
+- `local.beads.dolt.plist.tmpl`'s LaunchAgent `PATH` is the one exception still staying
+  hardcoded to the two macOS prefixes rather than the partial, for the same "want
+  whichever has git" reason above. It's gated to `.chezmoi.os == "darwin"` by
+  `.chezmoiignore`, so the Linux case this ADR is about never reaches it — the sibling
+  systemd unit (`beads-dolt.service.tmpl`) uses `brew/prefix` instead, since a template's
+  `PATH` only needs one working prefix, not "whichever of two."
 - `Brewfile`'s `unless system "[ -e /usr/local/bin/aws ]"` also stays: it detects the AWS
   CLI's own pkg installer (always `/usr/local/bin` regardless of arch), not a Homebrew
   prefix, so this rule doesn't apply to it.
