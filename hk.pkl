@@ -258,6 +258,15 @@ local heavySteps: Mapping<String, Step> = new {
     glob = List(".chezmoiignore", "mise.toml", "hk.pkl", "mise.lock", "typos.toml")
     check =
       #"""
+      # `chezmoi managed` parses .chezmoiignore, which includeTemplate's radicle/enabled
+      # — a REAL lookPath/op probe with no fixture involved, unlike chezmoi-templates.sh.
+      # Without this, a locked 1Password prompts for real here on every `hk check --all`
+      # (confirmed: hiding the real op binary from PATH makes this fail loudly via
+      # .chezmoiignore -> radicle/enabled -> fail(), proving the call is really made).
+      # The mock's actual answers don't matter for this step's purpose (it only checks
+      # whether dev-tooling filenames appear in the managed list) — just that `chezmoi
+      # managed` completes without touching a real, possibly-locked vault.
+      export PATH="$(pwd)/script/lint/mock-bin:$PATH"
       managed=$(chezmoi managed 2>/dev/null || true)
       devFiles='mise.toml
       hk.pkl
