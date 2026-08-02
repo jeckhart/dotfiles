@@ -33,4 +33,10 @@ jobs:
       # isn't a mise-managed tool — the zsh-syntax hk step shells out to `zsh -n` directly.
       - if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends zsh
+      # pinact's `run` step verifies pinned action SHAs against the GitHub API; without
+      # a token it goes out unauthenticated (60 req/hr, shared across the runner's IP
+      # pool) and intermittently 403s. GITHUB_TOKEN raises that to 5000/hr and grants
+      # nothing extra beyond the read-only `contents: read` already declared above.
       - run: hk check --all --no-fail-fast
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
