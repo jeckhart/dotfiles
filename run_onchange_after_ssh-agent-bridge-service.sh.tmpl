@@ -6,7 +6,7 @@
 {{ if .isWSL2 -}}
 # unit hash: {{ include "dot_config/systemd/user/ssh-agent-bridge.service.tmpl" | sha256sum }}
 # npiperelay: {{ includeTemplate "ssh-agent-bridge/npiperelay-path" . | trim }}
-set -e
+set -eu
 if [ ! -d /run/systemd/system ]; then
   echo "ssh-agent-bridge: systemd not enabled in WSL ([boot] systemd=true in /etc/wsl.conf); skipping" >&2
   exit 0

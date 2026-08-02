@@ -12,7 +12,7 @@ exit 0  # beads shared Dolt server is macOS-only (launchd + /opt/homebrew)
 {{ else -}}
 # plist hash: {{ include "private_Library/LaunchAgents/local.beads.dolt.plist.tmpl" | sha256sum }}
 # wrapper hash: {{ include "private_dot_local/bin/executable_beads-dolt-server.sh" | sha256sum }}
-set -e
+set -eu
 PLIST="$HOME/Library/LaunchAgents/local.beads.dolt.plist"
 if ! launchctl print "gui/$(id -u)" >/dev/null 2>&1; then
   # e.g. chezmoi apply over SSH with no graphical session: there is no gui launchd

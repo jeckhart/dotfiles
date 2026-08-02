@@ -3,6 +3,7 @@
 # RAD_PASSPHRASE come from the chezmoi-rendered 0600 env file. Exec (not spawn)
 # so launchd tracks and signals the real daemon PID. --force clears a stale
 # control socket after a crash, which KeepAlive restarts rely on.
+set -eu
 set -a
 . "$HOME/.config/radicle/node.env"
 set +a

@@ -5,7 +5,7 @@
 # inlines the brew-prefix probe ladder instead of sharing brew/shellenv (never derive
 # the prefix from OS/arch — see docs/adr/0001-homebrew-prefix-discovery.md).
 
-set -e
+set -euo pipefail
 
 # Cache a sudo credential now: Homebrew's NONINTERACTIVE installer only does a
 # non-prompting sudo check and aborts instead of prompting if none is cached yet.
@@ -60,7 +60,7 @@ fi
 # Find the brew binary — never guess the prefix from arch (Linuxbrew/nix-homebrew live elsewhere).
 BREW=""
 for _brew in \
-	"$HOMEBREW_PREFIX/bin/brew" \
+	"${HOMEBREW_PREFIX:-}/bin/brew" \
 	/opt/homebrew/bin/brew \
 	/usr/local/bin/brew \
 	/home/linuxbrew/.linuxbrew/bin/brew; do

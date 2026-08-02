@@ -4,6 +4,7 @@
 # `rad seed` lines below ARE the change trigger — editing the repo list in
 # 1Password changes this script's content, so chezmoi re-runs it on next apply.
 # Working copies stay manual (rad clone); this only controls background replication.
+set -eu
 {{ if eq (includeTemplate "radicle/enabled" . | trim) "absent" -}}
 exit 0  # host not enrolled in the radicle mesh (see rad-bootstrap)
 {{ else -}}

@@ -4,7 +4,7 @@
 # Brewfile). Runs once per machine; each step is idempotent so a stale run_once record
 # doesn't matter. Needs sudo; chezmoi apply may prompt for a password.
 {{ if .isWSL2 -}}
-set -e
+set -eu
 if ! command -v apt-get >/dev/null 2>&1; then exit 0; fi
 
 if [ ! -x /usr/bin/zsh ]; then

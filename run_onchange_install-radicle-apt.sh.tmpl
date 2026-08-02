@@ -2,7 +2,7 @@
 # Install radicle from the official signed apt repo (WSL2 only — macOS gets it
 # from the Brewfile). Needs sudo; chezmoi apply may prompt for a password.
 {{ if and (ne .chezmoi.os "darwin") .isWSL2 -}}
-set -e
+set -eu
 if ! command -v apt-get >/dev/null 2>&1; then exit 0; fi
 if command -v rad >/dev/null 2>&1; then exit 0; fi
 

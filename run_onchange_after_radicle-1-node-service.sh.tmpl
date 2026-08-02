@@ -10,7 +10,7 @@ exit 0  # host not enrolled in the radicle mesh (see rad-bootstrap)
 # config hash: {{ includeTemplate "radicle/config.json" . | sha256sum }}
 # plist hash: {{ include "private_Library/LaunchAgents/dev.radicle.node.plist.tmpl" | sha256sum }}
 # wrapper hash: {{ include "dot_bin/executable_radicle-node-wrapper.tmpl" | sha256sum }}
-set -e
+set -eu
 PLIST="$HOME/Library/LaunchAgents/dev.radicle.node.plist"
 if ! launchctl print "gui/$(id -u)" >/dev/null 2>&1; then
   # e.g. chezmoi apply over SSH with no graphical session: there is no gui launchd
@@ -49,7 +49,7 @@ fi
 {{ else if .isWSL2 -}}
 # config hash: {{ includeTemplate "radicle/config.json" . | sha256sum }}
 # unit hash: {{ include "dot_config/systemd/user/radicle-node.service.tmpl" | sha256sum }}
-set -e
+set -eu
 if [ ! -d /run/systemd/system ]; then
   echo "radicle: systemd not enabled in WSL ([boot] systemd=true in /etc/wsl.conf); skipping node service" >&2
   exit 0

@@ -2,7 +2,7 @@
 # Dependencies for the WSL2 ssh-agent bridge (see ssh-agent-bridge.service):
 # socat on the Linux side, npiperelay.exe (albertony fork) on the Windows side.
 {{ if .isWSL2 -}}
-set -e
+set -eu
 
 # socat via apt, not brew — the systemd unit points at /usr/bin/socat
 if [ ! -x /usr/bin/socat ]; then

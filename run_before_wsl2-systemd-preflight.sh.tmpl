@@ -8,7 +8,13 @@
 # UID may run systemd. Without this check that failure surfaces only much later, as an
 # opaque `systemctl --user daemon-reload` abort inside radicle-1-node-service /
 # ssh-agent-bridge-service.
+#
+# `set -u` only, deliberately no `-e`: the diagnostic reads below (systemctl show, the
+# cgroup.events grep) aren't all guarded against a nonzero exit, and this script's whole
+# charter is to never block regardless -- errexit would risk aborting mid-diagnosis on
+# exactly the kind of unexpected shape this is here to investigate.
 {{ if .isWSL2 -}}
+set -u
 if [ ! -d /run/systemd/system ]; then
   echo "wsl2-systemd-preflight: systemd not enabled in WSL ([boot] systemd=true in /etc/wsl.conf); skipping systemd-dependent steps" >&2
   exit 0
