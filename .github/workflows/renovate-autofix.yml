@@ -1,0 +1,83 @@
+name: renovate-autofix
+# Regenerates mise.lock checksums with the real mise binary and runs `hk fix --all`
+# on same-repo renovate[bot] PRs, pushing a correction commit if anything changed --
+# Renovate's hosted app can't safely regenerate lockfile checksums itself.
+#
+# Runs ubuntu-only; its commit is unsigned. main requires signed commits but only
+# on ~DEFAULT_BRANCH (ADR-0002), so a push to the PR's own branch is unaffected.
+# GITHUB_TOKEN pushes never retrigger other workflows, so hk.yml stays on its
+# pre-fix result here -- this job's own final `mise run check` is the real signal.
+on:
+  pull_request:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  autofix:
+    # Same-repo renovate[bot] PRs only: contents:write should never reach a fork,
+    # and a human PR has no reason to run this.
+    if: >-
+      github.event.pull_request.user.login == 'renovate[bot]' && github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      # Only this job escalates past the workflow-level contents: read, to push the
+      # repair commit back onto the PR branch (see the push step below).
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          # Push via an explicit tokenized URL (below), not a persisted credential --
+          # avoids zizmor's artipacked finding outright, no suppression needed.
+          persist-credentials: false
+      # hk's zsh-syntax step shells out to `zsh -n`; not preinstalled here, not
+      # mise-managed. No OS guard needed -- this job only runs on ubuntu-24.04.
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends zsh
+      - uses: jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654 # v4.2.4
+        with:
+          # Skip `mise install` here -- a lockfile Renovate just edited may have no
+          # valid URL/checksum for this platform yet, and `--locked` would hard-fail
+          # before `mise lock` gets a chance to repair it.
+          install: false
+      - name: repair mise.lock checksums
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        # Bare `mise lock`, no --bump: repairs checksums/URLs at the versions
+        # Renovate already pinned -- --bump would re-resolve "latest" and fight
+        # Renovate for control of versions. GITHUB_TOKEN is for API rate limit
+        # only, same as pinact in hk.yml.
+        run: mise lock
+      - run: mise install
+      - name: apply hk auto-fixes
+        # mise.toml's `fix` task: `hk fix --all --no-stage`. Never stages on its
+        # own -- this job stages+commits explicitly below, only if there's
+        # something to commit.
+        run: mise run fix
+      - name: commit and push if anything changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          git add -A
+          if git diff --cached --quiet; then
+            echo "renovate-autofix: nothing to fix"
+            exit 0
+          fi
+          # github-actions[bot]'s standard identity -- doesn't trip hk.pkl's
+          # machine-identifiers email regex (its local-part char class excludes
+          # ']'); add this address to its allowlist if that regex ever tightens.
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: repair mise.lock checksums and apply hk formatters'
+          # Plain push, no --force: a rejection means the branch moved under us
+          # (Renovate rebased, or a prior run already pushed) -- fail loudly
+          # rather than overwrite whatever's newer.
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${HEAD_REF}"
+      - name: verify the branch actually passes now
+        # The authoritative signal for this PR -- hk.yml won't retrigger, see header.
+        run: mise run check
