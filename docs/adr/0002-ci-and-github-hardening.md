@@ -122,6 +122,34 @@ warmed when it runs, so reordering would break the installer on any machine with
 already cached. The checksum verification — not the ordering — is what closes the
 unverified-code-with-warm-sudo gap.
 
+### `hk.pkl`'s Pkl package fetch: integrity digest blocked upstream, `brew trust` moved to bootstrap
+
+Filed as `dotfiles-4ab.7`. Two independent backlog items, resolved differently:
+
+`brew trust --formula can1357/tap/omp` (Brewfile's third-party-tap formula) moved out of
+`run_onchange_install-packages.sh.tmpl` into its own
+`run_once_before_trust-third-party-formulae.sh.tmpl`: granting a default-on
+tap-trust exemption is a one-time bootstrap action, not something to re-assert every
+time the Brewfile changes — the installer script was silently re-granting it on every
+Brewfile edit, which would revert a deliberate `brew untrust`. The installer now only
+diagnoses (checks `brew trust --json v1` and warns to stderr) if the formula turns up
+untrusted, letting `brew bundle`'s own failure — not a silent re-grant — be the signal.
+
+The Pkl integrity digest did **not** land. `hk.pkl`'s `amends`/`import` URLs are pinned
+to `v1.54.0` but not checksum-verified, unlike every other third-party fetch hardened in
+this ADR. Attempted `::sha256:<digest>` suffixes on the package URI (valid Pkl syntax —
+confirmed via `pkl eval` against the official Pkl CLI, digest verified two ways: a manual
+`shasum` of the release's package-metadata asset, and `pkl download-package` accepting
+that exact digest and rejecting a wrong one). But `hk` defaults to its own built-in Rust
+Pkl evaluator (`pklr`), not the official CLI, and `pklr` cannot resolve a checksummed
+package URI at all — it panics with `Import not found: …::sha256:….zip`, having appended
+`.zip` to the whole checksummed string instead of resolving through package metadata
+(reproduced directly; the same file loads cleanly under `HK_PKL_BACKEND=pkl`, which forces
+the official CLI). Forcing that backend everywhere (mise.toml, CI, hook install) would fix
+it, but trades hk's in-process evaluator for a subprocess spawn on every invocation,
+including every git hook — a bigger and riskier change than the security gain justifies
+here. Left unpinned; revisit if/when `pklr` supports checksummed package URIs upstream.
+
 ### Beads Dolt DB leak-scanning: deferred, not half-built
 
 The original plan called for an `hk` pre-push step exporting and scanning the beads Dolt
@@ -173,6 +201,9 @@ against a nonzero exit).
   plugin managers or forking the plugin to add a tag.
 - Renovate PRs need a manual signed merge, not a green auto-merge, given
   `required_signatures`.
-- Two backlog items stay explicitly out of scope, filed as `dotfiles-4ab.7`: an
-  integrity digest on `hk.pkl`'s Pkl `amends` URL, and revisiting the unconditional
-  `brew trust --formula can1357/tap/omp` in `run_onchange_install-packages.sh.tmpl`.
+- `brew trust --formula can1357/tap/omp` only runs once, at bootstrap
+  (`run_once_before_trust-third-party-formulae.sh.tmpl`); a later `brew untrust` now
+  sticks instead of being silently re-granted on the next Brewfile change.
+- `hk.pkl`'s Pkl package fetch stays version-pinned but not integrity-pinned — blocked by
+  a gap in `hk`'s default `pklr` evaluator, not a discretionary skip. Revisit if `pklr`
+  gains checksummed-package-URI support upstream.

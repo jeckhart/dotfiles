@@ -1,0 +1,15 @@
+#!/bin/sh
+# Grants Homebrew's default-on tap-trust exemption to third-party-tap formulae this
+# repo's Brewfile depends on. Bootstrap-only, deliberately not re-asserted on every
+# `brew bundle` (see run_onchange_install-packages.sh.tmpl) — so a deliberate
+# `brew untrust` later sticks instead of being silently reverted.
+set -eu
+
+{{ includeTemplate "brew/shellenv" . }}
+# Brew may be absent on a not-yet-bootstrapped machine (see script/setup).
+if ! command -v brew >/dev/null 2>&1; then
+  exit 0
+fi
+
+# can1357/tap/omp (Brewfile) is a single-maintainer third-party-tap formula.
+brew trust --formula can1357/tap/omp

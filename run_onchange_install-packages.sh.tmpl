@@ -12,8 +12,12 @@ if ! command -v brew >/dev/null 2>&1; then
   exit 0
 fi
 
-# can1357/tap/omp is a third-party-tap formula; Homebrew's tap-trust security feature
-# (default-on) blocks it until explicitly trusted. Idempotent — safe to run every time.
-brew trust --formula can1357/tap/omp
+# can1357/tap/omp (Brewfile) is a third-party-tap formula; the trust grant it needs is
+# a one-time bootstrap action (run_once_before_trust-third-party-formulae.sh.tmpl), not
+# re-asserted here. Diagnose only — don't re-grant — so a deliberate `brew untrust`
+# surfaces as this warning plus `brew bundle`'s own failure, instead of silently reverting.
+if ! brew trust --json v1 2>/dev/null | grep -q '"can1357/tap/omp"'; then
+  echo "install-packages: can1357/tap/omp is untrusted — 'brew bundle' will fail until 'brew trust --formula can1357/tap/omp' is run (or the formula is dropped from the Brewfile)" >&2
+fi
 
 brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
