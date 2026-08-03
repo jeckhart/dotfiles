@@ -8,3 +8,11 @@
 
 # Claude Code worktrees (per-session scratch checkouts)
 .claude/worktrees/
+
+# Claude Code: only the two files below are managed. Everything else under ~/.claude is runtime
+# state (OAuth credentials, transcripts, prompt history, vendored plugin trees) and must never
+# reach this PUBLIC repo — a stray `chezmoi add ~/.claude/<x>` lands here and stays invisible to
+# git. Managing a third file means adding a third negation.
+dot_claude/*
+!dot_claude/executable_statusline-command.sh
+!dot_claude/modify_settings.json.tmpl

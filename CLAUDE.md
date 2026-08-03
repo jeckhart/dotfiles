@@ -111,6 +111,7 @@ app); `chezmoi.toml` sets `[onepassword] command = "op"`, `prompt = false`.
 | Tmux     | `dot_config/tmux/tmux.conf`    | Prefix `Ctrl-Space`, vi keys, Catppuccin Mocha |
 | Starship | `dot_config/starship.toml`     | Catppuccin Macchiato palette                   |
 | Neovim   | `dot_config/nvim/`             | LazyVim (lang extras: rust/python/ts/go)       |
+| Claude Code | `dot_claude/`               | `statusLine` owned, theme/model/tui seeded — ADR-0003 |
 
 ### Nix Coexistence (work machines)
 

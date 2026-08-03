@@ -1,0 +1,43 @@
+#!/bin/sh
+# ~/.claude/settings.json — merged into, never overwritten. Claude Code rewrites this file at
+# runtime (/advisor, /effort, /fast, /config), so chezmoi enforces only the keys named in $owned;
+# everything else in $desired is a seed, written only when absent. Layering: seeds < live < owned.
+# To manage another key, see docs/adr/0003-claude-code-settings-merge.md.
+set -eu
+{{ includeTemplate "brew/shellenv" . }}
+
+current=$(cat)
+
+# Keys chezmoi OWNS: re-enforced on every apply, overwriting runtime edits.
+owned='["statusLine"]'
+
+# Desired values. Keys named in $owned are enforced; all others here are SEEDS.
+desired='{
+  "tui": "fullscreen",
+  "theme": "auto",
+  "model": "opusplan",
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  }
+}'
+
+if ! command -v jq >/dev/null 2>&1; then
+  # Fresh bootstrap: Brewfile's jq isn't installed yet. Seed the file whole if absent,
+  # otherwise pass it through rather than risk losing live settings.
+  if [ -n "$current" ]; then
+    printf '%s' "$current"
+    echo "modify_settings.json: jq not found; left ~/.claude/settings.json unchanged" >&2
+  else
+    printf '%s\n' "$desired"
+  fi
+  exit 0
+fi
+
+[ -n "$current" ] || current='{}'
+
+printf '%s' "$current" | jq --argjson d "$desired" --argjson owned "$owned" '
+  ($d * .) as $merged
+  | reduce ($owned[]) as $k ($merged;
+      if ($d | has($k)) then .[$k] = $d[$k] else . end)
+'
