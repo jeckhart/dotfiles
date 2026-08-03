@@ -1,8 +1,6 @@
 # Run these commands if we're running inside Windows Subsystem for Linux v2
 
 if [ -e /proc ] && $(grep -oE 'WSL2' /proc/version >/dev/null 2>&1 ) ; then
-  export LC_ALL=en_US.UTF-8
-
   # Route $BROWSER-aware tools (gh, jupyter, dev servers) and `open` to the Windows
   # default handler via wsl-open (~/.bin, wraps explorer.exe) — but only when WSL
   # interop is live in THIS shell. wsl-open needs interop to launch explorer.exe.
