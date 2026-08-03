@@ -1,8 +1,7 @@
 #!/bin/sh
-# Grants Homebrew's default-on tap-trust exemption to third-party-tap formulae this
-# repo's Brewfile depends on. Bootstrap-only, deliberately not re-asserted on every
-# `brew bundle` (see run_onchange_install-packages.sh.tmpl) — so a deliberate
-# `brew untrust` later sticks instead of being silently reverted.
+# Grants Homebrew's tap-trust exemption to third-party-tap formulae the Brewfile
+# depends on. Bootstrap-only — run_onchange_install-packages.sh.tmpl diagnoses but
+# doesn't re-grant, so a later `brew untrust` sticks.
 set -eu
 
 {{ includeTemplate "brew/shellenv" . }}
