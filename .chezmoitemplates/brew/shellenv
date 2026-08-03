@@ -4,7 +4,7 @@
        repo exists) and inlines an equivalent copy instead. */ -}}
 if ! command -v brew >/dev/null 2>&1; then
   for _brew in \
-    "$HOMEBREW_PREFIX/bin/brew" \
+    "${HOMEBREW_PREFIX:-}/bin/brew" \
     /opt/homebrew/bin/brew \
     /usr/local/bin/brew \
     /home/linuxbrew/.linuxbrew/bin/brew; do
@@ -15,4 +15,4 @@ if ! command -v brew >/dev/null 2>&1; then
   done
   unset _brew
 fi
-[ -n "$HOMEBREW_PREFIX" ] && export HOMEBREW_PREFIX
+[ -n "${HOMEBREW_PREFIX:-}" ] && export HOMEBREW_PREFIX
