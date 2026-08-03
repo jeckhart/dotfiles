@@ -49,7 +49,8 @@ not `*.local` shadow files.
 
 `~/.zshenv` sets the XDG base dirs and `ZDOTDIR=~/.config/zsh`, redirecting all zsh
 startup there. The zsh binary itself is system zsh on macOS and apt zsh on WSL2
-(`run_once_install-zsh-apt.sh.tmpl` installs it and sets the login shell — not Homebrew).
+(`run_once_install-zsh-apt.sh.tmpl` installs it, sets the login shell, and generates the
+`en_US.UTF-8` locale — not Homebrew).
 
 1. `~/.config/zsh/.zprofile` — Homebrew init (Intel/Apple Silicon/Linuxbrew, see
    Homebrew Dependencies below); 1Password SSH agent socket

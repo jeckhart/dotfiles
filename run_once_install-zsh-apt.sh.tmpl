@@ -1,8 +1,9 @@
 #!/bin/sh
-# Install zsh from apt and make it the login shell (WSL2 only — macOS gets zsh from the
-# OS, not Homebrew: https://github.com/jeckhart/dotfiles has never listed zsh in the
-# Brewfile). Runs once per machine; each step is idempotent so a stale run_once record
-# doesn't matter. Needs sudo; chezmoi apply may prompt for a password.
+# Install zsh from apt and make it the login shell, and generate the en_US.UTF-8 locale
+# (WSL2 only — macOS gets zsh from the OS, not Homebrew: https://github.com/jeckhart/dotfiles
+# has never listed zsh in the Brewfile, and it ships en_US.UTF-8 out of the box). Runs once
+# per machine; each step is idempotent so a stale run_once record doesn't matter. Needs
+# sudo; chezmoi apply may prompt for a password.
 {{ if .isWSL2 -}}
 set -eu
 if ! command -v apt-get >/dev/null 2>&1; then exit 0; fi
@@ -21,6 +22,29 @@ current_shell="$(getent passwd "$USER" | cut -d: -f7)"
 if [ "$current_shell" != "/usr/bin/zsh" ]; then
   echo "Changing login shell to /usr/bin/zsh"
   sudo chsh -s /usr/bin/zsh "$USER"
+fi
+
+# Stock WSL2 images build only C.UTF-8; configs/locale.zsh wants en_US.UTF-8 and would
+# otherwise make every bash subshell warn ("setlocale: LC_ALL: cannot change locale").
+if [ ! -x /usr/sbin/locale-gen ]; then
+  echo "Installing locales package..."
+  sudo apt-get install -y locales
+fi
+
+if [ -f /etc/locale.gen ]; then
+  if ! grep -qE '^[[:space:]]*en_US\.UTF-8[[:space:]]+UTF-8[[:space:]]*$' /etc/locale.gen; then
+    if grep -qE '^#[[:space:]]*en_US\.UTF-8[[:space:]]+UTF-8[[:space:]]*$' /etc/locale.gen; then
+      sudo sed -i 's/^#[[:space:]]*\(en_US\.UTF-8[[:space:]]\+UTF-8\)[[:space:]]*$/\1/' /etc/locale.gen
+    else
+      echo 'en_US.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen >/dev/null
+    fi
+  fi
+  # Argless form (not `locale-gen en_US.UTF-8`) for Debian compatibility — Debian's
+  # locale-gen only reads /etc/locale.gen, it doesn't accept a locale argument the way
+  # Ubuntu's does. --keep-existing skips the full purge-and-rebuild on re-runs.
+  echo "Generating en_US.UTF-8 locale..."
+  sudo locale-gen --keep-existing
+  sudo update-locale LANG=en_US.UTF-8
 fi
 {{ else -}}
 exit 0  # darwin: system zsh; non-WSL2 linux: out of scope
