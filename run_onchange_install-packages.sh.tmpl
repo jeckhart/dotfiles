@@ -20,3 +20,17 @@ if ! brew trust --json v1 2>/dev/null | grep -q '"can1357/tap/omp"'; then
 fi
 
 brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
+{{ if eq .chezmoi.os "darwin" -}}
+
+# Casks get com.apple.quarantine, formulae do not. kotlin-lsp ships an executable
+# JetBrains Runtime rather than an .app, so Gatekeeper kills it on first exec
+# (SIGKILL, plus a "Not Opened" prompt offering to trash it) instead of showing the
+# usual open-anyway dialog. Homebrew no longer accepts --no-quarantine, so strip the
+# attribute here. Linux never sets it: Quarantine.available? is false there.
+# Symlinks keep the attribute — xattr -r does not follow them — but those are JBR
+# licence files, never executed.
+kotlin_lsp_caskroom="$(brew --prefix)/Caskroom/kotlin-lsp"
+if [ -d "$kotlin_lsp_caskroom" ]; then
+  xattr -dr com.apple.quarantine "$kotlin_lsp_caskroom" 2>/dev/null || true
+fi
+{{- end }}

@@ -83,10 +83,15 @@ brew 'mise'                       # Fast polyglot runtime/version manager (Rust)
 brew 'pnpm'                       # Fast npm alternative (standalone; not managed by mise)
 brew 'cloudflare-wrangler'        # Cloudflare Workers CLI
 
-# Java / JVM — commented out until JVM work resumes (java currently unprovisioned).
-# Re-add together with a JDK (e.g. brew 'openjdk') when needed.
+# Java / JVM — gradle/maven stay commented out until JVM work resumes (java
+# currently unprovisioned). Re-add together with a JDK (e.g. brew 'openjdk').
 # brew 'gradle'                   # JVM build tool (Android, Jenkins tooling)
 # brew 'maven'                    # JVM build/dependency tool
+# Kotlin language server for editors and coding agents. Bundles its own JetBrains
+# Runtime, so it needs no JDK. Ungated: the cask carries macOS and Linux artifacts
+# alike. Prefer it over the jetbrains/utils formula, which is depends_on :macos and
+# would need a third-party tap plus a trust grant.
+cask 'kotlin-lsp'                 # Kotlin LSP for .kt/.kts (kotlin-lsp@claude-plugins-official)
 
 # Python (runtimes via mise above; uv for venvs/packaging)
 brew 'uv'                         # Fast Python package + venv manager (replaces pyenv-virtualenv)
