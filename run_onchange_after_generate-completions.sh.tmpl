@@ -1,0 +1,35 @@
+#!/bin/sh
+# Regenerate zsh completions for tools that don't ship one on fpath (gitleaks,
+# lazygit, cargo, hx, ...) — see dot_bin/executable_regen-zsh-completions and
+# dot_config/zsh/configs/post/completion.zsh. Re-runs when the Brewfile, the
+# pinned mise tool versions, or the generator script itself changes. `after_`
+# ensures ~/.bin/regen-zsh-completions has been written before this calls it,
+# and that `brew bundle` (run_onchange_install-packages.sh.tmpl, non-`after_`)
+# has already installed anything new.
+#
+# Brewfile hash: {{ include "Brewfile" | sha256sum }}
+# mise lock hash: {{ include "dot_config/mise/mise.lock" | sha256sum }}
+# generator hash: {{ include "dot_bin/executable_regen-zsh-completions" | sha256sum }}
+set -eu
+{{ includeTemplate "brew/shellenv" . }}
+if [ ! -x "$HOME/.bin/regen-zsh-completions" ]; then
+  echo "generate-completions: ~/.bin/regen-zsh-completions not found, skipping — some completions will be missing" >&2
+  exit 0
+fi
+
+# cd into the source dir so repo-scoped mise dev tools (mise.toml, gitignored by
+# chezmoi) resolve for the generator to probe. mise shims — not `mise activate`,
+# which only takes effect on the next prompt — pick the right version per-cwd.
+cd "{{ .chezmoi.sourceDir }}"
+PATH="${XDG_DATA_HOME:-$HOME/.local/share}/mise/shims:$PATH"
+export PATH
+
+"$HOME/.bin/regen-zsh-completions"
+
+# Force the next shell to rebuild its completion dump so the new/changed
+# functions above are picked up immediately instead of waiting on an unrelated
+# invalidation (see completion.zsh: always `compinit -C`, self-heals a missing
+# dump). Default mirrors dot_zshenv's OS-conditional XDG_CACHE_HOME — resolved
+# at template time here since (unlike the run_once dir-creation script) this is
+# already a .tmpl.
+rm -f "${XDG_CACHE_HOME:-$HOME/{{ if eq .chezmoi.os "darwin" }}Library/Caches{{ else }}.cache{{ end }}}/zsh/zcompdump"

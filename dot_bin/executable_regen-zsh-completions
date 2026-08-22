@@ -1,0 +1,97 @@
+#!/bin/sh
+# Regenerate zsh completion functions for tools that don't ship one on the
+# Homebrew/zsh-completions fpath (see dot_config/zsh/configs/post/completion.zsh).
+# Run at `chezmoi apply` time by run_onchange_after_generate-completions.sh.tmpl —
+# never at shell startup, so a missing tool or a slow `--completions` subprocess
+# never costs interactive latency. Safe to re-run by hand after `mise up`/`brew
+# upgrade`; owns its output dir outright (wiped and rewritten each run) so an
+# uninstalled tool's stale completion doesn't linger.
+#
+# Deliberately no `set -e`: a tool being absent or a completion verb failing is
+# normal (repo-scoped mise tools aren't on PATH outside this repo; some tools
+# just don't support the verb probed) — one skip is not a script failure.
+set -u
+
+out_dir="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/completions"
+mise_installs="${XDG_DATA_HOME:-$HOME/.local/share}/mise/installs"
+
+rm -rf "$out_dir"
+mkdir -p "$out_dir"
+
+generated=""
+skipped=""
+
+# --- command generation: explicit tool -> completion-verb table -------------
+# Verbs are NOT uniform across tools; each has been verified to work. The output
+# filename (what command the completion is FOR) is passed separately from the
+# tool invoked to produce it — they differ for rustup, which generates cargo's
+# completion, not its own.
+gen() {
+	name=$1
+	tool=$2
+	shift 2
+	if ! command -v "$tool" >/dev/null 2>&1; then
+		skipped="$skipped $name(absent)"
+		return
+	fi
+	if "$tool" "$@" >"$out_dir/_$name" 2>/dev/null && [ -s "$out_dir/_$name" ]; then
+		generated="$generated $name"
+	else
+		rm -f "$out_dir/_$name"
+		skipped="$skipped $name(failed)"
+	fi
+}
+
+gen gitleaks gitleaks completion zsh
+gen lazygit lazygit completion zsh
+gen pinact pinact completion zsh
+gen taplo taplo completions zsh
+gen rumdl rumdl completions zsh
+gen zizmor zizmor --completions zsh
+# rustup generates cargo's completion (a shim sourcing the real _cargo from the
+# active toolchain), not a completion for the `rustup` command itself.
+gen cargo rustup completions zsh cargo
+
+# --- file harvest: copy ready-made #compdef files out of tool install trees -
+harvest() {
+	src=$1
+	name=$2
+	if [ -f "$src" ]; then
+		cp "$src" "$out_dir/_$name"
+		generated="$generated $name"
+	else
+		skipped="$skipped $name(no-file)"
+	fi
+}
+
+# helix ships a finished #compdef file rather than a generation subcommand.
+hx_completion=$(find "$mise_installs/helix" "$mise_installs/aqua-helix-editor-helix" \
+	-maxdepth 6 -path '*completion/hx.zsh' 2>/dev/null | head -n1)
+if [ -n "$hx_completion" ]; then
+	harvest "$hx_completion" hx
+else
+	skipped="$skipped hx(no-file)"
+fi
+
+# --- carapace: cache the fallback-completer init so startup never forks it --
+carapace_init="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/carapace-init.zsh"
+if command -v carapace >/dev/null 2>&1; then
+	if carapace _carapace zsh >"$carapace_init" 2>/dev/null && [ -s "$carapace_init" ]; then
+		generated="$generated carapace-init"
+	else
+		rm -f "$carapace_init"
+		skipped="$skipped carapace-init(failed)"
+	fi
+else
+	rm -f "$carapace_init"
+	skipped="$skipped carapace(absent)"
+fi
+
+if [ -n "$generated" ]; then
+	echo "regen-zsh-completions: generated${generated}" >&2
+fi
+if [ -n "$skipped" ]; then
+	echo "regen-zsh-completions: skipped${skipped}" >&2
+fi
+
+exit 0
