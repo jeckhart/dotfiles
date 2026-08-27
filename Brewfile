@@ -126,6 +126,7 @@ cask '1password-cli' unless system "grep -qi microsoft /proc/version 2>/dev/null
 cask 'secretive'                  # SSH keys in the Secure Enclave
 
 # Containers
+brew 'docker-credential-helper' if OS.mac?  # docker-credential-osxkeychain for DOCKER_CONFIG/config.json credsStore
 cask 'podman-desktop'             # Container GUI (Podman)
 
 # Editors

@@ -1,0 +1,7 @@
+{
+  "auths": {},
+  "credsStore": "{{ if eq .chezmoi.os "darwin" }}osxkeychain{{ else }}pass{{ end }}",
+  "features": {
+    "buildkit": true
+  }
+}
