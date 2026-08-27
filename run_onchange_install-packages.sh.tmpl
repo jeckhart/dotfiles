@@ -33,4 +33,11 @@ kotlin_lsp_caskroom="$(brew --prefix)/Caskroom/kotlin-lsp"
 if [ -d "$kotlin_lsp_caskroom" ]; then
   xattr -dr com.apple.quarantine "$kotlin_lsp_caskroom" 2>/dev/null || true
 fi
+
+# Obsidian's in-app "install CLI" writes a root-owned /usr/local/bin/obsidian. The cask's
+# binary artifact already provides the CLI earlier on PATH, so a leftover is dead cruft that
+# dangles if the bundle moves. Diagnose only: removing it needs sudo.
+if [ -L /usr/local/bin/obsidian ] || [ -e /usr/local/bin/obsidian ]; then
+  echo "install-packages: /usr/local/bin/obsidian is a leftover from Obsidian's in-app CLI installer — the cask provides $(brew --prefix)/bin/obsidian; remove it with 'sudo rm /usr/local/bin/obsidian'" >&2
+fi
 {{- end }}

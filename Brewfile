@@ -136,6 +136,7 @@ cask 'iterm2'                     # Terminal
 cask 'cursor'                     # AI editor
 cask 'cursor-cli'                 # cursor-agent CLI
 cask 'supacode'                   # Terminal coding agents command center
+cask 'obsidian'                   # Markdown notes app; its binary artifact provides the `obsidian` CLI
 
 # Fonts
 cask 'font-meslo-lg-nerd-font'    # Nerd font used by starship / powerlevel10k
