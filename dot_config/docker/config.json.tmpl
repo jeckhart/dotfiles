@@ -1,7 +1,8 @@
+{{- $config := joinPath .chezmoi.homeDir ".config/docker/config.json" -}}
 {
-  "auths": {},
+  "auths": {{ if stat $config }}{{ output "jq" "-c" ".auths // {}" $config }}{{ else }}{}{{ end }},
   "credsStore": "{{ if eq .chezmoi.os "darwin" }}osxkeychain{{ else }}pass{{ end }}",
   "features": {
-    "buildkit": true
+    "buildkit": "true"
   }
 }
