@@ -112,6 +112,27 @@ app); `chezmoi.toml` sets `[onepassword] command = "op"`, `prompt = false`.
 | Starship | `dot_config/starship.toml`     | Catppuccin Macchiato palette                   |
 | Neovim   | `dot_config/nvim/`             | LazyVim (lang extras: rust/python/ts/go)       |
 | Claude Code | `dot_claude/`               | `statusLine` owned, theme/model/tui seeded — ADR-0003 |
+| Agent git guard | `dot_bin/executable_agent-git-guard.zsh` | `PreToolUse`/`beforeShellExecution` deny for blind staging (Claude/Cursor/Codex) — ADR-0005 |
+
+### Agent Git Guardrails
+
+`dot_bin/executable_agent-git-guard.zsh` is a shared `PreToolUse` (Claude Code, Codex) /
+`beforeShellExecution` (Cursor) hook that denies (exit 2) git commands agents reach for
+carelessly — `git add -A`/`commit -am` (blind staging that sweeps in other agents' or
+GitButler's changes), `reset --hard`, `clean -f`, `push --force`, `commit --no-verify`, and
+a few more, grouped into tiers (`stage-all`, `worktree`, `rewrite`, `bypass`, `sweep`) in
+the script's own header. It parses with zsh's own lexer (`${(z)}`), not a regex, so it
+tokenizes `git -C /x add -A` and `bash -c 'git add -A'` correctly and doesn't false-positive
+on `git commit -m "fix -a bug"`.
+
+Every tier except `stage-all` (which has no override — there's always a correct
+alternative: stage by path) accepts an honor-system authorization marker:
+`git push --force # guard-ok: user asked me to force-push after the rebase`. This is
+deterrence and an audit trail, not enforcement — every attempt, granted or refused, is
+logged to `~/.local/state/agent-git-guard/log.jsonl` (`agent-git-guard.zsh log` renders
+it). `AGENT_GIT_GUARD=off` in your own shell's environment (never read from the inspected
+command) disables the guard entirely. Full rationale, the zsh-vs-python-vs-rust
+measurement, and the rule table: `docs/adr/0005-agent-git-guardrails.md`.
 
 ### Nix Coexistence (work machines)
 

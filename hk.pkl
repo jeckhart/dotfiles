@@ -161,6 +161,38 @@ local fastSteps: Mapping<String, Step> = new {
     check = "\(lintDir)/chezmoi-templates.sh {{files}}"
   }
 
+  // dot_bin/executable_agent-git-guard.zsh (docs/adr/0005) has no shellcheck coverage —
+  // it's zsh, deliberately (see the script's own header for why) — so this fixture
+  // suite IS the regression net for its shell-tokenization and rule-matching logic.
+  ["agent-git-guard"] {
+    glob = List("dot_bin/executable_agent-git-guard.zsh", "\(lintDir)/agent-git-guard-test.sh")
+    check = "\(lintDir)/agent-git-guard-test.sh"
+  }
+
+  // Every alias in dot_config/git/config that expands to a command one of
+  // agent-git-guard's tiers blocks must also appear in the guard's own AGG_ALIAS map
+  // (dot_bin/executable_agent-git-guard.zsh), or that alias is a silent bypass — `git pf`
+  // sailing straight past a literal `git push --force` match. Hand-maintained on both
+  // sides, same as chezmoiignore-drift's file list below: this only catches the two
+  // staying in sync, not any alias anyone could ever add.
+  ["git-alias-drift"] {
+    glob = List("dot_config/git/config", "dot_bin/executable_agent-git-guard.zsh")
+    check =
+      #"""
+      guard="dot_bin/executable_agent-git-guard.zsh"
+      dangerous='pf bdf aa'
+      missing=""
+      for a in $dangerous; do
+        grep -qE "^[[:space:]]*${a}[[:space:]]*=" dot_config/git/config || continue
+        grep -q "	${a} " "$guard" || missing="$missing $a"
+      done
+      if [ -n "$missing" ]; then
+        echo "git-alias-drift: dangerous alias(es) missing from AGG_ALIAS in $guard:$missing" >&2
+        exit 1
+      fi
+      """#
+  }
+
   // Mechanizes the beads-no-machine-identifiers rule (this repo's beads DB syncs to
   // refs/dolt/data on this PUBLIC remote): no full-length radicle DIDs/RIDs,
   // Tailscale CGNAT addresses, Tailscale MagicDNS hostnames, email addresses, or

@@ -3,6 +3,13 @@
 # runtime (/advisor, /effort, /fast, /config), so chezmoi enforces only the keys named in $owned;
 # everything else in $desired is a seed, written only when absent. Layering: seeds < live < owned.
 # To manage another key, see docs/adr/0003-claude-code-settings-merge.md.
+#
+# hooks.PreToolUse is a THIRD layering, on top of seed/own: Claude Code's own Supacode
+# integration and `bd prime` already populate that array at runtime, so neither seeding
+# (dead — the key already exists live) nor owning (would delete their entries) works.
+# Instead reconcile exactly one marked entry — drop any prior entry whose command ends in
+# $marker, then append the current one — leaving every other PreToolUse hook untouched.
+# See docs/adr/0005-agent-git-guardrails.md.
 set -eu
 {{ includeTemplate "brew/shellenv" . }}
 
@@ -22,9 +29,14 @@ desired='{
   }
 }'
 
+marker=' # chezmoi-managed-hook'
+guard_hooks='[{"matcher":"Bash","hooks":[{"type":"command","command":"{{ .chezmoi.homeDir }}/.bin/agent-git-guard.zsh # chezmoi-managed-hook","timeout":10}]}]'
+
 if ! command -v jq >/dev/null 2>&1; then
   # Fresh bootstrap: Brewfile's jq isn't installed yet. Seed the file whole if absent,
-  # otherwise pass it through rather than risk losing live settings.
+  # otherwise pass it through rather than risk losing live settings. Skips the
+  # hooks.PreToolUse reconciliation below too — it needs jq just as much as the guard
+  # script itself does; the next apply (once jq is installed) picks it up.
   if [ -n "$current" ]; then
     printf '%s' "$current"
     echo "modify_settings.json: jq not found; left ~/.claude/settings.json unchanged" >&2
@@ -36,8 +48,16 @@ fi
 
 [ -n "$current" ] || current='{}'
 
-printf '%s' "$current" | jq --argjson d "$desired" --argjson owned "$owned" '
+printf '%s' "$current" | jq \
+  --argjson d "$desired" --argjson owned "$owned" \
+  --arg marker "$marker" --argjson guard "$guard_hooks" '
   ($d * .) as $merged
-  | reduce ($owned[]) as $k ($merged;
-      if ($d | has($k)) then .[$k] = $d[$k] else . end)
+  | (reduce ($owned[]) as $k ($merged;
+      if ($d | has($k)) then .[$k] = $d[$k] else . end)) as $enforced
+  | $enforced
+  | .hooks.PreToolUse = (
+      ([($enforced.hooks.PreToolUse // [])[]
+        | select(((.hooks // []) | any((.command // "") | tostring | endswith($marker))) | not)])
+      + $guard
+    )
 '
