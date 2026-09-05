@@ -9,7 +9,7 @@
 # every shell). That init unconditionally `compdef`s every command it knows
 # about, which would clobber zsh-native/brew-shipped/regen-zsh-completions
 # completions for anything carapace also recognizes (gitleaks, lazygit, cargo,
-# hx, ...). Snapshot the native mappings first and restore them after, so
+# ...). Snapshot the native mappings first and restore them after, so
 # carapace only fills in commands nothing else already completes.
 _carapace_init="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/carapace-init.zsh"
 if [[ -r $_carapace_init ]]; then

@@ -38,7 +38,6 @@ brew 'atuin'                      # Shell history database + Ctrl-R search
 brew 'eza'                        # Modern ls replacement (icons, git, tree)
 brew 'vivid'                      # Generates the Catppuccin Macchiato LS_COLORS (themes ls/eza/completions)
 brew 'yazi'                       # Terminal file manager
-brew 'lazyjournal' if system "grep -qi microsoft /proc/version 2>/dev/null" # TUI journalctl/systemd log viewer (WSL2 only)
 brew 'duckdb'                     # In-process SQL OLAP DB — backs yazi's duckdb.yazi data preview (CSV/TSV/JSON/Parquet)
 brew 'git-delta'                  # Syntax-highlighting git pager
 brew 'hunk'                       # Review-first terminal diff viewer for agent-authored changesets
@@ -112,6 +111,7 @@ brew 'cargo-nextest'
 
 # Embedded / ESP32 (toolchain env: configs/export-esp.zsh; serial: dot_bin/monitor-serial.sh)
 brew 'espflash'                   # Flash + monitor ESP32 boards over serial
+brew 'tio'                        # Serial device terminal — dot_bin/monitor-serial.sh's only dependency
 
 # DevOps
 brew 'awscli' unless system "[ -e /usr/local/bin/aws ]" # AWS CLI

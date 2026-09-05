@@ -1,20 +1,25 @@
 #!/bin/sh
 # Regenerate zsh completions for tools that don't ship one on fpath (gitleaks,
-# lazygit, cargo, hx, ...) — see dot_bin/executable_regen-zsh-completions and
-# dot_config/zsh/configs/post/completion.zsh. Re-runs when the Brewfile, the
-# pinned mise tool versions, or the generator script itself changes. `after_`
-# ensures ~/.bin/regen-zsh-completions has been written before this calls it,
-# and that `brew bundle` (run_onchange_install-packages.sh.tmpl, non-`after_`)
-# has already installed anything new.
+# lazygit, cargo, ...) — see dot_bin/executable_regen-zsh-completions and
+# dot_config/zsh/configs/post/completion.zsh. Re-runs when the Brewfile, either
+# set of pinned mise tool versions, or the generator script itself changes.
+# Two mise lockfiles matter here: dot_config/mise/mise.lock pins the global
+# tools (node, python, ...), while the repo-scoped root mise.lock is what
+# actually pins several of the harvested tools themselves (gitleaks, pinact,
+# taplo, rumdl, zizmor) — bumping one of those needs to retrigger this too.
+# `after_` ensures ~/.bin/regen-zsh-completions has been written before this
+# calls it, and that `brew bundle` (run_onchange_install-packages.sh.tmpl,
+# non-`after_`) has already installed anything new.
 #
 # Brewfile hash: {{ include "Brewfile" | sha256sum }}
 # mise lock hash: {{ include "dot_config/mise/mise.lock" | sha256sum }}
+# repo mise lock hash: {{ include "mise.lock" | sha256sum }}
 # generator hash: {{ include "dot_bin/executable_regen-zsh-completions" | sha256sum }}
 set -eu
 {{ includeTemplate "brew/shellenv" . }}
 if [ ! -x "$HOME/.bin/regen-zsh-completions" ]; then
-  echo "generate-completions: ~/.bin/regen-zsh-completions not found, skipping — some completions will be missing" >&2
-  exit 0
+	echo "generate-completions: ~/.bin/regen-zsh-completions not found, skipping — some completions will be missing" >&2
+	exit 0
 fi
 
 # cd into the source dir so repo-scoped mise dev tools (mise.toml, gitignored by

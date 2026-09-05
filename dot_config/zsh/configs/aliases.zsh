@@ -36,11 +36,6 @@ for _i ({1..9}) alias "$_i"="cd +${_i}"; unset _i
 alias e='$EDITOR'
 alias v='$VISUAL'
 
-# Ruby / Rails
-alias b="bundle"
-alias s="rspec"
-alias migrate="bin/rails db:migrate db:rollback && bin/rails db:migrate db:test:prepare"
-
 # Pretty-print the PATH
 alias path='echo $PATH | tr -s ":" "\n"'
 
