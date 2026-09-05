@@ -1,3 +1,9 @@
+{{- $colimaSshConfig := joinPath .chezmoi.homeDir ".config/colima/ssh_config" -}}
+{{- if stat $colimaSshConfig }}
+# Colima (Lima) rewrites this line into its own generated ssh_config on every
+# `colima start` — chezmoi re-adds it here so the two stop fighting over the file.
+Include {{ $colimaSshConfig }}
+{{ end -}}
 Include config.local
 
 # github.com over 443: some networks block outbound port 22, which makes dolt's
