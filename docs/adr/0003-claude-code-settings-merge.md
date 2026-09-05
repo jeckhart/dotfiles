@@ -52,10 +52,17 @@ seeds (tui, theme, model) < live file < owned (statusLine)
 - Any other key Claude Code writes (`advisorModel`, `effortLevel`, `fastMode`,
   `enableArtifact`, …) passes through untouched; the script never enumerates them.
 
-Implementation, in jq: `$d * .` (recursive merge, live file wins) then a `reduce` over
+Implementation, in jq: `. as $live | ($live + ($d | with_entries(select(($live | has(.key)) | not))))`
+— live file first, appending only the seed keys it's missing — then a `reduce` over
 `$owned` that force-assigns each owned key from `$desired`. `$desired` is the single
 literal both the merge and the no-jq fallback read, so there's one place to edit, not
 two.
+
+(The original implementation used `$d * .`, a recursive merge with the live file
+winning on conflicts — content-correct, but jq emits `$d`'s keys first regardless of
+which side wins a given key, so it reordered `settings.json` to match `$desired`'s key
+order on every apply even when nothing had changed. `chezmoi status` never went clean.
+Fixed to preserve live key order instead.)
 
 Rejected alternatives:
 
@@ -92,9 +99,8 @@ caught by review.
 
 ## Consequences
 
-- Steady-state `chezmoi diff` on `settings.json` is empty: the merge is idempotent, and
-  jq's key ordering (`$d`'s keys first) matches the live file's, so a no-op merge is
-  byte-identical.
+- Steady-state `chezmoi diff` on `settings.json` is empty: the merge preserves the live
+  file's own key order, so a no-op merge is byte-identical.
 - Interactive settings survive `chezmoi apply`: change `theme` via `/config`, apply,
   `theme` is unchanged. Delete `statusLine` by hand, apply, it's restored. Add an
   unrelated key by hand, apply, it survives.
