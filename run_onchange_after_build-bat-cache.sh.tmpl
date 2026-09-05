@@ -7,7 +7,7 @@
 set -eu
 {{ includeTemplate "brew/shellenv" . }}
 if ! command -v bat >/dev/null 2>&1; then
-  echo "build-bat-cache: bat not found, skipping 'bat cache --build' — theme cache will be stale" >&2
-  exit 0
+	echo "build-bat-cache: bat not found, skipping 'bat cache --build' — theme cache will be stale" >&2
+	exit 0
 fi
 bat cache --build

@@ -1,10 +1,10 @@
 {{- /* Resolve npiperelay.exe at apply time. PATH during an interactive apply
-     includes the interop-appended Windows dirs (WinGet Links); the fallback
-     asks Windows for the username and stats the WinGet Links path directly
-     (globbing /mnt/c/Users/* fails on unreadable service-account dirs).
-     Renders NPIPERELAY_NOT_FOUND when missing (fresh machine, first apply) —
-     run_onchange_after_ssh-agent-bridge-service detects it and asks for a
-     second apply. */ -}}
+		 includes the interop-appended Windows dirs (WinGet Links); the fallback
+		 asks Windows for the username and stats the WinGet Links path directly
+		 (globbing /mnt/c/Users/* fails on unreadable service-account dirs).
+		 Renders NPIPERELAY_NOT_FOUND when missing (fresh machine, first apply) —
+		 run_onchange_after_ssh-agent-bridge-service detects it and asks for a
+		 second apply. */ -}}
 {{- $npiperelay := lookPath "npiperelay.exe" -}}
 {{- if and (not $npiperelay) (stat "/mnt/c/Windows/System32/cmd.exe") -}}
 {{- /* cd to a Windows-visible dir so cmd.exe doesn't warn about the UNC cwd */ -}}

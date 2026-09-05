@@ -96,6 +96,19 @@ for f in "$@"; do
 			sed -e "s|$tmp_render|$f (rendered)|" -e 's/^/  /' "$tmp_err" >&2
 			fail=1
 		fi
+
+		# .editorconfig's [*.{sh,bash}] tab-indent rule can't match *.sh.tmpl source
+		# files directly (the glob only matches paths ending .sh), and hk's own shfmt
+		# step excludes **/*.tmpl outright — raw Go template syntax breaks its parser.
+		# So the *rendered* output is the only place this can be checked — the same
+		# reason the shellcheck call above only ever sees the rendered form too.
+		# shfmt's default indent (no -i flag) is tabs, matching every non-tmpl
+		# script's formatting already enforced by hk's shfmt step.
+		if is_shell_render "$first_line" && ! shfmt -d "$tmp_render" >"$tmp_err" 2>&1; then
+			echo "chezmoi-templates: FAIL $f ($profile): shfmt formatting findings in rendered output" >&2
+			sed -e "s|$tmp_render|$f (rendered)|" -e 's/^/  /' "$tmp_err" >&2
+			fail=1
+		fi
 	done
 done
 

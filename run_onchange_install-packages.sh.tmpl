@@ -8,15 +8,15 @@ set -eu
 {{ includeTemplate "brew/shellenv" . }}
 # Brew may be absent on a not-yet-bootstrapped machine (see script/setup).
 if ! command -v brew >/dev/null 2>&1; then
-  echo "install-packages: brew not found, skipping 'brew bundle' — Brewfile packages will be missing" >&2
-  exit 0
+	echo "install-packages: brew not found, skipping 'brew bundle' — Brewfile packages will be missing" >&2
+	exit 0
 fi
 
 # The trust grant for can1357/tap/omp (Brewfile) lives in
 # run_once_before_trust-third-party-formulae.sh.tmpl, not here — diagnose only, so a
 # deliberate `brew untrust` isn't silently reverted.
 if ! brew trust --json v1 2>/dev/null | grep -q '"can1357/tap/omp"'; then
-  echo "install-packages: can1357/tap/omp is untrusted — 'brew bundle' will fail until 'brew trust --formula can1357/tap/omp' is run (or the formula is dropped from the Brewfile)" >&2
+	echo "install-packages: can1357/tap/omp is untrusted — 'brew bundle' will fail until 'brew trust --formula can1357/tap/omp' is run (or the formula is dropped from the Brewfile)" >&2
 fi
 
 brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
@@ -31,13 +31,13 @@ brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
 # licence files, never executed.
 kotlin_lsp_caskroom="$(brew --prefix)/Caskroom/kotlin-lsp"
 if [ -d "$kotlin_lsp_caskroom" ]; then
-  xattr -dr com.apple.quarantine "$kotlin_lsp_caskroom" 2>/dev/null || true
+	xattr -dr com.apple.quarantine "$kotlin_lsp_caskroom" 2>/dev/null || true
 fi
 
 # Obsidian's in-app "install CLI" writes a root-owned /usr/local/bin/obsidian. The cask's
 # binary artifact already provides the CLI earlier on PATH, so a leftover is dead cruft that
 # dangles if the bundle moves. Diagnose only: removing it needs sudo.
 if [ -L /usr/local/bin/obsidian ] || [ -e /usr/local/bin/obsidian ]; then
-  echo "install-packages: /usr/local/bin/obsidian is a leftover from Obsidian's in-app CLI installer — the cask provides $(brew --prefix)/bin/obsidian; remove it with 'sudo rm /usr/local/bin/obsidian'" >&2
+	echo "install-packages: /usr/local/bin/obsidian is a leftover from Obsidian's in-app CLI installer — the cask provides $(brew --prefix)/bin/obsidian; remove it with 'sudo rm /usr/local/bin/obsidian'" >&2
 fi
 {{- end }}
