@@ -21,11 +21,10 @@ hk.local.pkl
 typos.toml
 renovate.json
 
-# p10k config: generated fresh per machine via 'p10k configure'
-.p10k.zsh
-
-# tmux plugins: installed at runtime by TPM (prefix + I)
-.config/tmux/plugins
+# tmux plugins: TPM is external (.chezmoiexternal.toml). Every plugin TPM installs lands in this
+# directory and is ignored.
+.config/tmux/plugins/*
+!.config/tmux/plugins/tpm
 
 # WSL2-only: X11 DISPLAY, op.exe alias, SSH agent bridge, Windows opener — not
 # relevant on macOS
@@ -43,6 +42,13 @@ docs
 {{ if ne .chezmoi.os "darwin" -}}
 Library/LaunchAgents/dev.radicle.node.plist
 .bin/radicle-node-wrapper
+{{- end }}
+
+# ESP32/RustRover embedded dev tooling: macOS-only (RustRover.app, /dev/tty.usb*
+# device naming).
+{{ if ne .chezmoi.os "darwin" -}}
+.bin/rustrover-esp.sh
+.bin/monitor-serial.sh
 {{- end }}
 
 # Beads shared Dolt server. The wrapper (config generation, pid/port discovery

@@ -27,6 +27,16 @@
         "@plugin '(?<depName>[^#']+)#(?<currentValue>[^']+)'"
       ],
       "datasourceTemplate": "github-tags"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "^\\.chezmoiexternal\\.toml$"
+      ],
+      "matchStrings": [
+        "url = \"https://github.com/(?<depName>[^/]+/[^/]+)/archive/refs/tags/(?<currentValue>[^\"]+)\\.tar\\.gz\""
+      ],
+      "datasourceTemplate": "github-tags"
     }
   ]
 }
