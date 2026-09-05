@@ -1,0 +1,46 @@
+#!/bin/sh
+# ~/.config/docker/config.json — merged into, never overwritten. The Docker CLI rewrites
+# this file at runtime (`docker context use`, `docker login`, a future plugin/alias),
+# so chezmoi enforces only the keys this repo cares about (credsStore, features.buildkit)
+# and passes everything else — auths, currentContext, plugins, … — through untouched.
+# Same `modify_` pattern as dot_claude/modify_settings.json.tmpl; see ADR-0003.
+#
+# The plain-template predecessor of this file rebuilt the whole document from scratch,
+# preserving only `.auths` — every other runtime key (currentContext included) was
+# silently dropped on each apply. This script instead edits the live object in place.
+set -eu
+{{ includeTemplate "brew/shellenv" . }}
+current=$(cat)
+
+# Keys chezmoi OWNS: re-enforced on every apply, overwriting whatever Docker wrote.
+owned='["credsStore","features"]'
+
+desired='{
+	"credsStore": "{{ if eq .chezmoi.os "darwin" }}osxkeychain{{ else }}pass{{ end }}",
+	"features": {
+		"buildkit": "true"
+	}
+}'
+
+if ! command -v jq >/dev/null 2>&1; then
+	# Fresh bootstrap: Brewfile's jq isn't installed yet. Seed the file whole if absent,
+	# otherwise pass it through rather than risk losing live settings.
+	if [ -n "$current" ]; then
+		printf '%s' "$current"
+		echo "modify_config.json: jq not found; left ~/.config/docker/config.json unchanged" >&2
+	else
+		printf '%s\n' "$desired"
+	fi
+	exit 0
+fi
+
+[ -n "$current" ] || current='{}'
+
+# --tab + no trailing newline: matches the Docker CLI's own on-disk formatting
+# byte-for-byte, so a `docker login`/`context use` in between applies doesn't leave
+# a permanent tabs-vs-spaces diff behind — only real content drift shows in
+# `chezmoi diff`, per ADR-0003.
+printf '%s' "$(printf '%s' "$current" | jq --tab \
+	--argjson d "$desired" --argjson owned "$owned" '
+	reduce ($owned[]) as $k (.; .[$k] = $d[$k])
+')"

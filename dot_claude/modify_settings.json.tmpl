@@ -12,7 +12,6 @@
 # See docs/adr/0005-agent-git-guardrails.md.
 set -eu
 {{ includeTemplate "brew/shellenv" . }}
-
 current=$(cat)
 
 # Keys chezmoi OWNS: re-enforced on every apply, overwriting runtime edits.
@@ -20,44 +19,51 @@ owned='["statusLine"]'
 
 # Desired values. Keys named in $owned are enforced; all others here are SEEDS.
 desired='{
-  "tui": "fullscreen",
-  "theme": "auto",
-  "model": "opusplan",
-  "statusLine": {
-    "type": "command",
-    "command": "bash ~/.claude/statusline-command.sh"
-  }
+	"tui": "fullscreen",
+	"theme": "auto",
+	"model": "opusplan",
+	"statusLine": {
+		"type": "command",
+		"command": "bash ~/.claude/statusline-command.sh"
+	}
 }'
 
 marker=' # chezmoi-managed-hook'
 guard_hooks='[{"matcher":"Bash","hooks":[{"type":"command","command":"{{ .chezmoi.homeDir }}/.bin/agent-git-guard.zsh # chezmoi-managed-hook","timeout":10}]}]'
 
 if ! command -v jq >/dev/null 2>&1; then
-  # Fresh bootstrap: Brewfile's jq isn't installed yet. Seed the file whole if absent,
-  # otherwise pass it through rather than risk losing live settings. Skips the
-  # hooks.PreToolUse reconciliation below too — it needs jq just as much as the guard
-  # script itself does; the next apply (once jq is installed) picks it up.
-  if [ -n "$current" ]; then
-    printf '%s' "$current"
-    echo "modify_settings.json: jq not found; left ~/.claude/settings.json unchanged" >&2
-  else
-    printf '%s\n' "$desired"
-  fi
-  exit 0
+	# Fresh bootstrap: Brewfile's jq isn't installed yet. Seed the file whole if absent,
+	# otherwise pass it through rather than risk losing live settings. Skips the
+	# hooks.PreToolUse reconciliation below too — it needs jq just as much as the guard
+	# script itself does; the next apply (once jq is installed) picks it up.
+	if [ -n "$current" ]; then
+		printf '%s' "$current"
+		echo "modify_settings.json: jq not found; left ~/.claude/settings.json unchanged" >&2
+	else
+		printf '%s\n' "$desired"
+	fi
+	exit 0
 fi
 
 [ -n "$current" ] || current='{}'
 
 printf '%s' "$current" | jq \
-  --argjson d "$desired" --argjson owned "$owned" \
-  --arg marker "$marker" --argjson guard "$guard_hooks" '
-  ($d * .) as $merged
-  | (reduce ($owned[]) as $k ($merged;
-      if ($d | has($k)) then .[$k] = $d[$k] else . end)) as $enforced
-  | $enforced
-  | .hooks.PreToolUse = (
-      ([($enforced.hooks.PreToolUse // [])[]
-        | select(((.hooks // []) | any((.command // "") | tostring | endswith($marker))) | not)])
-      + $guard
-    )
+	--argjson d "$desired" --argjson owned "$owned" \
+	--arg marker "$marker" --argjson guard "$guard_hooks" '
+	# Live-key-order-preserving merge: append only the seed keys the live file is
+	# missing, rather than `$d * .` (recursive merge, live wins) — that emitted $d'"'"'s
+	# keys first every time, hoisting tui/theme/model/statusLine to the top of the file
+	# on every apply even though content never changed, so `chezmoi status` stayed
+	# permanently dirty. `+` is shallow (not `*`'"'"'s recursive merge), which is fine here:
+	# it only ever adds keys entirely absent from the live file.
+	. as $live
+	| ($live + ($d | with_entries(.key as $k | select(($live | has($k)) | not)))) as $merged
+	| (reduce ($owned[]) as $k ($merged;
+			if ($d | has($k)) then .[$k] = $d[$k] else . end)) as $enforced
+	| $enforced
+	| .hooks.PreToolUse = (
+			([($enforced.hooks.PreToolUse // [])[]
+				| select(((.hooks // []) | any((.command // "") | tostring | endswith($marker))) | not)])
+			+ $guard
+		)
 '

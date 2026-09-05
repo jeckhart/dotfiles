@@ -161,6 +161,21 @@ local fastSteps: Mapping<String, Step> = new {
     check = "\(lintDir)/chezmoi-templates.sh {{files}}"
   }
 
+  // chezmoi-templates.sh proves a `modify_` script renders and shellchecks cleanly -
+  // it never runs the script's actual jq pipeline. This feeds a synthetic live file -
+  // an unknown runtime key - through the real rendered script and asserts the
+  // property that matters: live content and key order survive, only the owned keys
+  // get overwritten. See ADR-0003.
+  ["modify-scripts"] {
+    glob =
+      List(
+        "dot_claude/modify_settings.json.tmpl",
+        "dot_config/docker/modify_config.json.tmpl",
+        "\(lintDir)/modify-scripts-test.sh",
+      )
+    check = "\(lintDir)/modify-scripts-test.sh"
+  }
+
   // dot_bin/executable_agent-git-guard.zsh (docs/adr/0005) has no shellcheck coverage —
   // it's zsh, deliberately (see the script's own header for why) — so this fixture
   // suite IS the regression net for its shell-tokenization and rule-matching logic.
@@ -324,7 +339,14 @@ local heavySteps: Mapping<String, Step> = new {
       # whether dev-tooling filenames appear in the managed list) — just that `chezmoi
       # managed` completes without touching a real, possibly-locked vault.
       export PATH="$(pwd)/script/lint/mock-bin:$PATH"
-      managed=$(chezmoi managed 2>/dev/null || true)
+      managed_err=$(mktemp)
+      if ! managed=$(chezmoi managed 2>"$managed_err"); then
+        echo "chezmoiignore-drift: \`chezmoi managed\` failed:" >&2
+        cat "$managed_err" >&2
+        rm -f "$managed_err"
+        exit 1
+      fi
+      rm -f "$managed_err"
       devFiles='mise.toml
       hk.pkl
       hk.local.pkl
