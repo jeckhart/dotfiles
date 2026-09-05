@@ -3,6 +3,16 @@
 Decisions that shape this repo but aren't obvious from reading the code — why a design
 was chosen, what alternatives lost, what would have to change to revisit it.
 
+| # | Title | Status |
+| - | ----- | ------ |
+| [0001](0001-homebrew-prefix-discovery.md) | Never derive the Homebrew prefix from OS/arch — probe for `brew` | Accepted |
+| [0002](0002-ci-and-github-hardening.md) | CI enforcement + GitHub-side hardening for a public dotfiles repo | Accepted |
+| [0003](0003-claude-code-settings-merge.md) | Merge `~/.claude/settings.json` via `modify_`, never overwrite it | Accepted |
+| [0004](0004-shell-completion-strategy.md) | Generate shell completions at apply time, never at shell startup | Accepted |
+| [0005](0005-agent-git-guardrails.md) | Block blind git staging via agent hooks, not a git hook | Accepted |
+| [0006](0006-hk-owns-git-hooks.md) | hk is the sole owner of `.git/hooks`; `.beads/hooks/*` stays inert | Accepted |
+| [0007](0007-machine-identifiers-threat-model.md) | `machine-identifiers` — what a public dotfiles repo can leak, and what it can't catch | Accepted |
+
 ## Format
 
 One file per decision: `NNNN-kebab-title.md`, numbered sequentially, never reused. Each

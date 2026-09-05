@@ -56,9 +56,12 @@ startup there. The zsh binary itself is system zsh on macOS and apt zsh on WSL2
    Homebrew Dependencies below); 1Password SSH agent socket
 2. `~/.config/zsh/.zshrc` — loader; sources `configs/pre/*.zsh`, then `configs/*.zsh`, then `configs/post/*.zsh`
 3. `configs/post/plugins.zsh` — zsh plugins via [sheldon](https://sheldon.cli.rs)
-   (`~/.config/sheldon/plugins.toml`): zsh-vi-mode, fzf-tab, autosuggestions, syntax-highlighting.
-   Framework-free (no oh-my-zsh). Modern CLI tools each have their own `configs/*.zsh`
-   (fzf, zoxide, atuin, direnv, gnu, eza/git aliases); theming is Catppuccin Macchiato.
+   (`~/.config/sheldon/plugins.toml`): zsh-defer, zsh-completions, zsh-vi-mode, fzf-tab,
+   zsh-autosuggestions, catppuccin-syntax, zsh-syntax-highlighting — in that order,
+   load-bearing (see the manifest's own header). Framework-free (no oh-my-zsh). Modern
+   CLI tools mostly have their own `configs/*.zsh` (fzf, zoxide, direnv, gnu, eza/git
+   aliases) — atuin is the exception, wired into `keybindings.zsh` alongside fzf's
+   native integration since both compete for Ctrl-R; theming is Catppuccin Macchiato.
 
 There is no `.zshrc.local` seam: we own the primary templates, so machine-generic config
 lives in `configs/` and secrets come from 1Password (see Secrets). Add a `.local` shadow
@@ -96,7 +99,7 @@ is the same on every machine because it's pulled from the vault):
 
 ```text
 # dot_config/zsh/configs/<name>.zsh.tmpl
-export SOME_TOKEN={{ onepasswordRead "op://Private/<item>/<field>" }}
+export SOME_TOKEN={{ onepasswordRead (printf "op://%s/<item>/<field>" .opVault) }}
 ```
 
 `chezmoi apply` bakes the value into the rendered file at `~/.config/zsh/configs/<name>.zsh`
@@ -107,10 +110,10 @@ app); `chezmoi.toml` sets `[onepassword] command = "op"`, `prompt = false`.
 
 | Tool     | Source                         | Notes                                          |
 | -------- | ------------------------------ | ---------------------------------------------- |
-| Helix    | `dot_config/helix/config.toml` | Catppuccin Mocha, vi keybindings               |
-| Tmux     | `dot_config/tmux/tmux.conf`    | Prefix `Ctrl-Space`, vi keys, Catppuccin Mocha |
+| Tmux     | `dot_config/tmux/tmux.conf`    | Prefix `Ctrl-Space`, vi keys, Catppuccin Macchiato |
 | Starship | `dot_config/starship.toml`     | Catppuccin Macchiato palette                   |
 | Neovim   | `dot_config/nvim/`             | LazyVim (lang extras: rust/python/ts/go)       |
+| Shell completions | `dot_bin/executable_regen-zsh-completions` | Generated at `chezmoi apply` time, never at shell startup — ADR-0004 |
 | Claude Code | `dot_claude/`               | `statusLine` owned, theme/model/tui seeded — ADR-0003 |
 | Agent git guard | `dot_bin/executable_agent-git-guard.zsh` | `PreToolUse`/`beforeShellExecution` deny for blind staging (Claude/Cursor/Codex) — ADR-0005 |
 | Codex    | `dot_codex/`                   | CLI via mise; `.env` + one owned `config.toml` key from 1Password; rest is runtime state |

@@ -108,10 +108,13 @@ renders correctly on both macOS and WSL2.
 
 This repo enforces itself with [`hk`](https://hk.jdx.dev) (jdx's git-hook manager) and
 [Pkl](https://hk.jdx.dev/pkl_introduction.html) — every gate's file selection lives in
-`hk.pkl` as data (glob/exclude), not a bash `case` statement. The toolchain is pinned in
-`mise.toml` (repo-root, not deployed) and `mise.lock`; hooks, `mise run *` tasks, and CI
-(`.github/workflows/hk.yml`) all drive the exact same step definitions, so they can't
-drift from each other. One-time setup per clone:
+`hk.pkl` as data (glob/exclude). The toolchain tracks `"latest"` in `mise.toml` and
+pins live in `mise.lock` — `hk-pin-drift` fails when `hk.pkl`'s own `amends` version
+disagrees with what's installed, so a stale lockfile can't sit unnoticed. Hooks,
+`mise run *` tasks, and CI (`.github/workflows/hk.yml`) all drive the exact same step
+definitions, so they can't drift from each other.
+
+One-time setup per clone:
 
 ```bash
 cd $(chezmoi source-path)
@@ -135,11 +138,14 @@ sniffing and `dot_config/zsh/functions|completion/*` via `zsh -n`), taplo (TOML)
 (Lua), rumdl (Markdown, `.rumdl.toml`), yamlfmt + yamllint (YAML, `.yamllint`), jq
 (JSON), pkl (`hk.pkl` itself), mise (`mise.toml`), typos (`typos.toml`), gitleaks
 (secrets — public repo, every commit), actionlint + zizmor + pinact (`.github/workflows/**`),
-plus three gates native to this repo: `chezmoi-templates` (renders every `*.tmpl` under a
-darwin + synthetic-WSL2 data fixture and shellchecks the result —
-`script/lint/chezmoi-templates.sh`), `machine-identifiers` (blocks radicle DIDs/RIDs,
-Tailscale addresses/`*.ts.net` hostnames, email addresses, and RFC1918 private IPs from
-landing in a tracked file), and `hk-pin-drift`/`chezmoiignore-drift` (config self-checks).
+plus gates native to this repo: `chezmoi-templates` (renders every `*.tmpl` under a
+darwin + synthetic-WSL2 data fixture and shellchecks + shfmts the result —
+`script/lint/chezmoi-templates.sh`), `modify-scripts` (feeds a synthetic live file
+through each `modify_` target's jq pipeline and asserts live state survives — see
+ADR-0003), `agent-git-guard`/`git-alias-drift` (the cross-agent git guardrails and their
+alias-table sync — ADR-0005), `machine-identifiers` (blocks radicle DIDs/RIDs, Tailscale
+addresses/`*.ts.net` hostnames, email addresses, and RFC1918 private IPs from landing in
+a tracked file), and `hk-pin-drift`/`chezmoiignore-drift` (config self-checks).
 Vendored content (`.beads/**`, `.agents/**`) and plugin-manager-generated files
 (`lazy-lock.json`, `lazyvim.json`) are excluded throughout.
 

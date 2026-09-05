@@ -2,7 +2,7 @@
 # script/lint/hook-wiring.sh — mise run doctor's hk/beads collision guard. This repo
 # deliberately keeps .beads/hooks/* inert and hk as the SOLE owner of .git/hooks: wiring
 # both risks hk's `exec`-based shim making anything appended after it unreachable, or
-# `bd hooks install` silently clobbering hk's shim (see hk.pkl's header comment).
+# `bd hooks install` silently clobbering hk's shim. See docs/adr/0006-hk-owns-git-hooks.md.
 # Read-only — reports drift, never repairs it.
 
 set -euo pipefail

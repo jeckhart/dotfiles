@@ -44,16 +44,15 @@ Auditing what was already in place found two more defects, not just a gap to fil
 **Generate every non-native completion at `chezmoi apply` time and write it to disk;
 nothing forks a completion subprocess at shell startup.**
 
-- `dot_bin/executable_regen-zsh-completions` harvests completions two ways: an explicit
+- `dot_bin/executable_regen-zsh-completions` harvests completions via an explicit
   `tool → verb` table for tools whose generator verb isn't uniform (`completion zsh`,
   `completions zsh`, `--completions zsh` all appear in the wild — gitleaks, lazygit,
   pinact, taplo, rumdl, zizmor, and `rustup completions zsh cargo`, which is cargo's own
-  completion despite being invoked via `rustup`), and file harvesting for tools that ship
-  a finished `#compdef` file instead of a generator (helix's
-  `contrib/completion/hx.zsh`). Every entry is guarded: a missing tool or a failed/empty
-  generation is skipped and logged, never a hard failure — most of the gap tools are
-  repo-scoped mise dev tools (pinned in the gitignored `mise.toml`) not on `PATH` outside
-  this repo, and that's expected, not an error.
+  completion despite being invoked via `rustup`). Every entry is guarded: a missing tool
+  or a failed/empty generation is skipped and logged, never a hard failure — most of the
+  gap tools are repo-scoped mise dev tools (pinned in the chezmoi-ignored `mise.toml`,
+  see `.chezmoiignore`) not on `PATH` outside this repo, and that's expected, not an
+  error.
 - `run_onchange_after_generate-completions.sh.tmpl` is the trigger, hash-keyed on the
   Brewfile, the mise lockfile, and the generator script itself — the same idiom as
   `run_onchange_after_install-mise-tools.sh.tmpl`/`build-bat-cache.sh.tmpl`. It deletes
@@ -63,7 +62,7 @@ nothing forks a completion subprocess at shell startup.**
   pre-generated (`carapace _carapace zsh` → `carapace-init.zsh`, ~4ms to `source`, verified
   — vs. forking `carapace` itself at every startup). Its init unconditionally `compdef`s
   every command it recognizes, which includes several we already generate natively
-  (gitleaks, lazygit, cargo, hx). `configs/post/zzz_carapace.zsh` snapshots `_comps`
+  (gitleaks, lazygit, cargo). `configs/post/zzz_carapace.zsh` snapshots `_comps`
   before sourcing it and restores every pre-existing mapping after, so carapace only ever
   fills a gap — it can never win over a native completer.
 - `post/completion.zsh` always runs `compinit -C` (never the 24h-gated full rescan) and
