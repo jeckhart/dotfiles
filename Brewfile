@@ -135,8 +135,8 @@ cask 'podman-desktop'             # Container GUI (Podman)
 brew 'neovim'                     # LazyVim-based editor
 brew 'lazygit'                    # Terminal git UI (LazyVim <leader>gg)
 cask 'iterm2'                     # Terminal
-cask 'cursor'                     # AI editor
-cask 'cursor-cli'                 # cursor-agent CLI
+# cask 'cursor'                     # AI editor
+# cask 'cursor-cli'                 # cursor-agent CLI
 cask 'supacode'                   # Terminal coding agents command center
 cask 'obsidian'                   # Markdown notes app; its binary artifact provides the `obsidian` CLI
 
