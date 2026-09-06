@@ -65,6 +65,12 @@ Library/LaunchAgents/local.beads.dolt.plist
 .config/systemd
 {{- end }}
 
+{{ if eq .chezmoi.os "darwin" -}}
+.config/rtk
+{{- else -}}
+Library/Application Support/rtk
+{{- end }}
+
 # Radicle: deployed only when this host is enrolled (radicle-node-<hostname> item
 # exists in 1Password). ~/.bin/rad-bootstrap is deliberately NOT ignored — it is
 # the enrollment tool. Enrollment flow: chezmoi apply → rad-bootstrap → chezmoi apply.

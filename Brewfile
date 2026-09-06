@@ -42,6 +42,7 @@ brew 'duckdb'                     # In-process SQL OLAP DB — backs yazi's duck
 brew 'git-delta'                  # Syntax-highlighting git pager
 brew 'hunk'                       # Review-first terminal diff viewer for agent-authored changesets
 brew 'herdr'                      # Agent multiplexer that lives in your terminal
+brew 'rtk'                        # CLI proxy that filters/compresses command output before it hits LLM context
 brew 'carapace'                   # Fallback zsh completer for CLIs with no native completion (see zsh/configs/post/zzz_carapace.zsh — registered last, never overrides a native completer)
 
 # Peer-to-peer code collaboration (private mesh over Tailscale — see docs/radicle.md)

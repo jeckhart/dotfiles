@@ -1,0 +1,8 @@
+# rtk config (https://www.rtk-ai.app/docs/getting-started/configuration/).
+# Unlisted sections fall back to rtk's built-in defaults.
+# this file duplicated at private_Library/Application Support/rtk/config.toml
+
+[hooks]
+# Commands where rtk's rewriting/filtering gets in the way (interactive rebase,
+# cherry-pick conflict output, exec'ing into a container) — run these unfiltered.
+exclude_commands = ["git rebase", "git cherry-pick", "docker exec"]

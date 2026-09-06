@@ -7,8 +7,10 @@
 # hooks.PreToolUse is a THIRD layering, on top of seed/own: Claude Code's own Supacode
 # integration and `bd prime` already populate that array at runtime, so neither seeding
 # (dead — the key already exists live) nor owning (would delete their entries) works.
-# Instead reconcile exactly one marked entry — drop any prior entry whose command ends in
-# $marker, then append the current one — leaving every other PreToolUse hook untouched.
+# Instead reconcile each chezmoi-managed hook — drop any prior entry whose command ends
+# in $marker, or (for rtk) whose command is a known unmarked raw form that a plain
+# `rtk init -g` would write by hand — then append the current set, leaving every other
+# PreToolUse hook (Supacode, bd prime) untouched.
 # See docs/adr/0005-agent-git-guardrails.md.
 set -eu
 {{ includeTemplate "brew/shellenv" . }}
@@ -29,7 +31,13 @@ desired='{
 }'
 
 marker=' # chezmoi-managed-hook'
-guard_hooks='[{"matcher":"Bash","hooks":[{"type":"command","command":"{{ .chezmoi.homeDir }}/.bin/agent-git-guard.zsh # chezmoi-managed-hook","timeout":10}]}]'
+managed_hooks='[
+	{"matcher":"Bash","hooks":[{"type":"command","command":"{{ .chezmoi.homeDir }}/.bin/agent-git-guard.zsh # chezmoi-managed-hook","timeout":10}]},
+	{"matcher":"Bash","hooks":[{"type":"command","command":"{{ includeTemplate "brew/prefix" . }}/bin/rtk hook claude # chezmoi-managed-hook"}]}
+]'
+# `rtk init -g --agent claude` (run once to bootstrap this) writes this exact command
+# with no marker — reconciled away below so a manual re-run never duplicates it.
+stale_raw='["rtk hook claude"]'
 
 if ! command -v jq >/dev/null 2>&1; then
 	# Fresh bootstrap: Brewfile's jq isn't installed yet. Seed the file whole if absent,
@@ -49,7 +57,7 @@ fi
 
 printf '%s' "$current" | jq \
 	--argjson d "$desired" --argjson owned "$owned" \
-	--arg marker "$marker" --argjson guard "$guard_hooks" '
+	--arg marker "$marker" --argjson managed "$managed_hooks" --argjson stale "$stale_raw" '
 	# Live-key-order-preserving merge: append only the seed keys the live file is
 	# missing, rather than `$d * .` (recursive merge, live wins) — that emitted $d'"'"'s
 	# keys first every time, hoisting tui/theme/model/statusLine to the top of the file
@@ -63,7 +71,13 @@ printf '%s' "$current" | jq \
 	| $enforced
 	| .hooks.PreToolUse = (
 			([($enforced.hooks.PreToolUse // [])[]
-				| select(((.hooks // []) | any((.command // "") | tostring | endswith($marker))) | not)])
-			+ $guard
+				| select(
+					((.hooks // []) | any(
+						( (.command // "") as $c
+							| ($c | endswith($marker)) or (($stale | index($c)) != null) )
+					)) | not
+				)
+			])
+			+ $managed
 		)
 '
