@@ -8,6 +8,9 @@ node = "lts"              # track current LTS — low-maintenance; bump anytime
 python = "3.14.6"         # modern stable; mise auto-installs project-pinned versions on demand
 cargo-binstall = "latest" # installs prebuilt cargo crate binaries instead of building from source
 lazyjournal = "latest"    # TUI for journalctl/docker/file logs (aqua:Lifailon/lazyjournal)
+# codex lives here rather than in the Brewfile because brew ships it only as a macOS cask,
+# which never installs under Linuxbrew; mise's aqua backend has prebuilt binaries for both.
+codex = "latest" # OpenAI coding agent CLI
 
 [settings]
 # Honor existing .python-version / .node-version project files (these are OFF by default in
