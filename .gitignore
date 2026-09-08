@@ -16,3 +16,10 @@
 dot_claude/*
 !dot_claude/executable_statusline-command.sh
 !dot_claude/modify_settings.json.tmpl
+
+# Codex: same deny-by-default as dot_claude above. Everything else under ~/.codex is runtime
+# state (sqlite DBs + WALs, logs, installation_id, an ipc/ socket dir). Managing another file
+# means adding another negation.
+dot_codex/*
+!dot_codex/private_dot_env.tmpl
+!dot_codex/modify_private_config.toml.tmpl

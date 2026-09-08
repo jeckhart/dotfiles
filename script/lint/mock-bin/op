@@ -16,6 +16,8 @@
 #                                                              bare probe-only form)
 #   op item list [--vault <v>] [--format json]           (radicle/config.json's peer walk)
 #   op vault get <v>                                     (radicle/enabled's probe)
+#   op inject                                            (dot_codex/private_dot_env.tmpl's
+#                                                         second resolution pass, stdin->stdout)
 # Anything else exits 1 with a message — a loud failure if a future template starts
 # calling something this mock doesn't know about yet, not a silent wrong-shape pass.
 
@@ -47,8 +49,20 @@ read)
 	*email) printf '%s' "mock@example.invalid" ;;
 	*name) printf '%s' "Mock Name" ;;
 	*config) printf 'Host *\n  IdentityAgent none\n' ;;
+	*env) printf 'MOCK_TOKEN=mock-value\nMOCK_REGION=mock-region\n' ;;
+	*model-provider) printf '%s' "mock-provider" ;;
 	*) printf '%s' "mock-value" ;;
 	esac
+	;;
+
+inject)
+	# Second pass of dot_codex/private_dot_env.tmpl's `op read | op inject` pipeline.
+	# Pass-through is the faithful answer here, not a shortcut: the body the `read` arm
+	# above hands back carries no op:// references, so a real `op inject` would emit it
+	# unchanged too. Deliberately not exiting non-zero on empty stdin the way the real
+	# binary does — nothing in this repo renders an empty body, and mimicking that
+	# would only turn a mock gap into a confusing render failure.
+	cat
 	;;
 
 item)
