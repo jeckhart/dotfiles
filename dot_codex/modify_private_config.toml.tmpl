@@ -1,0 +1,44 @@
+#!/bin/sh
+# ~/.codex/config.toml — merged into, never overwritten. Both Codex engines rewrite this file at
+# runtime ([desktop], [plugins.*], [marketplaces.*]), so chezmoi enforces only the owned key below
+# and passes everything else through untouched.
+# model_provider is what routes Codex at its model backend; without it the CLI and the ChatGPT
+# desktop app both fall back to the OpenAI provider and 401. Its value comes from 1Password for the
+# same reason the ~/.codex/.env body does — it names the backend, and this repo is PUBLIC.
+# Credentials themselves come from ~/.codex/.env. A locked vault fails this entry and leaves the
+# target untouched, so the key survives from the previous apply.
+set -eu
+{{- $ref := printf "op://%s/codex-env/model-provider" .opVault }}
+
+current=$(cat)
+
+# The one top-level key chezmoi owns, re-enforced on every apply.
+key='model_provider'
+provider='{{ onepasswordRead $ref }}'
+
+if [ -z "$provider" ]; then
+  printf '%s' "$current"
+  echo "modify_config.toml: empty provider from 1Password; left ~/.codex/config.toml unchanged" >&2
+  exit 0
+fi
+
+printf '%s' "$current" | awk -v key="$key" -v value="\"$provider\"" '
+  BEGIN { root = 1; done = 0 }
+
+  # A top-level key is only valid above the first table header, so emit it there.
+  root && /^[[:space:]]*\[/ {
+    if (!done) { print key " = " value; print ""; done = 1 }
+    root = 0
+  }
+
+  # Replace an existing root-level assignment instead of duplicating the key.
+  root && $0 ~ "^[[:space:]]*" key "[[:space:]]*=" {
+    if (!done) { print key " = " value; done = 1 }
+    next
+  }
+
+  { print }
+
+  # Reached only when the file has no table header to insert above.
+  END { if (!done) print key " = " value }
+'

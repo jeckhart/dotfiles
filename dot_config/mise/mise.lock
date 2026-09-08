@@ -80,6 +80,45 @@ checksum = "sha256:0134a1c51685661d406d126210391c6c06e577dd65ed433ef2124b339fb9b
 url = "https://github.com/Lifailon/lazyjournal/releases/download/0.8.6/lazyjournal-0.8.6-darwin-amd64"
 url_api = "https://api.github.com/repos/Lifailon/lazyjournal/releases/assets/374974917"
 
+[[tools.codex]]
+version = "0.152.0"
+backend = "aqua:openai/codex"
+
+[tools.codex."platforms.linux-arm64"]
+checksum = "sha256:6ecf2c56646c67f4a9efdfb0447bb6da9b86e0f8db62621d1c20c06025c0e836"
+url = "https://github.com/openai/codex/releases/download/rust-v0.152.0/codex-aarch64-unknown-linux-musl.zst"
+url_api = "https://api.github.com/repos/openai/codex/releases/assets/538792570"
+
+[tools.codex."platforms.linux-arm64-musl"]
+checksum = "sha256:6ecf2c56646c67f4a9efdfb0447bb6da9b86e0f8db62621d1c20c06025c0e836"
+url = "https://github.com/openai/codex/releases/download/rust-v0.152.0/codex-aarch64-unknown-linux-musl.zst"
+url_api = "https://api.github.com/repos/openai/codex/releases/assets/538792570"
+
+[tools.codex."platforms.linux-x64"]
+checksum = "sha256:4fdbcd5f20ee8dd4aeb31b6f70f414237452fa7c2ba383c846ecb5ff011671aa"
+url = "https://github.com/openai/codex/releases/download/rust-v0.152.0/codex-x86_64-unknown-linux-musl.zst"
+url_api = "https://api.github.com/repos/openai/codex/releases/assets/538792462"
+
+[tools.codex."platforms.linux-x64-musl"]
+checksum = "sha256:4fdbcd5f20ee8dd4aeb31b6f70f414237452fa7c2ba383c846ecb5ff011671aa"
+url = "https://github.com/openai/codex/releases/download/rust-v0.152.0/codex-x86_64-unknown-linux-musl.zst"
+url_api = "https://api.github.com/repos/openai/codex/releases/assets/538792462"
+
+[tools.codex."platforms.macos-arm64"]
+checksum = "sha256:e9318c386642a6457ee4e7952370e85decdd17b2dedd020152a572203c189ee7"
+url = "https://github.com/openai/codex/releases/download/rust-v0.152.0/codex-aarch64-apple-darwin.zst"
+url_api = "https://api.github.com/repos/openai/codex/releases/assets/538792589"
+
+[tools.codex."platforms.macos-x64"]
+checksum = "sha256:5ebbe0ee6c8d9c8edba5ba0becf97958b5881b5cd8df59b81fcdd7f68929187a"
+url = "https://github.com/openai/codex/releases/download/rust-v0.152.0/codex-x86_64-apple-darwin.zst"
+url_api = "https://api.github.com/repos/openai/codex/releases/assets/538792517"
+
+[tools.codex."platforms.windows-x64"]
+checksum = "sha256:635e0963c6bcf56a91026bb040eb82fcd6fcc161f4211dd94796b48d186ef1f2"
+url = "https://github.com/openai/codex/releases/download/rust-v0.152.0/codex-x86_64-pc-windows-msvc.exe.zst"
+url_api = "https://api.github.com/repos/openai/codex/releases/assets/538792473"
+
 [[tools.node]]
 version = "24.18.0"
 backend = "core:node"

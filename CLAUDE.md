@@ -113,6 +113,7 @@ app); `chezmoi.toml` sets `[onepassword] command = "op"`, `prompt = false`.
 | Neovim   | `dot_config/nvim/`             | LazyVim (lang extras: rust/python/ts/go)       |
 | Claude Code | `dot_claude/`               | `statusLine` owned, theme/model/tui seeded — ADR-0003 |
 | Agent git guard | `dot_bin/executable_agent-git-guard.zsh` | `PreToolUse`/`beforeShellExecution` deny for blind staging (Claude/Cursor/Codex) — ADR-0005 |
+| Codex    | `dot_codex/`                   | CLI via mise; `.env` + one owned `config.toml` key from 1Password; rest is runtime state |
 
 ### Agent Git Guardrails
 
