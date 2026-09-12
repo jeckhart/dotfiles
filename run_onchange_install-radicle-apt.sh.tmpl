@@ -11,8 +11,8 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSLo "$tmp/radicle-archive-keyring.deb" https://radicle.dev/apt/radicle-archive-keyring.deb
 sudo apt-get install -y "$tmp/radicle-archive-keyring.deb"
-echo "deb [signed-by=/usr/share/radicle/radicle-archive-keyring.asc] https://radicle.dev/apt release main" \
-	| sudo tee /etc/apt/sources.list.d/radicle.list >/dev/null
+echo "deb [signed-by=/usr/share/radicle/radicle-archive-keyring.asc] https://radicle.dev/apt release main" |
+	sudo tee /etc/apt/sources.list.d/radicle.list >/dev/null
 sudo apt-get update
 sudo apt-get install -y radicle
 {{ else -}}

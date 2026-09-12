@@ -85,5 +85,5 @@ elif [ "$listeners" -gt 1 ]; then
 	echo "beads-dolt: check 'systemctl --user list-units | grep dolt' for a rogue/unmanaged unit" >&2
 fi
 {{ else -}}
-exit 0  # beads shared Dolt server only has a supervisor on macOS (launchd) and WSL2 (systemd)
+exit 0 # beads shared Dolt server only has a supervisor on macOS (launchd) and WSL2 (systemd)
 {{ end -}}

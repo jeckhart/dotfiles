@@ -17,9 +17,9 @@ key='model_provider'
 provider='{{ onepasswordRead $ref }}'
 
 if [ -z "$provider" ]; then
-  printf '%s' "$current"
-  echo "modify_config.toml: empty provider from 1Password; left ~/.codex/config.toml unchanged" >&2
-  exit 0
+	printf '%s' "$current"
+	echo "modify_config.toml: empty provider from 1Password; left ~/.codex/config.toml unchanged" >&2
+	exit 0
 fi
 
 printf '%s' "$current" | awk -v key="$key" -v value="\"$provider\"" '

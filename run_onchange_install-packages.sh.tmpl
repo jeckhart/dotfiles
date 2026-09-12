@@ -40,4 +40,4 @@ fi
 if [ -L /usr/local/bin/obsidian ] || [ -e /usr/local/bin/obsidian ]; then
 	echo "install-packages: /usr/local/bin/obsidian is a leftover from Obsidian's in-app CLI installer — the cask provides $(brew --prefix)/bin/obsidian; remove it with 'sudo rm /usr/local/bin/obsidian'" >&2
 fi
-{{- end }}
+{{ end -}}
