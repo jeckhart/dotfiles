@@ -8,10 +8,15 @@
 # integration and `bd prime` already populate that array at runtime, so neither seeding
 # (dead — the key already exists live) nor owning (would delete their entries) works.
 # Instead reconcile each chezmoi-managed hook — drop any prior entry whose command ends
-# in $marker, or (for rtk) whose command is a known unmarked raw form that a plain
-# `rtk init -g` would write by hand — then append the current set, leaving every other
-# PreToolUse hook (Supacode, bd prime) untouched.
-# See docs/adr/0005-agent-git-guardrails.md.
+# in $marker, or (for rtk/caveman) whose command is a known unmarked raw form that a
+# plain `rtk init -g` / `caveman hooks install` would write by hand — then append the
+# current set, leaving every other PreToolUse hook (Supacode, bd prime) untouched.
+# See docs/adr/0005-agent-git-guardrails.md and docs/adr/0008-hook-rewrites-and-worktree-isolation.md.
+#
+# Both rtk's and caveman's rewrite hooks are wired through claude-hook-passthrough.zsh:
+# Claude Code's worktree-isolation guard refuses any git command wrapped as an operand
+# of a launcher it doesn't recognize, so `rtk git status` / `caveman shrink -- git
+# status` make git unrunnable in a worktree-isolated session. See ADR-0008.
 set -eu
 {{ includeTemplate "brew/shellenv" . }}
 current=$(cat)
@@ -33,11 +38,16 @@ desired='{
 marker=' # chezmoi-managed-hook'
 managed_hooks='[
 	{"matcher":"Bash","hooks":[{"type":"command","command":"{{ .chezmoi.homeDir }}/.bin/agent-git-guard.zsh # chezmoi-managed-hook","timeout":10}]},
-	{"matcher":"Bash","hooks":[{"type":"command","command":"{{ includeTemplate "brew/prefix" . }}/bin/rtk hook claude # chezmoi-managed-hook"}]}
+	{"matcher":"Bash","hooks":[{"type":"command","command":"{{ .chezmoi.homeDir }}/.bin/claude-hook-passthrough.zsh --worktree-only -- {{ includeTemplate "brew/prefix" . }}/bin/rtk hook claude # chezmoi-managed-hook"}]},
+	{"hooks":[{"type":"command","command":"{{ .chezmoi.homeDir }}/.bin/claude-hook-passthrough.zsh -- {{ includeTemplate "brew/prefix" . }}/bin/caveman shrink-hook # chezmoi-managed-hook"}]}
 ]'
 # `rtk init -g --agent claude` (run once to bootstrap this) writes this exact command
 # with no marker — reconciled away below so a manual re-run never duplicates it.
 stale_raw='["rtk hook claude"]'
+# `caveman hooks install claude` writes `<resolved caveman bin> shrink-hook` (any path,
+# always ending in this exact suffix) with no marker — matched by suffix below, since
+# the resolved path varies by machine, unlike rtk's PATH-relative form above.
+stale_shrink_hook_suffix=' shrink-hook'
 
 if ! command -v jq >/dev/null 2>&1; then
 	# Fresh bootstrap: Brewfile's jq isn't installed yet. Seed the file whole if absent,
@@ -57,7 +67,8 @@ fi
 
 printf '%s' "$current" | jq \
 	--argjson d "$desired" --argjson owned "$owned" \
-	--arg marker "$marker" --argjson managed "$managed_hooks" --argjson stale "$stale_raw" '
+	--arg marker "$marker" --argjson managed "$managed_hooks" --argjson stale "$stale_raw" \
+	--arg shrink_suffix "$stale_shrink_hook_suffix" '
 	# Live-key-order-preserving merge: append only the seed keys the live file is
 	# missing, rather than `$d * .` (recursive merge, live wins) — that emitted $d'"'"'s
 	# keys first every time, hoisting tui/theme/model/statusLine to the top of the file
@@ -74,7 +85,9 @@ printf '%s' "$current" | jq \
 				| select(
 					((.hooks // []) | any(
 						( (.command // "") as $c
-							| ($c | endswith($marker)) or (($stale | index($c)) != null) )
+							| ($c | endswith($marker))
+								or (($stale | index($c)) != null)
+								or ($c | endswith($shrink_suffix)) )
 					)) | not
 				)
 			])

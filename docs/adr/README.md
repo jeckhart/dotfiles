@@ -12,6 +12,7 @@ was chosen, what alternatives lost, what would have to change to revisit it.
 | [0005](0005-agent-git-guardrails.md) | Block blind git staging via agent hooks, not a git hook | Accepted |
 | [0006](0006-hk-owns-git-hooks.md) | hk is the sole owner of `.git/hooks`; `.beads/hooks/*` stays inert | Accepted |
 | [0007](0007-machine-identifiers-threat-model.md) | `machine-identifiers` — what a public dotfiles repo can leak, and what it can't catch | Accepted |
+| [0008](0008-hook-rewrites-and-worktree-isolation.md) | A passthrough shim keeps rtk/caveman's rewrite hooks from wrapping git | Accepted |
 
 ## Format
 

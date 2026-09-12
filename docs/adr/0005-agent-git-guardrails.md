@@ -161,6 +161,11 @@ Code rewriting the file at runtime, survives the guard script's path changing, a
 touches the Supacode/`bd prime` entries. `~/.cursor/hooks.json` and `~/.codex/hooks.json`
 have no such competing runtime writer, so both are plain chezmoi-owned templates.
 
+The same reconciliation now manages two more `PreToolUse` entries — rtk's and caveman's
+command-rewrite hooks, each wrapped in a passthrough shim so their rewrite can't wrap a
+git invocation the worktree-isolation guard would then refuse. See
+[ADR-0008](0008-hook-rewrites-and-worktree-isolation.md).
+
 ## Consequences
 
 - An agent using any of the three wired agents gets a refusal (not a silent failure) that
