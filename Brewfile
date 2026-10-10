@@ -29,6 +29,7 @@ brew 'entr'                       # Run a command when watched files change
 brew 'qsv'                        # Fast CSV toolkit
 brew 'csvlens'                    # CSV pager/viewer
 brew 'pandoc'                     # Universal document converter
+brew 'ffmpeg'                     # Audio/video converter, recorder and streamer
 
 # Modern shell UX (framework-free zsh stack — see dot_config/zsh + sheldon)
 brew 'sheldon'                    # zsh plugin manager (TOML, replaces antigen)
