@@ -1,0 +1,19 @@
+#!/bin/sh
+# Installs (or, when .playwrightSkills is false, removes) playwright-cli's global Claude
+# Code skill at ~/.claude/skills/playwright-cli. Re-runs when the toggle or mise.lock
+# changes, so the skill tracks the CLI version. Sorts after install-mise-tools.
+#
+# playwrightSkills: {{ .playwrightSkills }}
+# mise lock hash: {{ include "dot_config/mise/mise.lock" | sha256sum }}
+set -eu
+{{ includeTemplate "brew/shellenv" . }}
+{{ if .playwrightSkills -}}
+if ! command -v mise >/dev/null 2>&1; then
+	echo "install-playwright-skills: mise not found, skipping" >&2
+	exit 0
+fi
+cd "$HOME"
+mise exec -- playwright-cli install --skills=claude --global
+{{- else -}}
+rm -rf "$HOME/.claude/skills/playwright-cli"
+{{- end }}

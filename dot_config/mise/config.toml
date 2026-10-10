@@ -10,7 +10,8 @@ cargo-binstall = "latest" # installs prebuilt cargo crate binaries instead of bu
 lazyjournal = "latest"    # TUI for journalctl/docker/file logs (aqua:Lifailon/lazyjournal)
 # codex lives here rather than in the Brewfile because brew ships it only as a macOS cask,
 # which never installs under Linuxbrew; mise's aqua backend has prebuilt binaries for both.
-codex = "latest" # OpenAI coding agent CLI
+codex = "latest"                 # OpenAI coding agent CLI
+"npm:@playwright/cli" = "latest" # playwright-cli: browser automation for coding agents (npm backend)
 
 [settings]
 # Honor existing .python-version / .node-version project files (these are OFF by default in
