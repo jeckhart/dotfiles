@@ -1,0 +1,5 @@
+# Repo-wide template defaults. A machine overrides any key under [data] in
+# ~/.config/chezmoi/chezmoi.toml (config data takes precedence over this file).
+
+# Install playwright-cli's Claude Code skill into ~/.claude/skills. false removes it.
+playwrightSkills = true

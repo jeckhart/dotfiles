@@ -151,6 +151,10 @@ url = "https://nodejs.org/dist/v24.18.0/node-v24.18.0-darwin-x64.tar.gz"
 checksum = "sha256:0ae68406b42d7725661da979b1403ec9926da205c6770827f33aac9d8f26e821"
 url = "https://nodejs.org/dist/v24.18.0/node-v24.18.0-win-x64.zip"
 
+[[tools."npm:@playwright/cli"]]
+version = "0.1.22"
+backend = "npm:@playwright/cli"
+
 [[tools.python]]
 version = "3.14.6"
 backend = "core:python"
