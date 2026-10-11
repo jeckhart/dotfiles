@@ -25,6 +25,8 @@ brew 'wget'                       # Simple HTTP client (prefer curl when possibl
 brew 'bat'                        # cat with syntax highlighting (also feeds delta + yazi preview)
 brew 'bat-extras'                 # batdiff, batman, batgrep, batwatch
 brew 'dust'                       # du with a usable output
+brew 'duf'                        # df with a readable per-mount table
+brew 'jdupes'                     # Duplicate file finder (C, no runtime deps)
 brew 'entr'                       # Run a command when watched files change
 brew 'qsv'                        # Fast CSV toolkit
 brew 'csvlens'                    # CSV pager/viewer
