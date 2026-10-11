@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "type": "command",
+        "command": "{{ .chezmoi.homeDir }}/.bin/agent-git-guard.zsh",
+        "timeout": 10
+      }
+    ]
+  }
+}

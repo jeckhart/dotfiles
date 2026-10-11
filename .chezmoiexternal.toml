@@ -1,0 +1,8 @@
+# External dependencies chezmoi fetches directly, rather than a run_once_ script that
+# can drift from its own pin.
+[".config/tmux/plugins/tpm"]
+type = "archive"
+url = "https://github.com/tmux-plugins/tpm/archive/refs/tags/v3.1.0.tar.gz"
+exact = true
+stripComponents = 1
+refreshPeriod = "168h"

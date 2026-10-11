@@ -9,7 +9,7 @@
 set -eu
 {{ includeTemplate "brew/shellenv" . }}
 if ! command -v ya >/dev/null 2>&1; then
-  echo "install-yazi-packages: ya not found, skipping 'ya pkg install' — flavors/plugins will be missing" >&2
-  exit 0
+	echo "install-yazi-packages: ya not found, skipping 'ya pkg install' — flavors/plugins will be missing" >&2
+	exit 0
 fi
 ya pkg install

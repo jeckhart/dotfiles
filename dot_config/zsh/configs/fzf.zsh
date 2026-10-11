@@ -15,8 +15,13 @@ export FZF_CTRL_T_OPTS="--preview '$_fzf_preview'"
 export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always --level=2 {} | head -200'"
 unset _fzf_preview
 
-# Catppuccin Macchiato palette — APPEND so we don't clobber the layout/preview opts above.
-export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS \
+# Catppuccin Macchiato palette. FZF_CTRL_T_OPTS/FZF_ALT_C_OPTS above are separate
+# variables, so this doesn't need to (and must not) build on FZF_DEFAULT_OPTS's own
+# prior value — this is the first and only assignment in this file. Appending to an
+# already-exported var here would re-concatenate the same block onto itself every time
+# a nested zsh re-sources configs/ (tmux panes, `zsh` inside `zsh`, …), growing without
+# bound.
+export FZF_DEFAULT_OPTS="\
   --color=bg+:#363a4f,bg:#24273a,spinner:#f4dbd6,hl:#ed8796 \
   --color=fg:#cad3f5,header:#ed8796,info:#c6a0f6,pointer:#f4dbd6 \
   --color=marker:#b7bdf8,fg+:#cad3f5,prompt:#c6a0f6,hl+:#ed8796 \

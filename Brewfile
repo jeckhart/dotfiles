@@ -31,6 +31,7 @@ brew 'entr'                       # Run a command when watched files change
 brew 'qsv'                        # Fast CSV toolkit
 brew 'csvlens'                    # CSV pager/viewer
 brew 'pandoc'                     # Universal document converter
+brew 'ffmpeg'                     # Audio/video converter, recorder and streamer
 
 # Modern shell UX (framework-free zsh stack — see dot_config/zsh + sheldon)
 brew 'sheldon'                    # zsh plugin manager (TOML, replaces antigen)
@@ -44,6 +45,8 @@ brew 'duckdb'                     # In-process SQL OLAP DB — backs yazi's duck
 brew 'git-delta'                  # Syntax-highlighting git pager
 brew 'hunk'                       # Review-first terminal diff viewer for agent-authored changesets
 brew 'herdr'                      # Agent multiplexer that lives in your terminal
+brew 'rtk'                        # CLI proxy that filters/compresses command output before it hits LLM context
+brew 'carapace'                   # Fallback zsh completer for CLIs with no native completion (see zsh/configs/post/zzz_carapace.zsh — registered last, never overrides a native completer)
 
 # Peer-to-peer code collaboration (private mesh over Tailscale — see docs/radicle.md)
 brew 'radicle' if OS.mac?         # rad CLI + radicle-node + git-remote-rad (WSL2: signed apt repo instead, see run_onchange_install-radicle-apt)
@@ -85,10 +88,15 @@ brew 'mise'                       # Fast polyglot runtime/version manager (Rust)
 brew 'pnpm'                       # Fast npm alternative (standalone; not managed by mise)
 brew 'cloudflare-wrangler'        # Cloudflare Workers CLI
 
-# Java / JVM — commented out until JVM work resumes (java currently unprovisioned).
-# Re-add together with a JDK (e.g. brew 'openjdk') when needed.
+# Java / JVM — gradle/maven stay commented out until JVM work resumes (java
+# currently unprovisioned). Re-add together with a JDK (e.g. brew 'openjdk').
 # brew 'gradle'                   # JVM build tool (Android, Jenkins tooling)
 # brew 'maven'                    # JVM build/dependency tool
+# Kotlin language server for editors and coding agents. Bundles its own JetBrains
+# Runtime, so it needs no JDK. Ungated: the cask carries macOS and Linux artifacts
+# alike. Prefer it over the jetbrains/utils formula, which is depends_on :macos and
+# would need a third-party tap plus a trust grant.
+cask 'kotlin-lsp'                 # Kotlin LSP for .kt/.kts (kotlin-lsp@claude-plugins-official)
 
 # Python (runtimes via mise above; uv for venvs/packaging)
 brew 'uv'                         # Fast Python package + venv manager (replaces pyenv-virtualenv)
@@ -107,6 +115,7 @@ brew 'cargo-nextest'
 
 # Embedded / ESP32 (toolchain env: configs/export-esp.zsh; serial: dot_bin/monitor-serial.sh)
 brew 'espflash'                   # Flash + monitor ESP32 boards over serial
+brew 'tio'                        # Serial device terminal — dot_bin/monitor-serial.sh's only dependency
 
 # DevOps
 brew 'awscli' unless system "[ -e /usr/local/bin/aws ]" # AWS CLI
@@ -122,15 +131,17 @@ cask '1password-cli' unless system "grep -qi microsoft /proc/version 2>/dev/null
 cask 'secretive'                  # SSH keys in the Secure Enclave
 
 # Containers
+brew 'docker-credential-helper' if OS.mac?  # docker-credential-osxkeychain for DOCKER_CONFIG/config.json credsStore
 cask 'podman-desktop'             # Container GUI (Podman)
 
 # Editors
 brew 'neovim'                     # LazyVim-based editor
 brew 'lazygit'                    # Terminal git UI (LazyVim <leader>gg)
 cask 'iterm2'                     # Terminal
-cask 'cursor'                     # AI editor
-cask 'cursor-cli'                 # cursor-agent CLI
+# cask 'cursor'                     # AI editor
+# cask 'cursor-cli'                 # cursor-agent CLI
 cask 'supacode'                   # Terminal coding agents command center
+cask 'obsidian'                   # Markdown notes app; its binary artifact provides the `obsidian` CLI
 
 # Fonts
 cask 'font-meslo-lg-nerd-font'    # Nerd font used by starship / powerlevel10k

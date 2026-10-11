@@ -8,42 +8,42 @@ set -eu
 if ! command -v apt-get >/dev/null 2>&1; then exit 0; fi
 
 if [ ! -x /usr/bin/zsh ]; then
-  echo "Installing zsh from apt..."
-  sudo apt-get install -y zsh
+	echo "Installing zsh from apt..."
+	sudo apt-get install -y zsh
 fi
 
 if ! grep -qx /usr/bin/zsh /etc/shells 2>/dev/null; then
-  echo "Adding /usr/bin/zsh to /etc/shells"
-  echo /usr/bin/zsh | sudo tee -a /etc/shells >/dev/null
+	echo "Adding /usr/bin/zsh to /etc/shells"
+	echo /usr/bin/zsh | sudo tee -a /etc/shells >/dev/null
 fi
 
 current_shell="$(getent passwd "$USER" | cut -d: -f7)"
 if [ "$current_shell" != "/usr/bin/zsh" ]; then
-  echo "Changing login shell to /usr/bin/zsh"
-  sudo chsh -s /usr/bin/zsh "$USER"
+	echo "Changing login shell to /usr/bin/zsh"
+	sudo chsh -s /usr/bin/zsh "$USER"
 fi
 
 # Stock WSL2 images build only C.UTF-8; configs/locale.zsh needs en_US.UTF-8 or every
 # bash subshell warns on startup.
 if [ ! -x /usr/sbin/locale-gen ]; then
-  echo "Installing locales package..."
-  sudo apt-get install -y locales
+	echo "Installing locales package..."
+	sudo apt-get install -y locales
 fi
 
 if [ -f /etc/locale.gen ]; then
-  if ! grep -qE '^[[:space:]]*en_US\.UTF-8[[:space:]]+UTF-8[[:space:]]*$' /etc/locale.gen; then
-    if grep -qE '^#[[:space:]]*en_US\.UTF-8[[:space:]]+UTF-8[[:space:]]*$' /etc/locale.gen; then
-      sudo sed -i 's/^#[[:space:]]*\(en_US\.UTF-8[[:space:]]\+UTF-8\)[[:space:]]*$/\1/' /etc/locale.gen
-    else
-      echo 'en_US.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen >/dev/null
-    fi
-  fi
-  # Argless form works on both Ubuntu and Debian; Debian's locale-gen, unlike Ubuntu's,
-  # doesn't accept a locale argument. --keep-existing avoids a full rebuild on re-runs.
-  echo "Generating en_US.UTF-8 locale..."
-  sudo locale-gen --keep-existing
-  sudo update-locale LANG=en_US.UTF-8
+	if ! grep -qE '^[[:space:]]*en_US\.UTF-8[[:space:]]+UTF-8[[:space:]]*$' /etc/locale.gen; then
+		if grep -qE '^#[[:space:]]*en_US\.UTF-8[[:space:]]+UTF-8[[:space:]]*$' /etc/locale.gen; then
+			sudo sed -i 's/^#[[:space:]]*\(en_US\.UTF-8[[:space:]]\+UTF-8\)[[:space:]]*$/\1/' /etc/locale.gen
+		else
+			echo 'en_US.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen >/dev/null
+		fi
+	fi
+	# Argless form works on both Ubuntu and Debian; Debian's locale-gen, unlike Ubuntu's,
+	# doesn't accept a locale argument. --keep-existing avoids a full rebuild on re-runs.
+	echo "Generating en_US.UTF-8 locale..."
+	sudo locale-gen --keep-existing
+	sudo update-locale LANG=en_US.UTF-8
 fi
 {{ else -}}
-exit 0  # darwin: system zsh; non-WSL2 linux: out of scope
+exit 0 # darwin: system zsh; non-WSL2 linux: out of scope
 {{ end -}}

@@ -8,19 +8,19 @@ set -e
 # On nix-darwin machines the work layer owns this file
 # (security.pam.services.sudo_local.{touchIdAuth,reattach}) — leave it alone.
 if [ -e /run/current-system/darwin-version ]; then
-  exit 0
+	exit 0
 fi
 
 reattach_mod="{{ includeTemplate "brew/prefix" . }}/lib/pam/pam_reattach.so"
 
 want="auth       sufficient     pam_tid.so"
 if [ -f "$reattach_mod" ]; then
-  want="auth       optional       $reattach_mod ignore_ssh
+	want="auth       optional       $reattach_mod ignore_ssh
 $want"
 fi
 
 if [ "$(cat /etc/pam.d/sudo_local 2>/dev/null)" = "$want" ]; then
-  exit 0
+	exit 0
 fi
 
 echo "Configuring Touch ID for sudo (/etc/pam.d/sudo_local) — admin password required:"

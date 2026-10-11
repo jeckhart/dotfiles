@@ -3,3 +3,33 @@
 # Prune this list once all machines have applied the removal.
 # (.config/direnv/direnvrc was listed here during the pyenv teardown; it is
 # now a managed file again — see dot_config/direnv/direnvrc.)
+
+# iTerm2 shell integration: fully inert since the starship migration (starship's
+# own precmd overwrites PROMPT after this file's OSC-133 prompt marks are set) and
+# vestigial otherwise — see the repo review that retired it.
+.config/zsh/configs/iterm2_shell_integration.zsh
+
+# Dead: appended ~/.local/bin to PATH, always discarded by post/path.zsh's
+# `export -U PATH` (which runs later and already prepends the same dir).
+.config/zsh/configs/local.zsh
+
+# Vendored LazyVim starter-template boilerplate, deployed verbatim and never
+# customized (example.lua is the inert stock example spec; LICENSE/README.md are
+# the starter template's own, not this repo's).
+.config/nvim/lua/plugins/example.lua
+.config/nvim/LICENSE
+.config/nvim/README.md
+
+# thoughtbot-era residue with no corresponding tooling installed anywhere in this
+# repo: an emptied-out `g` git wrapper function (its completion still claimed
+# `compdef g=git` for a command that no longer exists) and Ruby/RSpec/GitLab-`lab`
+# completions with no Ruby or `lab` tooling configured.
+.config/zsh/functions/g
+.config/zsh/completion/_g
+.config/zsh/completion/_bundler
+.config/zsh/completion/_rspec
+.config/zsh/completion/_lab
+
+# Helix: configured and documented but never installed by Brewfile/mise anywhere in
+# this repo; nvim is the actual configured/installed editor.
+.config/helix/config.toml

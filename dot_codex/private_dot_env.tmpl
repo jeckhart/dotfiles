@@ -1,0 +1,12 @@
+{{- /* Codex environment file. The body lives in 1Password (item codex-env, field env)
+       as an `op inject` template, so neither the variable names nor their values appear
+       in this PUBLIC repo. Two-level resolution: `op read` fetches the body, `op inject`
+       resolves the op:// references inside it.
+       `op inject` exits non-zero on empty or unparsable input and is last in the
+       pipeline, so a locked vault fails the apply instead of truncating the target.
+       Shells out directly rather than using onepasswordRead because chezmoi has no
+       template function for the inject pass. */ -}}
+{{- $op := "op" -}}
+{{- if .isWSL2 }}{{ $op = "op.exe" }}{{ end -}}
+{{- $ref := printf "op://%s/codex-env/env" .opVault | squote -}}
+{{ output "sh" "-c" (printf "%s read --no-newline %s | %s inject" $op $ref $op) | replace "\r" "" | trim }}

@@ -4,11 +4,6 @@
   signingkey = {{ onepasswordRead (printf "op://%s/git-signing-personal/public key" .opVault) | trim }}
 [github]
   user = jeckhart
-[pull]
-  ff = only
-  rebase = false
-[push]
-  default = simple
 [credential]
   helper = {{ if eq .chezmoi.os "darwin" }}osxkeychain{{ else }}store{{ end }}
 [commit]

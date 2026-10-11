@@ -5,5 +5,5 @@
 # non-zero for the legitimate transient states ("starting"/"degraded"), which would read
 # as "unreachable" when the bus is actually fine.
 systemd_user_bus_ok() {
-  systemctl --user show --property=Version >/dev/null 2>&1
+	systemctl --user show --property=Version >/dev/null 2>&1
 }

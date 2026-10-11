@@ -1,0 +1,5 @@
+# ~/.codex/config.toml — Codex owns this file at runtime; chezmoi only seeds it once
+# (create_ never overwrites an existing file). If it already carries other settings by
+# the time this repo starts managing it, add [features] hooks = true by hand.
+[features]
+hooks = true
