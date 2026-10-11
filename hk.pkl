@@ -116,7 +116,36 @@ local fastSteps: Mapping<String, Step> = new {
   ["gitleaks"] = (Builtins.gitleaks) { tests = noTests; exclude = vendored }
   ["actionlint"] = (Builtins.actionlint) { tests = noTests }
   ["zizmor"] = (Builtins.zizmor) { tests = noTests }
-  ["pinact"] = (Builtins.pinact) { tests = noTests }
+  // `--verify` checks each pin's version comment through the GitHub API, which
+  // allows 60 unauthenticated calls an hour per IP. The token is CI's
+  // GITHUB_TOKEN, else the local `gh` login. With neither, the step drops to
+  // `--no-api`, which still rejects a pin that is not a full SHA but cannot
+  // rewrite one, so `fix` only checks there. pinact takes `--no-api` with
+  // `--fix=false`, never with its `--check` alias. The token reaches only the
+  // pinact process and is never printed.
+  ["pinact"] = (Builtins.pinact) {
+    tests = noTests
+    check_diff =
+      #"""
+      t=${GITHUB_TOKEN:-$(gh auth token 2>/dev/null || true)}
+      if [ -n "$t" ]; then
+        GITHUB_TOKEN=$t pinact run --check --verify {{files}}
+      else
+        echo "pinact: no GitHub token; checking SHA pins without --verify" >&2
+        pinact run --fix=false --no-api {{files}}
+      fi
+      """#
+    fix =
+      #"""
+      t=${GITHUB_TOKEN:-$(gh auth token 2>/dev/null || true)}
+      if [ -n "$t" ]; then
+        GITHUB_TOKEN=$t pinact run --verify {{files}}
+      else
+        echo "pinact: no GitHub token; checking SHA pins without --verify" >&2
+        pinact run --fix=false --no-api {{files}}
+      fi
+      """#
+  }
 
   // zsh: no reliable formatter exists; syntax-check only, via zsh's own `zsh -n` (one
   // file per invocation — it takes a single script argument). Widened beyond
