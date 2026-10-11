@@ -1,7 +1,7 @@
 #!/bin/sh
 # ~/.codex/config.toml — merged into, never overwritten. Both Codex engines rewrite this file at
-# runtime ([desktop], [plugins.*], [marketplaces.*]), so chezmoi enforces only the owned key below
-# and passes everything else through untouched.
+# runtime ([desktop], [plugins.*], [marketplaces.*]), so chezmoi enforces only the owned keys below
+# (model_provider, [features] hooks) and passes everything else through untouched.
 # model_provider is what routes Codex at its model backend; without it the CLI and the ChatGPT
 # desktop app both fall back to the OpenAI provider and 401. Its value comes from 1Password for the
 # same reason the ~/.codex/.env body does — it names the backend, and this repo is PUBLIC.
@@ -12,7 +12,8 @@ set -eu
 
 current=$(cat)
 
-# The one top-level key chezmoi owns, re-enforced on every apply.
+# The top-level key chezmoi owns, re-enforced on every apply; [features] hooks = true is enforced
+# by the second awk pass below.
 key='model_provider'
 provider='{{ onepasswordRead $ref }}'
 
@@ -41,4 +42,13 @@ printf '%s' "$current" | awk -v key="$key" -v value="\"$provider\"" '
 
   # Reached only when the file has no table header to insert above.
   END { if (!done) print key " = " value }
+' |
+	awk '
+  # Hooks drive the agent-git-guard PreToolUse deny; write the key straight under [features],
+  # dropping any existing assignment so a runtime edit cannot leave two.
+  /^[[:space:]]*\[features\][[:space:]]*(#.*)?$/ { print; print "hooks = true"; seen = 1; in_features = 1; next }
+  /^[[:space:]]*\[/ { in_features = 0 }
+  in_features && /^[[:space:]]*hooks[[:space:]]*=/ { next }
+  { print }
+  END { if (!seen) { print ""; print "[features]"; print "hooks = true" } }
 '
