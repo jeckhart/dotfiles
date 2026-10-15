@@ -25,3 +25,6 @@ dot_claude/*
 dot_codex/*
 !dot_codex/private_dot_env.tmpl
 !dot_codex/modify_private_config.toml.tmpl
+
+# Beads / Dolt files (added by bd init)
+*.gate.lock*

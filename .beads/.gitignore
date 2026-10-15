@@ -82,3 +82,7 @@ interactions.jsonl
 
 # Added by bd (missing required patterns)
 last_pull
+
+# Added by bd (missing required patterns)
+*.gate.lock*
+dolt-server-config.yaml
