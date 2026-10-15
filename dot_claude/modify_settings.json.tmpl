@@ -4,19 +4,19 @@
 # everything else in $desired is a seed, written only when absent. Layering: seeds < live < owned.
 # To manage another key, see docs/adr/0003-claude-code-settings-merge.md.
 #
-# hooks.PreToolUse is a THIRD layering, on top of seed/own: Claude Code's own Supacode
-# integration and `bd prime` already populate that array at runtime, so neither seeding
-# (dead — the key already exists live) nor owning (would delete their entries) works.
-# Instead reconcile each chezmoi-managed hook — drop any prior entry whose command ends
-# in $marker, or (for rtk/caveman) whose command is a known unmarked raw form that a
-# plain `rtk init -g` / `caveman hooks install` would write by hand — then append the
-# current set, leaving every other PreToolUse hook (Supacode, bd prime) untouched.
+# Each hooks.<event> array named in $managed_hooks is a THIRD layering, on top of
+# seed/own: other tools (`bd prime`, caveman) populate those arrays at runtime, so neither
+# seeding (dead — the key already exists live) nor owning (would delete their entries)
+# works. Instead reconcile each chezmoi-managed hook — drop any prior entry whose command
+# ends in $marker, or whose command is a known unmarked raw form that a plain
+# `rtk init -g` / `caveman hooks install` writes by hand — then append the current set,
+# leaving every other hook in that array untouched. rtk is not wired, so its raw form is
+# only ever removed.
 # See docs/adr/0005-agent-git-guardrails.md and docs/adr/0008-hook-rewrites-and-worktree-isolation.md.
 #
-# Both rtk's and caveman's rewrite hooks are wired through claude-hook-passthrough.zsh:
-# Claude Code's worktree-isolation guard refuses any git command wrapped as an operand
-# of a launcher it doesn't recognize, so `rtk git status` / `caveman shrink -- git
-# status` make git unrunnable in a worktree-isolated session. See ADR-0008.
+# Every managed hook runs under claude-hook-timer.zsh, which appends one line per run to
+# ~/.local/state/claude-hooks/timing.log. The UserPromptSubmit entry is a sentinel with
+# no command: it records spawn latency and load average when plugin hooks time out.
 set -eu
 {{ includeTemplate "brew/shellenv" . }}
 current=$(cat)
@@ -36,13 +36,16 @@ desired='{
 }'
 
 marker=' # chezmoi-managed-hook'
-managed_hooks='[
-	{"matcher":"Bash","hooks":[{"type":"command","command":"{{ .chezmoi.homeDir }}/.bin/agent-git-guard.zsh # chezmoi-managed-hook","timeout":10}]},
-	{"matcher":"Bash","hooks":[{"type":"command","command":"{{ .chezmoi.homeDir }}/.bin/claude-hook-passthrough.zsh --worktree-only -- {{ includeTemplate "brew/prefix" . }}/bin/rtk hook claude # chezmoi-managed-hook"}]},
-	{"hooks":[{"type":"command","command":"{{ .chezmoi.homeDir }}/.bin/claude-hook-passthrough.zsh -- {{ includeTemplate "brew/prefix" . }}/bin/caveman shrink-hook # chezmoi-managed-hook"}]}
-]'
-# `rtk init -g --agent claude` (run once to bootstrap this) writes this exact command
-# with no marker — reconciled away below so a manual re-run never duplicates it.
+timer='{{ .chezmoi.homeDir }}/.bin/claude-hook-timer.zsh'
+managed_hooks='{
+	"PreToolUse": [
+		{"matcher":"Bash","hooks":[{"type":"command","command":"'"$timer"' git-guard -- {{ .chezmoi.homeDir }}/.bin/agent-git-guard.zsh # chezmoi-managed-hook","timeout":10}]}
+	],
+	"UserPromptSubmit": [
+		{"hooks":[{"type":"command","command":"'"$timer"' prompt-sentinel # chezmoi-managed-hook","timeout":5}]}
+	]
+}'
+# `rtk init -g --agent claude` writes this exact command with no marker.
 stale_raw='["rtk hook claude"]'
 # `caveman hooks install claude` writes `<resolved caveman bin> shrink-hook` (any path,
 # always ending in this exact suffix) with no marker — matched by suffix below, since
@@ -79,9 +82,9 @@ printf '%s' "$current" | jq \
 	| ($live + ($d | with_entries(.key as $k | select(($live | has($k)) | not)))) as $merged
 	| (reduce ($owned[]) as $k ($merged;
 			if ($d | has($k)) then .[$k] = $d[$k] else . end)) as $enforced
-	| $enforced
-	| .hooks.PreToolUse = (
-			([($enforced.hooks.PreToolUse // [])[]
+	| reduce ($managed | keys_unsorted[]) as $event ($enforced;
+		.hooks[$event] = (
+			([(.hooks[$event] // [])[]
 				| select(
 					((.hooks // []) | any(
 						( (.command // "") as $c
@@ -91,6 +94,6 @@ printf '%s' "$current" | jq \
 					)) | not
 				)
 			])
-			+ $managed
-		)
+			+ $managed[$event]
+		))
 '
