@@ -11,6 +11,8 @@ lazyjournal = "latest"    # TUI for journalctl/docker/file logs (aqua:Lifailon/l
 # codex lives here rather than in the Brewfile because brew ships it only as a macOS cask,
 # which never installs under Linuxbrew; mise's aqua backend has prebuilt binaries for both.
 codex = "latest"                 # OpenAI coding agent CLI
+"pipx:harbor" = "latest"         # Harbor eval CLI (harbor/hr/hb) — uvx-backed
+"npm:openwiki" = "latest"        # LangChain's repo-documentation CLI for coding agents (no brew formula, not in the mise registry — npm backend)
 "npm:@playwright/cli" = "latest" # playwright-cli: browser automation for coding agents (npm backend)
 
 [settings]

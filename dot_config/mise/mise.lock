@@ -160,6 +160,14 @@ url = "https://nodejs.org/dist/v24.18.0/node-v24.18.0-win-x64.zip"
 version = "0.1.22"
 backend = "npm:@playwright/cli"
 
+[[tools."npm:openwiki"]]
+version = "0.4.3"
+backend = "npm:openwiki"
+
+[[tools."pipx:harbor"]]
+version = "0.22.0"
+backend = "pipx:harbor"
+
 [[tools.python]]
 version = "3.14.6"
 backend = "core:python"
