@@ -1,3 +1,1 @@
 # Global Instructions
-
-@RTK.md

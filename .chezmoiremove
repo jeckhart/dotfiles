@@ -33,3 +33,6 @@
 # Helix: configured and documented but never installed by Brewfile/mise anywhere in
 # this repo; nvim is the actual configured/installed editor.
 .config/helix/config.toml
+
+# rtk is not wired into Claude Code hooks; nothing imports its instructions.
+.claude/RTK.md
