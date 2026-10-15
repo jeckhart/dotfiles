@@ -3,3 +3,7 @@
 
 # Install playwright-cli's Claude Code skill into ~/.claude/skills. false removes it.
 playwrightSkills = true
+
+# Manage radicle (node config, supervisor, seeding). false treats every host as
+# unenrolled — radicle targets are skipped and the node supervisor is stopped.
+radicle = false

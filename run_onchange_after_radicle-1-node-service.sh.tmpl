@@ -4,8 +4,16 @@
 # content, so chezmoi re-runs it when any of them change — e.g. a peer's address
 # changing in 1Password re-renders config.json, changes this hash, and restarts
 # the node with the new connect list.
-{{ if eq (includeTemplate "radicle/enabled" . | trim) "absent" -}}
-exit 0  # host not enrolled in the radicle mesh (see rad-bootstrap)
+{{ if not .radicle -}}
+# radicle disabled repo-wide (.chezmoidata.toml): stop a node left running by an earlier apply.
+{{ if eq .chezmoi.os "darwin" -}}
+launchctl bootout "gui/$(id -u)/dev.radicle.node" 2>/dev/null || true
+{{ else if .isWSL2 -}}
+systemctl --user disable --now radicle-node.service 2>/dev/null || true
+{{ end -}}
+exit 0
+{{ else if eq (includeTemplate "radicle/enabled" . | trim) "absent" -}}
+exit 0 # host not enrolled in the radicle mesh (see rad-bootstrap)
 {{ else if eq .chezmoi.os "darwin" -}}
 # config hash: {{ includeTemplate "radicle/config.json" . | sha256sum }}
 # plist hash: {{ include "private_Library/LaunchAgents/dev.radicle.node.plist.tmpl" | sha256sum }}

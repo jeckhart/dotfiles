@@ -3,7 +3,12 @@
 			 reachable but the item is missing (radicle targets are then skipped), and
 			 FAILS the whole chezmoi run if 1Password is locked/unreachable — we refuse
 			 to silently un-manage radicle files on a transient auth failure.
-			 Callers: .chezmoiignore + the radicle run_onchange scripts. */ -}}
+			 Callers: .chezmoiignore + the radicle run_onchange scripts.
+			 .radicle = false (.chezmoidata.toml) short-circuits to "absent" without
+			 touching 1Password. */ -}}
+{{- if not .radicle -}}
+absent
+{{- else -}}
 {{- $op := "op" -}}
 {{- if .isWSL2 }}{{ $op = "op.exe" }}{{ end -}}
 {{- $item := printf "radicle-node-%s" (.chezmoi.hostname | lower) -}}
@@ -18,4 +23,5 @@ absent
 {{- fail "1Password is locked or unreachable; cannot determine radicle enrollment (unlock 1Password, then retry)" -}}
 {{- end -}}
 {{- $probe -}}
+{{- end -}}
 {{- end -}}

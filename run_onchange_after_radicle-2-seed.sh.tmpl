@@ -6,13 +6,13 @@
 # Working copies stay manual (rad clone); this only controls background replication.
 set -eu
 {{ if eq (includeTemplate "radicle/enabled" . | trim) "absent" -}}
-exit 0  # host not enrolled in the radicle mesh (see rad-bootstrap)
+exit 0 # host not enrolled in the radicle mesh (see rad-bootstrap)
 {{ else -}}
 {{- $op := "op" -}}
 {{- if .isWSL2 }}{{ $op = "op.exe" }}{{ end -}}
 {{- $hasMesh := output "sh" "-c" (printf "%s item get radicle-mesh --vault %q >/dev/null 2>&1 && echo yes || echo no" $op .opVault) | trim -}}
 {{- if ne $hasMesh "yes" -}}
-exit 0  # no radicle-mesh item in 1Password yet
+exit 0 # no radicle-mesh item in 1Password yet
 {{ else -}}
 {{- $mesh := onepassword "radicle-mesh" .opVault -}}
 {{- $rids := list -}}

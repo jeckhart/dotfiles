@@ -159,6 +159,8 @@ existing (probe: `.chezmoitemplates/radicle/enabled`; fails the run if 1P is loc
 `~/.radicle/config.json` is fully templated from the vault roster; the node runs
 always-on via LaunchAgent (macOS) / systemd user unit (WSL2). New machines enroll with
 `chezmoi apply` → `rad-bootstrap` → `chezmoi apply`. Full runbook: `docs/radicle.md`.
+Currently **disabled** repo-wide: `radicle = false` in `.chezmoidata.toml` skips every
+radicle target and stops the node supervisor; flip it back to `true` to re-enable.
 
 ### Embedded Rust / ESP32 Development
 
