@@ -38,6 +38,8 @@
 # python did not, and ${(z)} gets quoting right where shlex/grep don't).
 
 emulate -L zsh
+# The mise shim re-resolves the whole toolset on every call; resolve jq and friends past it.
+path=(${path:#*/mise/shims})
 setopt extended_glob
 
 # ---- config -----------------------------------------------------------------------
