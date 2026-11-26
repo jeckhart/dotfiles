@@ -31,7 +31,7 @@ renovate.json
 {{ if not .isWSL2 -}}
 .config/zsh/configs/wsl2.zsh
 .config/environment.d
-.ssh/rc
+.config/zsh/agent-link.zsh
 .bin/wsl-open
 {{- end }}
 

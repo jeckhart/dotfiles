@@ -36,3 +36,10 @@
 
 # rtk is not wired into Claude Code hooks; nothing imports its instructions.
 .claude/RTK.md
+
+# WSL2's per-connection agent-link hook moved to ~/.config/zsh/agent-link.zsh (via
+# .zshenv): Tailscale SSH never runs ~/.ssh/rc, and under OpenSSH it duplicated
+# .zshenv while disabling sshd's built-in xauth handling.
+{{ if .isWSL2 -}}
+.ssh/rc
+{{- end }}

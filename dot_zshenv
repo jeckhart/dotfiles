@@ -19,3 +19,8 @@ export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 # `bd dolt push` (git+ssh) failing fast instead of hanging if a connection or
 # auth stalls — set for every zsh (incl. non-interactive hooks/subprocesses).
 export GIT_TERMINAL_PROMPT=0
+
+# WSL2: route SSH_AUTH_SOCK through the ~/.ssh/agent.sock link (deployed on WSL2 only).
+if [[ -r $ZDOTDIR/agent-link.zsh ]]; then
+  . "$ZDOTDIR/agent-link.zsh"
+fi

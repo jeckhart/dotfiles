@@ -86,9 +86,12 @@ its own ed25519 signing key in 1Password (`Private` vault: `git-signing-personal
   `op-ssh-sign`.
 - **WSL2**: Windows named pipes aren't reachable from Linux, so the `ssh-agent-bridge`
   systemd user unit (socat + npiperelay.exe, resolved at apply time) relays the pipe to
-  `$XDG_RUNTIME_DIR/ssh-agent.sock`. Shells get the path from `wsl2.zsh`, systemd
-  services from `~/.config/environment.d/`; signing uses git's default `ssh-keygen`
-  over that socket (no `op-ssh-sign`).
+  `$XDG_RUNTIME_DIR/ssh-agent.sock`. Shells (via `.zshenv` → `zsh/agent-link.zsh`)
+  and systemd services (`environment.d`) all use the `~/.ssh/agent.sock` link, which
+  follows the last place you connected from: an inbound SSH/herdr connection repoints
+  it at that connection's forwarded agent, a local Windows terminal at the bridge, and
+  herdr panes leave it alone. Signing uses git's default `ssh-keygen` over that link
+  (no `op-ssh-sign`). Inbound :22 is Tailscale SSH, which never runs `~/.ssh/rc`.
 
 ### Secrets
 

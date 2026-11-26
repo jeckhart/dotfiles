@@ -24,12 +24,18 @@ systemctl --user daemon-reload
 loginctl enable-linger "$USER" 2>/dev/null || true
 systemctl --user enable --now ssh-agent-bridge.service
 systemctl --user try-restart ssh-agent-bridge.service || true
+# Ubuntu's openssh-client ships a keyless per-user ssh-agent whose socket unit
+# set-environments SSH_AUTH_SOCK over environment.d; mask it (--now stops it,
+# which unsets the variable) before setting ours.
+systemctl --user mask --now ssh-agent.socket ssh-agent.service 2>/dev/null || true
 # environment.d needs a re-login to reach the user manager; set it now too so
-# already-running managers (and services started this session) see the socket.
-systemctl --user set-environment "SSH_AUTH_SOCK=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ssh-agent.sock"
-# Resting default: point the stable agent link at the bridge so non-interactive git
-# (and the first shell after apply) find an agent before any SSH forward repoints it.
-ln -sf "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ssh-agent.sock" "$HOME/.ssh/agent.sock"
+# already-running managers (and services started this session) see the link.
+systemctl --user set-environment "SSH_AUTH_SOCK=$HOME/.ssh/agent.sock"
+# Resting default when the link is missing or dangling: the bridge, so
+# non-interactive git finds an agent. A live link (e.g. a forwarded agent while
+# applying over SSH) is left alone.
+[ -d "$HOME/.ssh" ] || mkdir -m 700 "$HOME/.ssh"
+[ -S "$HOME/.ssh/agent.sock" ] || ln -sf "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ssh-agent.sock" "$HOME/.ssh/agent.sock" >/dev/null
 echo "ssh-agent-bridge systemd user unit (re)loaded"
 {{ else -}}
 exit 0
