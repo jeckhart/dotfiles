@@ -12,4 +12,7 @@ if ! command -v ya >/dev/null 2>&1; then
 	echo "install-yazi-packages: ya not found, skipping 'ya pkg install' — flavors/plugins will be missing" >&2
 	exit 0
 fi
-ya pkg install
+# ya follows in-repo symlinks (e.g. chmod.yazi/LICENSE) and reads the pointed-to file as the
+# link target; on a real symlink that fails with ENAMETOOLONG. core.symlinks=false checks
+# them out as plain files holding the target path, which is what ya expects.
+GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.symlinks GIT_CONFIG_VALUE_0=false ya pkg install
